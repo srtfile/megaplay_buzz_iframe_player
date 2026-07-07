@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>MegaPlay</title>
+  <script>
+    // GitHub Pages 404 trick:
+    // When GitHub serves this for a missing path like /mal/1735/335/dub/
+    // we grab that path and redirect to index.html with it encoded as ?p=...
+    // index.html then reads ?p= and routes accordingly.
+    var seg = window.location.pathname;
+    // strip the repo prefix so index.html gets a clean relative path
+    var repo = '/megaplay_buzz_iframe_player';
+    var rel  = seg.startsWith(repo) ? seg.slice(repo.length) : seg;
+    var dest = repo + '/?p=' + encodeURIComponent(rel) + window.location.hash;
+    window.location.replace(dest);
+  </script>
+</head>
+<body></body>
+</html>
