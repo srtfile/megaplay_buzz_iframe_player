@@ -7,7 +7,13 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html, body { width: 100%; height: 100%; background: #0a0a0f; font-family: 'Segoe UI', system-ui, sans-serif; color: #e2e2e8; overflow: hidden; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #0a0a0f;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #e2e2e8;
+      overflow: hidden;
+    }
 
     #app { display: flex; flex-direction: column; width: 100%; height: 100%; }
 
@@ -15,114 +21,164 @@
     #topbar {
       display: flex; align-items: center; gap: 10px;
       padding: 0 14px; background: #13131a;
-      border-bottom: 1px solid #222230; flex-shrink: 0; flex-wrap: wrap;
+      border-bottom: 1px solid #222230;
+      flex-shrink: 0; flex-wrap: wrap;
       max-height: 0; overflow: hidden;
       transition: max-height .28s ease, padding .28s ease;
     }
-    #topbar.open { max-height: 120px; padding: 8px 14px; }
+    #topbar.open { max-height: 140px; padding: 8px 14px; }
 
-    #topbar .brand { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #7c6dfa; white-space: nowrap; }
+    .brand {
+      font-size: 13px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: #7c6dfa; white-space: nowrap;
+    }
 
     .field-group { display: flex; align-items: center; gap: 6px; }
-    .field-group label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+    .field-group label {
+      font-size: 11px; color: #888;
+      text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+    }
     .field-group input {
-      width: 72px; padding: 4px 8px; background: #1e1e2e;
-      border: 1px solid #2e2e42; border-radius: 6px; color: #e2e2e8;
-      font-size: 13px; outline: none; transition: border-color .15s;
+      width: 80px; padding: 4px 8px;
+      background: #1e1e2e; border: 1px solid #2e2e42;
+      border-radius: 6px; color: #e2e2e8; font-size: 13px;
+      outline: none; transition: border-color .15s;
     }
     .field-group input:focus { border-color: #7c6dfa; }
 
-    /* DUB / SUB */
-    #lang-toggle { display: flex; background: #1e1e2e; border: 1px solid #2e2e42; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
-    #lang-toggle button { padding: 5px 14px; font-size: 12px; font-weight: 600; border: none; background: transparent; color: #888; cursor: pointer; transition: background .15s, color .15s; }
+    /* DUB / SUB toggle */
+    #lang-toggle {
+      display: flex; background: #1e1e2e;
+      border: 1px solid #2e2e42; border-radius: 8px;
+      overflow: hidden; flex-shrink: 0;
+    }
+    #lang-toggle button {
+      padding: 5px 14px; font-size: 12px; font-weight: 600;
+      border: none; background: transparent; color: #888;
+      cursor: pointer; transition: background .15s, color .15s;
+    }
     #lang-toggle button.active { background: #7c6dfa; color: #fff; }
 
-    /* Auto-next */
+    /* Auto-next toggle */
     #autonext-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
-    #autonext-wrap span { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+    #autonext-wrap span {
+      font-size: 11px; color: #888;
+      text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+    }
     .switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
     .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; inset: 0; background: #2e2e42; border-radius: 20px; cursor: pointer; transition: background .2s; }
-    .slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .2s; }
+    .slider {
+      position: absolute; inset: 0; background: #2e2e42;
+      border-radius: 20px; cursor: pointer; transition: background .2s;
+    }
+    .slider::before {
+      content: ''; position: absolute;
+      width: 14px; height: 14px; left: 3px; top: 3px;
+      background: #fff; border-radius: 50%; transition: transform .2s;
+    }
     .switch input:checked + .slider { background: #7c6dfa; }
     .switch input:checked + .slider::before { transform: translateX(16px); }
 
     /* Play button */
-    #btn-go { padding: 5px 16px; background: #7c6dfa; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; white-space: nowrap; }
+    #btn-go {
+      padding: 5px 16px; background: #7c6dfa; color: #fff;
+      border: none; border-radius: 8px; font-size: 13px;
+      font-weight: 600; cursor: pointer; white-space: nowrap;
+      transition: background .15s;
+    }
     #btn-go:hover { background: #6a5be0; }
-
-    #url-display { flex: 1; min-width: 0; font-size: 11px; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* ── Player area ── */
     #player-wrap { flex: 1; position: relative; background: #000; overflow: hidden; }
     #player-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 
-    #placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #444; }
+    #placeholder {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; color: #444;
+    }
     #placeholder svg { opacity: .3; }
     #placeholder p { font-size: 14px; }
+    #placeholder .hint { font-size: 12px; color: #333; }
+
     #player-iframe { display: none; }
 
-    /* Floating settings toggle */
+    /* Floating settings gear button */
     #toggle-bar-btn {
       position: absolute; top: 10px; right: 12px; z-index: 20;
-      width: 32px; height: 32px; background: rgba(19,19,26,.85);
-      border: 1px solid #2e2e42; border-radius: 8px; cursor: pointer;
+      width: 32px; height: 32px;
+      background: rgba(19,19,26,.85);
+      border: 1px solid #2e2e42; border-radius: 8px;
+      cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      backdrop-filter: blur(4px); transition: background .15s, border-color .15s;
+      backdrop-filter: blur(4px);
+      transition: background .15s, border-color .15s;
     }
     #toggle-bar-btn:hover { background: rgba(40,40,60,.95); border-color: #7c6dfa; }
     #toggle-bar-btn svg { display: block; transition: transform .25s ease; }
     #toggle-bar-btn.open svg { transform: rotate(180deg); }
 
-    /* ── Centered Prev / Next floating buttons ── */
+    /* ── Prev / Next: centered bottom, HIDDEN by default ── */
     #ep-nav {
       position: absolute;
-      bottom: 36px;
+      bottom: 40px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 20;
       display: flex;
       align-items: center;
-      gap: 12px;
-      /* hidden by default */
+      gap: 14px;
+      /* hidden */
       opacity: 0;
       pointer-events: none;
-      transition: opacity .25s ease;
+      transition: opacity .3s ease;
     }
-    /* Show on player-wrap hover or when topbar is open */
-    #player-wrap:hover #ep-nav,
-    #ep-nav.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    /* reveal on player hover */
+    #player-wrap:hover #ep-nav { opacity: 1; pointer-events: auto; }
 
-    .ep-step-btn {
-      display: flex; align-items: center; gap: 6px;
-      padding: 8px 18px;
-      background: rgba(19,19,26,.88);
-      border: 1px solid #2e2e42;
-      border-radius: 10px; color: #ccc; font-size: 13px; font-weight: 600;
+    .ep-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 20px;
+      background: rgba(10,10,20,.82);
+      border: 1px solid rgba(124,109,250,.35);
+      border-radius: 12px;
+      color: #ccc; font-size: 13px; font-weight: 600;
       cursor: pointer; white-space: nowrap;
-      backdrop-filter: blur(6px);
-      transition: background .15s, border-color .15s, color .15s, transform .12s;
-      flex-shrink: 0;
+      backdrop-filter: blur(8px);
+      transition: background .18s, border-color .18s, color .18s, transform .12s;
+      user-select: none;
     }
-    .ep-step-btn:hover { background: rgba(124,109,250,.25); border-color: #7c6dfa; color: #fff; transform: scale(1.04); }
-    .ep-step-btn svg { display: block; flex-shrink: 0; }
+    .ep-btn:hover {
+      background: rgba(124,109,250,.22);
+      border-color: #7c6dfa;
+      color: #fff;
+      transform: scale(1.05);
+    }
+    .ep-btn:active { transform: scale(.97); }
+    .ep-btn svg { display: block; flex-shrink: 0; }
 
-    /* Auto-next countdown overlay */
+    /* ── Auto-next countdown overlay ── */
     #autonext-overlay {
-      display: none; position: absolute; bottom: 28px; right: 28px;
-      background: rgba(10,10,15,.88); border: 1px solid #2e2e42;
-      border-radius: 14px; padding: 14px 20px; min-width: 220px; z-index: 10; backdrop-filter: blur(6px);
+      display: none;
+      position: absolute; bottom: 28px; right: 28px;
+      background: rgba(10,10,15,.9);
+      border: 1px solid #2e2e42;
+      border-radius: 14px; padding: 14px 20px;
+      min-width: 220px; z-index: 30;
+      backdrop-filter: blur(6px);
     }
-    #autonext-overlay .an-title { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
-    #autonext-overlay .an-ep { font-size: 15px; font-weight: 700; color: #e2e2e8; margin-bottom: 10px; }
+    .an-title { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+    .an-ep    { font-size: 15px; font-weight: 700; color: #e2e2e8; margin-bottom: 10px; }
     #an-bar-bg { width: 100%; height: 4px; background: #2e2e42; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
-    #an-bar { height: 100%; width: 100%; background: #7c6dfa; border-radius: 4px; transform-origin: left; transition: transform linear; }
-    .an-btns { display: flex; gap: 8px; }
-    .an-btns button { flex: 1; padding: 5px 0; border: none; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; }
-    #an-btn-now { background: #7c6dfa; color: #fff; }
+    #an-bar    { height: 100%; width: 100%; background: #7c6dfa; border-radius: 4px; transform-origin: left; transition: transform linear; }
+    .an-btns   { display: flex; gap: 8px; }
+    .an-btns button {
+      flex: 1; padding: 6px 0; border: none;
+      border-radius: 7px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: background .15s;
+    }
+    #an-btn-now    { background: #7c6dfa; color: #fff; }
     #an-btn-now:hover { background: #6a5be0; }
     #an-btn-cancel { background: #1e1e2e; color: #aaa; border: 1px solid #2e2e42; }
     #an-btn-cancel:hover { background: #2e2e42; }
@@ -131,7 +187,7 @@
 <body>
 <div id="app">
 
-  <!-- Controls bar -->
+  <!-- Controls bar (collapsed by default) -->
   <div id="topbar">
     <span class="brand">▶ MegaPlay</span>
 
@@ -145,13 +201,11 @@
       <input id="inp-ep" type="number" placeholder="e.g. 11" min="1">
     </div>
 
-    <!-- DUB / SUB -->
     <div id="lang-toggle">
       <button id="btn-dub" class="active" onclick="setLang('dub')">DUB</button>
       <button id="btn-sub" onclick="setLang('sub')">SUB</button>
     </div>
 
-    <!-- Auto-next -->
     <div id="autonext-wrap">
       <span>Auto-Next</span>
       <label class="switch">
@@ -160,41 +214,50 @@
       </label>
     </div>
 
-    <button id="btn-go" onclick="loadPlayer()">Play</button>
-
-    <span id="url-display"></span>
+    <button id="btn-go" onclick="loadPlayer()">▶ Play</button>
   </div>
 
   <!-- Player -->
   <div id="player-wrap">
 
-    <!-- Settings toggle -->
-    <button id="toggle-bar-btn" onclick="toggleBar()" title="Show / hide controls">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Gear toggle (always visible top-right) -->
+    <button id="toggle-bar-btn" onclick="toggleBar()" title="Toggle controls">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+           stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="3 6 8 11 13 6"/>
       </svg>
     </button>
 
+    <!-- Placeholder -->
     <div id="placeholder">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
         <circle cx="12" cy="12" r="10"/>
         <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
       </svg>
       <p>Click ⌄ top-right to open controls</p>
-      <p style="font-size:12px;color:#333">or open a URL like /mal/1735/11/dub/</p>
+      <p class="hint">or paste a URL like …/mal/1735/11/dub/</p>
     </div>
 
-    <iframe id="player-iframe" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="origin"></iframe>
+    <iframe id="player-iframe"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen
+            referrerpolicy="origin"></iframe>
 
-    <!-- Centered Prev / Next (hidden by default, shown on hover) -->
+    <!-- Prev / Next — centered, hidden until hover -->
     <div id="ep-nav">
-      <button class="ep-step-btn" onclick="goPrevEp()" title="Previous episode">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <button class="ep-btn" id="btn-prev" onclick="goPrevEp()" title="Previous episode">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
         Prev
       </button>
-      <button class="ep-step-btn" onclick="goNextEp()" title="Next episode">
+      <button class="ep-btn" id="btn-next" onclick="goNextEp()" title="Next episode">
         Next
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
       </button>
     </div>
 
@@ -204,7 +267,7 @@
       <div class="an-ep" id="an-ep-label">Episode —</div>
       <div id="an-bar-bg"><div id="an-bar"></div></div>
       <div class="an-btns">
-        <button id="an-btn-now" onclick="goNextNow()">Play Now</button>
+        <button id="an-btn-now"    onclick="goNextNow()">Play Now</button>
         <button id="an-btn-cancel" onclick="cancelAutoNext()">Cancel</button>
       </div>
     </div>
@@ -212,166 +275,215 @@
 
 </div>
 <script>
-  let currentLang   = 'dub';
-  let autoNextTimer = null;
+  // ─────────────────────────────────────────────────────────────────
+  //  CONSTANTS
+  // ─────────────────────────────────────────────────────────────────
+  const REPO        = '/megaplay_buzz_iframe_player';   // GitHub Pages repo path
   const COUNTDOWN_S = 10;
 
-  // ── Base path ──────────────────────────────────────────────────────────────
-  // Works for GitHub Pages at /megaplay_buzz_iframe_player/ or any subpath.
-  // Strips any trailing /mal/… segment so the root is always the repo root.
-  const BASE_PATH = (function () {
-    const p   = location.pathname;
-    const cut = p.indexOf('/mal/');
-    // If /mal/ found, keep everything up to (and including) the char before /mal/
-    const root = cut !== -1
-      ? p.slice(0, cut + 1)               // e.g. /megaplay_buzz_iframe_player/
-      : (p.endsWith('/') ? p : p + '/');   // ensure trailing slash
-    return location.origin + root;
+  let currentLang   = 'dub';
+  let autoNextTimer = null;
+  let endWatchInterval = null;
+
+  // ─────────────────────────────────────────────────────────────────
+  //  GITHUB PAGES 404 → index.html redirect recovery
+  //  404.html encodes the original path as ?p=...
+  //  We recover it here before doing anything else.
+  // ─────────────────────────────────────────────────────────────────
+  (function recoverRedirect() {
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get('p');
+    if (!encoded) return;
+    // Remove ?p= from the address bar and replace with the real path,
+    // then let parseUrl() handle it normally.
+    const realPath = REPO + encoded;
+    window.history.replaceState(null, '', realPath);
   })();
 
-  // Toggle bar
+  // ─────────────────────────────────────────────────────────────────
+  //  HELPERS
+  // ─────────────────────────────────────────────────────────────────
+  function buildSrc(malId, ep, lang) {
+    return `https://megaplay.buzz/stream/mal/${malId}/${ep}/${lang}?autostart=true`;
+  }
+
+  function buildPageUrl(malId, ep, lang) {
+    return `${REPO}/mal/${malId}/${ep}/${lang}/`;
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  //  UI CONTROLS
+  // ─────────────────────────────────────────────────────────────────
   function toggleBar() {
-    const bar  = document.getElementById('topbar');
-    const btn  = document.getElementById('toggle-bar-btn');
+    const bar = document.getElementById('topbar');
+    const btn = document.getElementById('toggle-bar-btn');
     const open = bar.classList.toggle('open');
     btn.classList.toggle('open', open);
   }
 
-  // Build megaplay src URL
-  function buildSrc(malId, episode, lang) {
-    return `https://megaplay.buzz/stream/mal/${malId}/${episode}/${lang}?autostart=true`;
-  }
-
-  function buildPageUrl(malId, episode, lang) {
-    return `${BASE_PATH}mal/${malId}/${episode}/${lang}/`;
-  }
-
-  // Language switch
   function setLang(lang) {
     currentLang = lang;
     document.getElementById('btn-dub').classList.toggle('active', lang === 'dub');
     document.getElementById('btn-sub').classList.toggle('active', lang === 'sub');
-    const malId   = document.getElementById('inp-mal').value.trim();
-    const episode = document.getElementById('inp-ep').value.trim();
-    if (malId && episode && document.getElementById('player-iframe').style.display !== 'none') {
-      showPlayer(buildSrc(malId, episode, lang), malId, episode, lang);
+    // If already playing, reload in new lang
+    const iframe = document.getElementById('player-iframe');
+    const malId  = document.getElementById('inp-mal').value.trim();
+    const ep     = document.getElementById('inp-ep').value.trim();
+    if (malId && ep && iframe.style.display !== 'none') {
+      showPlayer(buildSrc(malId, ep, lang), malId, ep, lang);
     }
   }
 
-  // Core: load a stream
-  function showPlayer(src, malId, episode, lang) {
+  // ─────────────────────────────────────────────────────────────────
+  //  CORE PLAYER
+  // ─────────────────────────────────────────────────────────────────
+  function showPlayer(src, malId, ep, lang) {
     cancelAutoNext();
+    currentLang = lang;
+
     const iframe      = document.getElementById('player-iframe');
     const placeholder = document.getElementById('placeholder');
-    iframe.src                = src;
-    iframe.style.display      = 'block';
+
+    iframe.src           = src;
+    iframe.style.display = 'block';
     placeholder.style.display = 'none';
+
+    // Sync inputs
     document.getElementById('inp-mal').value = malId;
-    document.getElementById('inp-ep').value  = episode;
-    const prettyUrl = buildPageUrl(malId, episode, lang);
-    history.replaceState({ malId, episode, lang }, '', prettyUrl);
-    document.getElementById('url-display').textContent = prettyUrl;
-    document.title = `MAL ${malId} · Ep ${episode} · ${lang.toUpperCase()}`;
-    watchForEnd(iframe, malId, episode, lang);
+    document.getElementById('inp-ep').value  = ep;
+
+    // Sync lang buttons without re-triggering setLang
+    document.getElementById('btn-dub').classList.toggle('active', lang === 'dub');
+    document.getElementById('btn-sub').classList.toggle('active', lang === 'sub');
+
+    // Update URL bar (won't 404 — user is already on index.html)
+    const prettyUrl = buildPageUrl(malId, ep, lang);
+    history.replaceState({ malId, ep, lang }, '', prettyUrl);
+    document.title = `MAL ${malId} · Ep ${ep} · ${lang.toUpperCase()}`;
+
+    watchForEnd(iframe, malId, ep, lang);
   }
 
   function loadPlayer() {
-    const malId   = document.getElementById('inp-mal').value.trim();
-    const episode = document.getElementById('inp-ep').value.trim();
-    if (!malId || !episode) { alert('Please enter both a MAL ID and an episode number.'); return; }
-    showPlayer(buildSrc(malId, episode, currentLang), malId, episode, currentLang);
+    const malId = document.getElementById('inp-mal').value.trim();
+    const ep    = document.getElementById('inp-ep').value.trim();
+    if (!malId || !ep) {
+      alert('Please enter both a MAL ID and an episode number.');
+      return;
+    }
+    showPlayer(buildSrc(malId, ep, currentLang), malId, ep, currentLang);
   }
 
-  // Prev / Next
+  // ─────────────────────────────────────────────────────────────────
+  //  PREV / NEXT
+  // ─────────────────────────────────────────────────────────────────
   function goPrevEp() {
-    const malId   = document.getElementById('inp-mal').value.trim();
-    const episode = parseInt(document.getElementById('inp-ep').value.trim(), 10);
-    if (!malId || episode <= 1) return;
-    showPlayer(buildSrc(malId, episode - 1, currentLang), malId, episode - 1, currentLang);
+    const malId = document.getElementById('inp-mal').value.trim();
+    const ep    = parseInt(document.getElementById('inp-ep').value.trim(), 10);
+    if (!malId || isNaN(ep) || ep <= 1) return;
+    showPlayer(buildSrc(malId, ep - 1, currentLang), malId, ep - 1, currentLang);
   }
 
   function goNextEp() {
-    const malId   = document.getElementById('inp-mal').value.trim();
-    const episode = parseInt(document.getElementById('inp-ep').value.trim(), 10);
-    if (!malId || !episode) return;
-    showPlayer(buildSrc(malId, episode + 1, currentLang), malId, episode + 1, currentLang);
+    const malId = document.getElementById('inp-mal').value.trim();
+    const ep    = parseInt(document.getElementById('inp-ep').value.trim(), 10);
+    if (!malId || isNaN(ep)) return;
+    showPlayer(buildSrc(malId, ep + 1, currentLang), malId, ep + 1, currentLang);
   }
 
-  // End-of-episode detection
-  let endWatchInterval = null;
-  function watchForEnd(iframe, malId, episode, lang) {
+  // ─────────────────────────────────────────────────────────────────
+  //  END-OF-EPISODE DETECTION → Auto-Next
+  // ─────────────────────────────────────────────────────────────────
+  function watchForEnd(iframe, malId, ep, lang) {
     clearInterval(endWatchInterval);
+
     function onMessage(e) {
-      const d = e.data; if (!d) return;
+      const d = e.data;
+      if (!d) return;
       const str = typeof d === 'string' ? d : JSON.stringify(d);
-      if (/ended|complete|finish|event.*end/i.test(str)) { cleanup(); triggerAutoNext(malId, episode, lang); }
+      if (/ended|complete|finish|event.*end/i.test(str)) {
+        cleanup();
+        triggerAutoNext(malId, ep, lang);
+      }
     }
+
     window.addEventListener('message', onMessage);
+
     endWatchInterval = setInterval(() => {
-      try { const s = iframe.src || ''; if (s === '' || s === 'about:blank') { cleanup(); triggerAutoNext(malId, episode, lang); } } catch(_){}
+      try {
+        const s = iframe.src || '';
+        if (s === '' || s === 'about:blank') { cleanup(); triggerAutoNext(malId, ep, lang); }
+      } catch(_) {}
     }, 2000);
-    function cleanup() { clearInterval(endWatchInterval); window.removeEventListener('message', onMessage); }
+
+    function cleanup() {
+      clearInterval(endWatchInterval);
+      window.removeEventListener('message', onMessage);
+    }
     iframe._cleanup = cleanup;
   }
 
-  // Auto-next countdown
-  function triggerAutoNext(malId, episode, lang) {
+  // ─────────────────────────────────────────────────────────────────
+  //  AUTO-NEXT COUNTDOWN
+  // ─────────────────────────────────────────────────────────────────
+  function triggerAutoNext(malId, ep, lang) {
     if (!document.getElementById('chk-autonext').checked) return;
-    const nextEp = parseInt(episode, 10) + 1;
+    const nextEp = parseInt(ep, 10) + 1;
     document.getElementById('an-ep-label').textContent = `Episode ${nextEp}`;
+
     const overlay = document.getElementById('autonext-overlay');
     const bar     = document.getElementById('an-bar');
     overlay.style.display = 'block';
-    bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)';
-    bar.getBoundingClientRect();
-    bar.style.transition = `transform ${COUNTDOWN_S}s linear`; bar.style.transform = 'scaleX(0)';
+
+    bar.style.transition = 'none';
+    bar.style.transform  = 'scaleX(1)';
+    bar.getBoundingClientRect(); // force reflow
+    bar.style.transition = `transform ${COUNTDOWN_S}s linear`;
+    bar.style.transform  = 'scaleX(0)';
+
     let remaining = COUNTDOWN_S;
-    autoNextTimer = setInterval(() => { remaining--; if (remaining <= 0) goNextNow(); }, 1000);
+    autoNextTimer = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) goNextNow();
+    }, 1000);
   }
 
   function goNextNow() {
     cancelAutoNext();
-    const malId   = document.getElementById('inp-mal').value.trim();
-    const episode = parseInt(document.getElementById('inp-ep').value.trim(), 10);
-    if (!malId || !episode) return;
-    showPlayer(buildSrc(malId, episode + 1, currentLang), malId, episode + 1, currentLang);
+    const malId = document.getElementById('inp-mal').value.trim();
+    const ep    = parseInt(document.getElementById('inp-ep').value.trim(), 10);
+    if (!malId || isNaN(ep)) return;
+    showPlayer(buildSrc(malId, ep + 1, currentLang), malId, ep + 1, currentLang);
   }
 
   function cancelAutoNext() {
-    clearInterval(autoNextTimer); autoNextTimer = null;
+    clearInterval(autoNextTimer);
+    autoNextTimer = null;
     const overlay = document.getElementById('autonext-overlay');
     if (overlay) overlay.style.display = 'none';
     const iframe = document.getElementById('player-iframe');
     if (iframe && iframe._cleanup) { iframe._cleanup(); iframe._cleanup = null; }
   }
 
-  // ── Parse URL on load ──────────────────────────────────────────────────────
-  // Supports:
-  //   /mal/1735/336/
-  //   /mal/1735/336/dub/
-  //   /mal/1735/336/sub
-  //   ?mal=1735&ep=336&lang=dub
+  // ─────────────────────────────────────────────────────────────────
+  //  URL PARSER — runs on page load
+  //  Handles both:
+  //    • Direct path:  /megaplay_buzz_iframe_player/mal/1735/335/dub/
+  //    • After 404 redirect recovery (path already rewritten above)
+  // ─────────────────────────────────────────────────────────────────
   (function parseUrl() {
-    const path = location.pathname;
-    // match /mal/{id}/{ep} with optional /dub|sub with optional trailing slash
-    const malMatch = path.match(/\/mal\/(\d+)\/(\d+)(?:\/(dub|sub))?(?:\/)?$/i);
-    const params   = new URLSearchParams(location.search);
+    const path = window.location.pathname;
 
-    let malId   = malMatch ? malMatch[1] : params.get('mal');
-    let episode = malMatch ? malMatch[2] : params.get('ep');
-    let lang    = (malMatch && malMatch[3])
-                    ? malMatch[3].toLowerCase()
-                    : (params.get('lang') || 'dub');
-    if (lang !== 'sub') lang = 'dub';
+    // Match /mal/{malId}/{episode}/{lang?} with optional trailing slash
+    const m = path.match(/\/mal\/(\d+)\/(\d+)(?:\/(dub|sub))?(?:\/)?$/i);
 
-    if (malId)   document.getElementById('inp-mal').value = malId;
-    if (episode) document.getElementById('inp-ep').value  = episode;
-
-    setLang(lang); // set toggle highlight
-
-    if (malId && episode) {
-      showPlayer(buildSrc(malId, episode, lang), malId, episode, lang);
+    if (m) {
+      const malId = m[1];
+      const ep    = m[2];
+      const lang  = (m[3] || 'dub').toLowerCase() === 'sub' ? 'sub' : 'dub';
+      showPlayer(buildSrc(malId, ep, lang), malId, ep, lang);
     }
+    // else: nothing in URL — just show placeholder, user opens controls manually
   })();
 </script>
 </body>
