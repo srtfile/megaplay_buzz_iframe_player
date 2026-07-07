@@ -25,14 +25,23 @@
 
     /* ── Top bar ── */
     #topbar {
+      position: relative;
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 8px 14px;
+      padding: 0 14px;
       background: #13131a;
       border-bottom: 1px solid #222230;
       flex-shrink: 0;
       flex-wrap: wrap;
+      /* collapsed by default — zero height, no padding */
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .28s ease, padding .28s ease;
+    }
+    #topbar.open {
+      max-height: 120px;   /* enough for wrap */
+      padding: 8px 14px;
     }
 
     #topbar .brand {
@@ -109,7 +118,6 @@
       letter-spacing: .06em;
       white-space: nowrap;
     }
-    /* pill toggle switch */
     .switch {
       position: relative;
       width: 36px;
@@ -196,6 +204,30 @@
 
     #player-iframe { display: none; }
 
+    /* ── Floating toggle button (always visible) ── */
+    #toggle-bar-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      z-index: 20;
+      width: 32px;
+      height: 32px;
+      background: rgba(19,19,26,.85);
+      border: 1px solid #2e2e42;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      transition: background .15s, border-color .15s;
+    }
+    #toggle-bar-btn:hover { background: rgba(40,40,60,.95); border-color: #7c6dfa; }
+    #toggle-bar-btn svg { display: block; }
+    /* chevron rotates when open */
+    #toggle-bar-btn.open svg { transform: rotate(180deg); }
+    #toggle-bar-btn svg { transition: transform .25s ease; }
+
     /* ── Auto-next countdown overlay ── */
     #autonext-overlay {
       display: none;
@@ -223,7 +255,6 @@
       color: #e2e2e8;
       margin-bottom: 10px;
     }
-    /* progress bar */
     #an-bar-bg {
       width: 100%;
       height: 4px;
@@ -240,10 +271,7 @@
       transform-origin: left;
       transition: transform linear;
     }
-    .an-btns {
-      display: flex;
-      gap: 8px;
-    }
+    .an-btns { display: flex; gap: 8px; }
     .an-btns button {
       flex: 1;
       padding: 5px 0;
@@ -254,8 +282,8 @@
       cursor: pointer;
       transition: background .15s;
     }
-    #an-btn-now  { background: #7c6dfa; color: #fff; }
-    #an-btn-now:hover  { background: #6a5be0; }
+    #an-btn-now { background: #7c6dfa; color: #fff; }
+    #an-btn-now:hover { background: #6a5be0; }
     #an-btn-cancel { background: #1e1e2e; color: #aaa; border: 1px solid #2e2e42; }
     #an-btn-cancel:hover { background: #2e2e42; }
   </style>
@@ -263,6 +291,7 @@
 <body>
 <div id="app">
 
+  <!-- Controls bar — hidden by default -->
   <div id="topbar">
     <span class="brand">▶ MegaPlay</span>
 
@@ -281,7 +310,6 @@
       <button id="btn-sub" onclick="setLang('sub')">SUB</button>
     </div>
 
-    <!-- Auto-next toggle -->
     <div id="autonext-wrap">
       <span>Auto-Next</span>
       <label class="switch">
@@ -295,14 +323,23 @@
     <span id="url-display"></span>
   </div>
 
+  <!-- Player -->
   <div id="player-wrap">
+
+    <!-- Floating chevron button to show/hide controls -->
+    <button id="toggle-bar-btn" onclick="toggleBar()" title="Show / hide controls">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 8 11 13 6"/>
+      </svg>
+    </button>
+
     <div id="placeholder">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
         <circle cx="12" cy="12" r="10"/>
         <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
       </svg>
-      <p>Enter a MAL ID &amp; episode, or open a direct URL</p>
-      <p style="font-size:12px;color:#333">e.g. /mal/1735/11/</p>
+      <p>Click ⌄ in the top-right to open controls</p>
+      <p style="font-size:12px;color:#333">or open a URL like /mal/1735/11/</p>
     </div>
 
     <iframe
@@ -328,15 +365,22 @@
 
 <script>
   // ── State ──────────────────────────────────────────────────────────────────
-  let currentLang    = 'dub';
-  let autoNextTimer  = null;   // setInterval handle
-  const COUNTDOWN_S  = 10;     // seconds before auto-advancing
+  let currentLang   = 'dub';
+  let autoNextTimer = null;
+  const COUNTDOWN_S = 10;
+
+  // ── Toggle controls bar ────────────────────────────────────────────────────
+  function toggleBar() {
+    const bar = document.getElementById('topbar');
+    const btn = document.getElementById('toggle-bar-btn');
+    const open = bar.classList.toggle('open');
+    btn.classList.toggle('open', open);
+  }
 
   // ── URL helpers ────────────────────────────────────────────────────────────
   function buildSrc(malId, episode, lang) {
     return `https://megaplay.buzz/stream/mal/${malId}/${episode}/${lang}?autostart=true`;
   }
-
   function buildPageUrl(malId, episode, lang) {
     const base = `${location.origin}${location.pathname}`;
     return `${base}mal/${malId}/${episode}/${lang}/`;
@@ -355,15 +399,15 @@
     }
   }
 
-  // ── Core player ───────────────────────────────────────────────────────────
+  // ── Core player ────────────────────────────────────────────────────────────
   function showPlayer(src, malId, episode, lang) {
-    cancelAutoNext();   // clear any pending countdown when loading a new ep
+    cancelAutoNext();
 
     const iframe      = document.getElementById('player-iframe');
     const placeholder = document.getElementById('placeholder');
 
-    iframe.src             = src;
-    iframe.style.display   = 'block';
+    iframe.src                = src;
+    iframe.style.display      = 'block';
     placeholder.style.display = 'none';
 
     document.getElementById('inp-mal').value = malId;
@@ -374,7 +418,6 @@
     document.getElementById('url-display').textContent = prettyUrl;
     document.title = `MAL ${malId} · Ep ${episode} · ${lang.toUpperCase()}`;
 
-    // Start listening for the iframe to finish
     watchForEnd(iframe, malId, episode, lang);
   }
 
@@ -388,24 +431,16 @@
     showPlayer(buildSrc(malId, episode, currentLang), malId, episode, currentLang);
   }
 
-  // ── Auto-next detection ────────────────────────────────────────────────────
-  //
-  // megaplay.buzz is cross-origin so we can't read its DOM directly.
-  // Strategy: poll the iframe's contentWindow for an "ended" state.
-  // Many embed players post a window message when they finish; we listen for
-  // common payloads AND do a fallback heartbeat poll.
-  //
+  // ── End detection ──────────────────────────────────────────────────────────
   let endWatchInterval = null;
 
   function watchForEnd(iframe, malId, episode, lang) {
     clearInterval(endWatchInterval);
 
-    // 1️⃣  postMessage listener – catches players that broadcast "ended"
     function onMessage(e) {
       const d = e.data;
       if (!d) return;
       const str = typeof d === 'string' ? d : JSON.stringify(d);
-      // Common keys sent by JWPlayer, Plyr, VideoJS, custom embeds
       if (/ended|complete|finish|event.*end/i.test(str)) {
         cleanup();
         triggerAutoNext(malId, episode, lang);
@@ -413,14 +448,10 @@
     }
     window.addEventListener('message', onMessage);
 
-    // 2️⃣  Heartbeat poll – detect when the iframe stops loading / src goes blank
-    //     (some players navigate the iframe to about:blank when done)
-    let stableChecks = 0;
     endWatchInterval = setInterval(() => {
       try {
-        const iframeSrc = iframe.src || '';
-        // If the player has navigated away to a blank/ended page
-        if (iframeSrc === '' || iframeSrc === 'about:blank') {
+        const s = iframe.src || '';
+        if (s === '' || s === 'about:blank') {
           cleanup();
           triggerAutoNext(malId, episode, lang);
         }
@@ -431,12 +462,10 @@
       clearInterval(endWatchInterval);
       window.removeEventListener('message', onMessage);
     }
-
-    // Store cleanup so cancelAutoNext can also stop the watcher
     iframe._cleanup = cleanup;
   }
 
-  // ── Countdown overlay ─────────────────────────────────────────────────────
+  // ── Countdown overlay ──────────────────────────────────────────────────────
   function triggerAutoNext(malId, episode, lang) {
     if (!document.getElementById('chk-autonext').checked) return;
 
@@ -447,10 +476,8 @@
     const bar     = document.getElementById('an-bar');
     overlay.style.display = 'block';
 
-    // Animate bar from 100% → 0% over COUNTDOWN_S seconds
     bar.style.transition = 'none';
     bar.style.transform  = 'scaleX(1)';
-    // Force reflow so the transition reset takes effect
     bar.getBoundingClientRect();
     bar.style.transition = `transform ${COUNTDOWN_S}s linear`;
     bar.style.transform  = 'scaleX(0)';
@@ -458,9 +485,7 @@
     let remaining = COUNTDOWN_S;
     autoNextTimer = setInterval(() => {
       remaining--;
-      if (remaining <= 0) {
-        goNextNow();
-      }
+      if (remaining <= 0) goNextNow();
     }, 1000);
   }
 
@@ -469,8 +494,7 @@
     const malId   = document.getElementById('inp-mal').value.trim();
     const episode = parseInt(document.getElementById('inp-ep').value.trim(), 10);
     if (!malId || !episode) return;
-    const nextEp = episode + 1;
-    showPlayer(buildSrc(malId, nextEp, currentLang), malId, nextEp, currentLang);
+    showPlayer(buildSrc(malId, episode + 1, currentLang), malId, episode + 1, currentLang);
   }
 
   function cancelAutoNext() {
@@ -478,12 +502,11 @@
     autoNextTimer = null;
     const overlay = document.getElementById('autonext-overlay');
     if (overlay) overlay.style.display = 'none';
-    // Also stop the end-watcher if active
     const iframe = document.getElementById('player-iframe');
     if (iframe && iframe._cleanup) { iframe._cleanup(); iframe._cleanup = null; }
   }
 
-  // ── Parse URL on load ─────────────────────────────────────────────────────
+  // ── Parse URL on load ──────────────────────────────────────────────────────
   (function parseUrl() {
     const path     = location.pathname;
     const malMatch = path.match(/\/mal\/(\d+)\/(\d+)(?:\/(dub|sub))?/i);
