@@ -37,17 +37,6 @@
     #lang-toggle button { padding: 5px 14px; font-size: 12px; font-weight: 600; border: none; background: transparent; color: #888; cursor: pointer; transition: background .15s, color .15s; }
     #lang-toggle button.active { background: #7c6dfa; color: #fff; }
 
-    /* Prev / Next episode — inline in topbar */
-    .ep-step-btn {
-      display: flex; align-items: center; gap: 5px;
-      padding: 5px 11px; background: #1e1e2e; border: 1px solid #2e2e42;
-      border-radius: 8px; color: #aaa; font-size: 12px; font-weight: 600;
-      cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s, color .15s;
-      flex-shrink: 0;
-    }
-    .ep-step-btn:hover { background: #2a2a3e; border-color: #7c6dfa; color: #fff; }
-    .ep-step-btn svg { display: block; flex-shrink: 0; }
-
     /* Auto-next */
     #autonext-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
     #autonext-wrap span { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
@@ -84,6 +73,42 @@
     #toggle-bar-btn:hover { background: rgba(40,40,60,.95); border-color: #7c6dfa; }
     #toggle-bar-btn svg { display: block; transition: transform .25s ease; }
     #toggle-bar-btn.open svg { transform: rotate(180deg); }
+
+    /* ── Centered Prev / Next floating buttons ── */
+    #ep-nav {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      /* hidden by default */
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+    }
+    /* Show on player-wrap hover or when topbar is open */
+    #player-wrap:hover #ep-nav,
+    #ep-nav.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .ep-step-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 18px;
+      background: rgba(19,19,26,.88);
+      border: 1px solid #2e2e42;
+      border-radius: 10px; color: #ccc; font-size: 13px; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
+      backdrop-filter: blur(6px);
+      transition: background .15s, border-color .15s, color .15s, transform .12s;
+      flex-shrink: 0;
+    }
+    .ep-step-btn:hover { background: rgba(124,109,250,.25); border-color: #7c6dfa; color: #fff; transform: scale(1.04); }
+    .ep-step-btn svg { display: block; flex-shrink: 0; }
 
     /* Auto-next countdown overlay */
     #autonext-overlay {
@@ -126,17 +151,6 @@
       <button id="btn-sub" onclick="setLang('sub')">SUB</button>
     </div>
 
-    <!-- Prev / Next sit right next to DUB/SUB -->
-    <button class="ep-step-btn" onclick="goPrevEp()" title="Previous episode">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      Prev
-    </button>
-
-    <button class="ep-step-btn" onclick="goNextEp()" title="Next episode">
-      Next
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-
     <!-- Auto-next -->
     <div id="autonext-wrap">
       <span>Auto-Next</span>
@@ -154,6 +168,7 @@
   <!-- Player -->
   <div id="player-wrap">
 
+    <!-- Settings toggle -->
     <button id="toggle-bar-btn" onclick="toggleBar()" title="Show / hide controls">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="3 6 8 11 13 6"/>
@@ -170,6 +185,18 @@
     </div>
 
     <iframe id="player-iframe" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="origin"></iframe>
+
+    <!-- Centered Prev / Next (hidden by default, shown on hover) -->
+    <div id="ep-nav">
+      <button class="ep-step-btn" onclick="goPrevEp()" title="Previous episode">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Prev
+      </button>
+      <button class="ep-step-btn" onclick="goNextEp()" title="Next episode">
+        Next
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
 
     <!-- Auto-next countdown -->
     <div id="autonext-overlay">
@@ -189,6 +216,19 @@
   let autoNextTimer = null;
   const COUNTDOWN_S = 10;
 
+  // ── Base path ──────────────────────────────────────────────────────────────
+  // Works for GitHub Pages at /megaplay_buzz_iframe_player/ or any subpath.
+  // Strips any trailing /mal/… segment so the root is always the repo root.
+  const BASE_PATH = (function () {
+    const p   = location.pathname;
+    const cut = p.indexOf('/mal/');
+    // If /mal/ found, keep everything up to (and including) the char before /mal/
+    const root = cut !== -1
+      ? p.slice(0, cut + 1)               // e.g. /megaplay_buzz_iframe_player/
+      : (p.endsWith('/') ? p : p + '/');   // ensure trailing slash
+    return location.origin + root;
+  })();
+
   // Toggle bar
   function toggleBar() {
     const bar  = document.getElementById('topbar');
@@ -201,14 +241,6 @@
   function buildSrc(malId, episode, lang) {
     return `https://megaplay.buzz/stream/mal/${malId}/${episode}/${lang}?autostart=true`;
   }
-
-  // Fixed base path — computed once from the initial URL, strips any /mal/… suffix
-  const BASE_PATH = (function () {
-    const p   = location.pathname;
-    const cut = p.indexOf('/mal/');
-    const root = cut !== -1 ? p.slice(0, cut + 1) : (p.endsWith('/') ? p : p + '/');
-    return location.origin + root;
-  })();
 
   function buildPageUrl(malId, episode, lang) {
     return `${BASE_PATH}mal/${malId}/${episode}/${lang}/`;
@@ -313,23 +345,29 @@
     if (iframe && iframe._cleanup) { iframe._cleanup(); iframe._cleanup = null; }
   }
 
-  // Parse URL on load — supports /mal/{id}/{ep}/, /mal/{id}/{ep}/dub|sub/
+  // ── Parse URL on load ──────────────────────────────────────────────────────
+  // Supports:
+  //   /mal/1735/336/
+  //   /mal/1735/336/dub/
+  //   /mal/1735/336/sub
+  //   ?mal=1735&ep=336&lang=dub
   (function parseUrl() {
-    const path     = location.pathname;
-    // match /mal/1735/337/ or /mal/1735/337/dub/ or /mal/1735/337/sub/
+    const path = location.pathname;
+    // match /mal/{id}/{ep} with optional /dub|sub with optional trailing slash
     const malMatch = path.match(/\/mal\/(\d+)\/(\d+)(?:\/(dub|sub))?(?:\/)?$/i);
     const params   = new URLSearchParams(location.search);
 
     let malId   = malMatch ? malMatch[1] : params.get('mal');
     let episode = malMatch ? malMatch[2] : params.get('ep');
-    let lang    = (malMatch && malMatch[3]) ? malMatch[3].toLowerCase()
-                : (params.get('lang') || 'dub');
+    let lang    = (malMatch && malMatch[3])
+                    ? malMatch[3].toLowerCase()
+                    : (params.get('lang') || 'dub');
     if (lang !== 'sub') lang = 'dub';
 
     if (malId)   document.getElementById('inp-mal').value = malId;
     if (episode) document.getElementById('inp-ep').value  = episode;
 
-    setLang(lang);   // set toggle highlight without triggering playback
+    setLang(lang); // set toggle highlight
 
     if (malId && episode) {
       showPlayer(buildSrc(malId, episode, lang), malId, episode, lang);
