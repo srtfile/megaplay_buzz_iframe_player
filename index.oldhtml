@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MegaPlay Player</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #0a0a0f;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #e2e2e8;
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Top bar */
+    #topbar {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 14px;
+      background: #13131a;
+      border-bottom: 1px solid #222230;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .28s ease, padding .28s ease;
+    }
+    #topbar.open { max-height: 120px; padding: 8px 14px; }
+
+    #topbar .brand {
+      font-size: 13px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: #7c6dfa; margin-right: 4px; white-space: nowrap;
+    }
+
+    .field-group { display: flex; align-items: center; gap: 6px; }
+    .field-group label {
+      font-size: 11px; color: #888; text-transform: uppercase;
+      letter-spacing: .06em; white-space: nowrap;
+    }
+    .field-group input {
+      width: 72px; padding: 4px 8px; background: #1e1e2e;
+      border: 1px solid #2e2e42; border-radius: 6px; color: #e2e2e8;
+      font-size: 13px; outline: none; transition: border-color .15s;
+    }
+    .field-group input:focus { border-color: #7c6dfa; }
+
+    /* DUB / SUB */
+    #lang-toggle {
+      display: flex; background: #1e1e2e; border: 1px solid #2e2e42;
+      border-radius: 8px; overflow: hidden; flex-shrink: 0;
+    }
+    #lang-toggle button {
+      padding: 5px 14px; font-size: 12px; font-weight: 600; letter-spacing: .04em;
+      border: none; background: transparent; color: #888; cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    #lang-toggle button.active { background: #7c6dfa; color: #fff; }
+
+    /* Auto-next toggle */
+    #autonext-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+    #autonext-wrap span {
+      font-size: 11px; color: #888; text-transform: uppercase;
+      letter-spacing: .06em; white-space: nowrap;
+    }
+    .switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0; background: #2e2e42;
+      border-radius: 20px; cursor: pointer; transition: background .2s;
+    }
+    .slider::before {
+      content: ''; position: absolute; width: 14px; height: 14px;
+      left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .2s;
+    }
+    .switch input:checked + .slider { background: #7c6dfa; }
+    .switch input:checked + .slider::before { transform: translateX(16px); }
+
+    /* Play button */
+    #btn-go {
+      padding: 5px 16px; background: #7c6dfa; color: #fff; border: none;
+      border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: background .15s; white-space: nowrap;
+    }
+    #btn-go:hover { background: #6a5be0; }
+
+    #url-display {
+      flex: 1; min-width: 120px; font-size: 11px; color: #555;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* Player area */
+    #player-wrap { flex: 1; position: relative; background: #000; overflow: hidden; }
+    #player-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+    #placeholder {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 12px; color: #444;
+    }
+    #placeholder svg { opacity: .3; }
+    #placeholder p { font-size: 14px; }
+    #player-iframe { display: none; }
+
+    /* Floating settings toggle */
+    #toggle-bar-btn {
+      position: absolute; top: 10px; right: 12px; z-index: 20;
+      width: 32px; height: 32px; background: rgba(19,19,26,.85);
+      border: 1px solid #2e2e42; border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px); transition: background .15s, border-color .15s;
+    }
+    #toggle-bar-btn:hover { background: rgba(40,40,60,.95); border-color: #7c6dfa; }
+    #toggle-bar-btn svg { display: block; transition: transform .25s ease; }
+    #toggle-bar-btn.open svg { transform: rotate(180deg); }
+
+    /* Prev / Next floating buttons */
+    .ep-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+      display: none;              /* shown only when player is active */
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      background: rgba(19,19,26,.78);
+      border: 1px solid #2e2e42;
+      border-radius: 10px;
+      padding: 12px 9px;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: background .15s, border-color .15s, opacity .2s;
+      color: #999;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      user-select: none;
+      opacity: .5;
+    }
+    .ep-nav-btn:hover { background: rgba(40,40,60,.95); border-color: #7c6dfa; color: #fff; opacity: 1; }
+    .ep-nav-btn svg { display: block; }
+    #btn-prev-ep { left: 10px; }
+    #btn-next-ep { right: 10px; }
+
+    /* Auto-next countdown overlay */
+    #autonext-overlay {
+      display: none; position: absolute; bottom: 28px; right: 28px;
+      background: rgba(10,10,15,.88); border: 1px solid #2e2e42;
+      border-radius: 14px; padding: 14px 20px; min-width: 220px;
+      z-index: 10; backdrop-filter: blur(6px);
+    }
+    #autonext-overlay .an-title {
+      font-size: 11px; color: #888; text-transform: uppercase;
+      letter-spacing: .07em; margin-bottom: 6px;
+    }
+    #autonext-overlay .an-ep { font-size: 15px; font-weight: 700; color: #e2e2e8; margin-bottom: 10px; }
+    #an-bar-bg { width: 100%; height: 4px; background: #2e2e42; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+    #an-bar { height: 100%; width: 100%; background: #7c6dfa; border-radius: 4px; transform-origin: left; transition: transform linear; }
+    .an-btns { display: flex; gap: 8px; }
+    .an-btns button { flex: 1; padding: 5px 0; border: none; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; }
+    #an-btn-now { background: #7c6dfa; color: #fff; }
+    #an-btn-now:hover { background: #6a5be0; }
+    #an-btn-cancel { background: #1e1e2e; color: #aaa; border: 1px solid #2e2e42; }
+    #an-btn-cancel:hover { background: #2e2e42; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Controls bar — hidden by default -->
+  <div id="topbar">
+    <span class="brand">▶ MegaPlay</span>
+    <div class="field-group">
+      <label>MAL ID</label>
+      <input id="inp-mal" type="number" placeholder="e.g. 1735" min="1">
+    </div>
+    <div class="field-group">
+      <label>Episode</label>
+      <input id="inp-ep" type="number" placeholder="e.g. 11" min="1">
+    </div>
+    <div id="lang-toggle">
+      <button id="btn-dub" class="active" onclick="setLang('dub')">DUB</button>
+      <button id="btn-sub" onclick="setLang('sub')">SUB</button>
+    </div>
+    <div id="autonext-wrap">
+      <span>Auto-Next</span>
+      <label class="switch">
+        <input type="checkbox" id="chk-autonext" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <button id="btn-go" onclick="loadPlayer()">Play</button>
+    <span id="url-display"></span>
+  </div>
+
+  <!-- Player -->
+  <div id="player-wrap">
+
+    <!-- Settings toggle -->
+    <button id="toggle-bar-btn" onclick="toggleBar()" title="Show / hide controls">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 8 11 13 6"/>
+      </svg>
+    </button>
+
+    <!-- Prev episode button -->
+    <button id="btn-prev-ep" class="ep-nav-btn" onclick="goPrevEp()" title="Previous episode">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Prev
+    </button>
+
+    <!-- Next episode button -->
+    <button id="btn-next-ep" class="ep-nav-btn" onclick="goNextEp()" title="Next episode">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+      Next
+    </button>
+
+    <div id="placeholder">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="12" cy="12" r="10"/>
+        <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+      </svg>
+      <p>Click ⌄ in the top-right to open controls</p>
+      <p style="font-size:12px;color:#333">or open a URL like /mal/1735/11/</p>
+    </div>
+
+    <iframe id="player-iframe" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="origin"></iframe>
+
+    <!-- Auto-next countdown card -->
+    <div id="autonext-overlay">
+      <div class="an-title">Up next</div>
+      <div class="an-ep" id="an-ep-label">Episode —</div>
+      <div id="an-bar-bg"><div id="an-bar"></div></div>
+      <div class="an-btns">
+        <button id="an-btn-now" onclick="goNextNow()">Play Now</button>
+        <button id="an-btn-cancel" onclick="cancelAutoNext()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+  let currentLang   = 'dub';
+  let autoNextTimer = null;
+  const COUNTDOWN_S = 10;
+
+  // Toggle controls bar
+  function toggleBar() {
+    const bar = document.getElementById('topbar');
+    const btn = document.getElementById('toggle-bar-btn');
+    const open = bar.classList.toggle('open');
+    btn.classList.toggle('open', open);
+  }
+
+  // URL helpers
+  function buildSrc(malId, episode, lang) {
+    return `https://megaplay.buzz/stream/mal/${malId}/${episode}/${lang}?autostart=true`;
+  }
+
+  const BASE_PATH = (function() {
+    const p   = location.pathname;
+    const cut = p.indexOf('/mal/');
+    const root = cut !== -1 ? p.slice(0, cut + 1) : (p.endsWith('/') ? p : p + '/');
+    return `${location.origin}${root}`;
+  })();
+
+  function buildPageUrl(malId, episode, lang) {
+    return `${BASE_PATH}mal/${malId}/${episode}/${lang}/`;
+  }
+
+  // Show / hide nav buttons
+  function setNavVisible(visible) {
+    const ep = parseInt(document.getElementById('inp-ep').value, 10) || 1;
+    document.getElementById('btn-prev-ep').style.display = (visible && ep > 1) ? 'flex' : 'none';
+    document.getElementById('btn-next-ep').style.display = visible ? 'flex' : 'none';
+  }
+
+  // Language toggle
+  function setLang(lang) {
+    currentLang = lang;
+    document.getElementById('btn-dub').classList.toggle('active', lang === 'dub');
+    document.getElementById('btn-sub').classList.toggle('active', lang === 'sub');
+    const malId   = document.getElementById('inp-mal').value.trim();
+    const episode = document.getElementById('inp-ep').value.trim();
+    if (malId && episode && document.getElementById('player-iframe').style.display !== 'none') {
+      showPlayer(buildSrc(malId, episode, lang), malId, episode, lang);
+    }
+  }
+
+  // Core player
+  function showPlayer(src, malId, episode, lang) {
+    cancelAutoNext();
+    const iframe      = document.getElementById('player-iframe');
+    const placeholder = document.getElementById('placeholder');
+    iframe.src                = src;
+    iframe.style.display      = 'block';
+    placeholder.style.display = 'none';
+    document.getElementById('inp-mal').value = malId;
+    document.getElementById('inp-ep').value  = episode;
+    const prettyUrl = buildPageUrl(malId, episode, lang);
+    history.replaceState({ malId, episode, lang }, '', prettyUrl);
+    document.getElementById('url-display').textContent = prettyUrl;
+    document.title = `MAL ${malId} · Ep ${episode} · ${lang.toUpperCase()}`;
+    setNavVisible(true);
+    watchForEnd(iframe, malId, episode, lang);
+  }
+
+  function loadPlayer() {
+    const malId   = document.getElementById('inp-mal').value.trim();
+    const episode = document.getElementById('inp-ep').value.trim();
+    if (!malId || !episode) { alert('Please enter both a MAL ID and an episode number.'); return; }
+    showPlayer(buildSrc(malId, episode, currentLang), malId, episode, currentLang);
+  }
+
+  // Prev / Next
+  function goPrevEp() {
+    const malId   = document.getElementById('inp-mal').value.trim();
+    const episode = parseInt(document.getElementById('inp-ep').value.trim(), 10);
+    if (!malId || episode <= 1) return;
+    showPlayer(buildSrc(malId, episode - 1, currentLang), malId, episode - 1, currentLang);
+  }
+
+  function goNextEp() {
+    const malId   = document.getElementById('inp-mal').value.trim();
+    const episode = parseInt(document.getElementById('inp-ep').value.trim(), 10);
+    if (!malId || !episode) return;
+    showPlayer(buildSrc(malId, episode + 1, currentLang), malId, episode + 1, currentLang);
+  }
+
+  // End detection
+  let endWatchInterval = null;
+
+  function watchForEnd(iframe, malId, episode, lang) {
+    clearInterval(endWatchInterval);
+    function onMessage(e) {
+      const d = e.data;
+      if (!d) return;
+      const str = typeof d === 'string' ? d : JSON.stringify(d);
+      if (/ended|complete|finish|event.*end/i.test(str)) { cleanup(); triggerAutoNext(malId, episode, lang); }
+    }
+    window.addEventListener('message', onMessage);
+    endWatchInterval = setInterval(() => {
+      try {
+        const s = iframe.src || '';
+        if (s === '' || s === 'about:blank') { cleanup(); triggerAutoNext(malId, episode, lang); }
+      } catch(_) {}
+    }, 2000);
+    function cleanup() { clearInterval(endWatchInterval); window.removeEventListener('message', onMessage); }
+    iframe._cleanup = cleanup;
+  }
+
+  // Countdown overlay
+  function triggerAutoNext(malId, episode, lang) {
+    if (!document.getElementById('chk-autonext').checked) return;
+    const nextEp = parseInt(episode, 10) + 1;
+    document.getElementById('an-ep-label').textContent = `Episode ${nextEp}`;
+    const overlay = document.getElementById('autonext-overlay');
+    const bar     = document.getElementById('an-bar');
+    overlay.style.display = 'block';
+    bar.style.transition = 'none';
+    bar.style.transform  = 'scaleX(1)';
+    bar.getBoundingClientRect();
+    bar.style.transition = `transform ${COUNTDOWN_S}s linear`;
+    bar.style.transform  = 'scaleX(0)';
+    let remaining = COUNTDOWN_S;
+    autoNextTimer = setInterval(() => { remaining--; if (remaining <= 0) goNextNow(); }, 1000);
+  }
+
+  function goNextNow() {
+    cancelAutoNext();
+    const malId   = document.getElementById('inp-mal').value.trim();
+    const episode = parseInt(document.getElementById('inp-ep').value.trim(), 10);
+    if (!malId || !episode) return;
+    showPlayer(buildSrc(malId, episode + 1, currentLang), malId, episode + 1, currentLang);
+  }
+
+  function cancelAutoNext() {
+    clearInterval(autoNextTimer);
+    autoNextTimer = null;
+    const overlay = document.getElementById('autonext-overlay');
+    if (overlay) overlay.style.display = 'none';
+    const iframe = document.getElementById('player-iframe');
+    if (iframe && iframe._cleanup) { iframe._cleanup(); iframe._cleanup = null; }
+  }
+
+  // Parse URL on load
+  (function parseUrl() {
+    const path     = location.pathname;
+    const malMatch = path.match(/\/mal\/(\d+)\/(\d+)(?:\/(dub|sub))?/i);
+    const params   = new URLSearchParams(location.search);
+    let malId   = malMatch ? malMatch[1] : params.get('mal');
+    let episode = malMatch ? malMatch[2] : params.get('ep');
+    let lang    = (malMatch && malMatch[3]) ? malMatch[3].toLowerCase() : (params.get('lang') || 'dub');
+    if (lang !== 'sub') lang = 'dub';
+    if (malId)   document.getElementById('inp-mal').value = malId;
+    if (episode) document.getElementById('inp-ep').value  = episode;
+    setLang(lang);
+    if (malId && episode) {
+      showPlayer(buildSrc(malId, episode, lang), malId, episode, lang);
+    }
+  })();
+</script>
+</body>
+</html>
