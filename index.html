@@ -219,6 +219,14 @@
     currentLang = lang;
     document.getElementById('btn-dub').classList.toggle('active', lang === 'dub');
     document.getElementById('btn-sub').classList.toggle('active', lang === 'sub');
+
+    // If a stream is already playing, switch instantly
+    const malId   = document.getElementById('inp-mal').value.trim();
+    const episode = document.getElementById('inp-ep').value.trim();
+    if (malId && episode && document.getElementById('player-iframe').style.display !== 'none') {
+      const src = buildSrc(malId, episode, lang);
+      showPlayer(src, malId, episode, lang);
+    }
   }
 
   function showPlayer(src, malId, episode, lang) {
