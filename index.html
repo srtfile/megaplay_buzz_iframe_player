@@ -381,9 +381,17 @@
   function buildSrc(malId, episode, lang) {
     return `https://megaplay.buzz/stream/mal/${malId}/${episode}/${lang}?autostart=true`;
   }
+  // Derive the repo root once (everything before the first /mal/ segment, or just the origin+path of index.html)
+  const BASE_PATH = (function() {
+    const p = location.pathname;
+    const cut = p.indexOf('/mal/');
+    // If URL already has /mal/…, strip it; otherwise use pathname as-is (ends with /)
+    const root = cut !== -1 ? p.slice(0, cut + 1) : (p.endsWith('/') ? p : p + '/');
+    return `${location.origin}${root}`;
+  })();
+
   function buildPageUrl(malId, episode, lang) {
-    const base = `${location.origin}${location.pathname}`;
-    return `${base}mal/${malId}/${episode}/${lang}/`;
+    return `${BASE_PATH}mal/${malId}/${episode}/${lang}/`;
   }
 
   // ── Language toggle ────────────────────────────────────────────────────────
