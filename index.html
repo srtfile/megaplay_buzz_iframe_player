@@ -3,29 +3,283 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Embedded Player</title>
+  <title>MegaPlay Player</title>
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     html, body {
-      margin: 0;
       width: 100%;
       height: 100%;
+      background: #0a0a0f;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #e2e2e8;
       overflow: hidden;
-      background: #000;
     }
 
-    iframe {
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── Top bar ── */
+    #topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px;
+      background: #13131a;
+      border-bottom: 1px solid #222230;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    #topbar .brand {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #7c6dfa;
+      margin-right: 4px;
+      white-space: nowrap;
+    }
+
+    /* MAL ID + Episode inputs */
+    .field-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .field-group label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      white-space: nowrap;
+    }
+    .field-group input {
+      width: 72px;
+      padding: 4px 8px;
+      background: #1e1e2e;
+      border: 1px solid #2e2e42;
+      border-radius: 6px;
+      color: #e2e2e8;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .field-group input:focus { border-color: #7c6dfa; }
+
+    /* Dub / Sub toggle */
+    #lang-toggle {
+      display: flex;
+      background: #1e1e2e;
+      border: 1px solid #2e2e42;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    #lang-toggle button {
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      border: none;
+      background: transparent;
+      color: #888;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    #lang-toggle button.active {
+      background: #7c6dfa;
+      color: #fff;
+    }
+
+    /* Go button */
+    #btn-go {
+      padding: 5px 16px;
+      background: #7c6dfa;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    #btn-go:hover { background: #6a5be0; }
+
+    /* URL display */
+    #url-display {
+      flex: 1;
+      min-width: 120px;
+      font-size: 11px;
+      color: #555;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── Player area ── */
+    #player-wrap {
+      flex: 1;
+      position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+
+    #player-wrap iframe {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       border: 0;
     }
+
+    /* Placeholder shown before any stream loads */
+    #placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #444;
+    }
+    #placeholder svg { opacity: .3; }
+    #placeholder p { font-size: 14px; }
+
+    #player-iframe { display: none; }
   </style>
 </head>
 <body>
-  <iframe
-    src="https://megaplay.buzz/stream/mal/1735/333/dub?autostart=true"
-    allow="autoplay; fullscreen; picture-in-picture"
-    allowfullscreen
-    referrerpolicy="origin">
-  </iframe>
+<div id="app">
+
+  <div id="topbar">
+    <span class="brand">▶ MegaPlay</span>
+
+    <div class="field-group">
+      <label>MAL ID</label>
+      <input id="inp-mal" type="number" placeholder="e.g. 1735" min="1">
+    </div>
+
+    <div class="field-group">
+      <label>Episode</label>
+      <input id="inp-ep" type="number" placeholder="e.g. 11" min="1">
+    </div>
+
+    <div id="lang-toggle">
+      <button id="btn-dub" class="active" onclick="setLang('dub')">DUB</button>
+      <button id="btn-sub" onclick="setLang('sub')">SUB</button>
+    </div>
+
+    <button id="btn-go" onclick="loadPlayer()">Play</button>
+
+    <span id="url-display"></span>
+  </div>
+
+  <div id="player-wrap">
+    <div id="placeholder">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="12" cy="12" r="10"/>
+        <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+      </svg>
+      <p>Enter a MAL ID &amp; episode, or open a direct URL</p>
+      <p style="font-size:12px;color:#333">e.g. /mal/1735/11/</p>
+    </div>
+    <iframe
+      id="player-iframe"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen
+      referrerpolicy="origin">
+    </iframe>
+  </div>
+
+</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let currentLang = 'dub';   // default: dub
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function buildSrc(malId, episode, lang) {
+    return `https://megaplay.buzz/stream/mal/${malId}/${episode}/${lang}?autostart=true`;
+  }
+
+  function buildPageUrl(malId, episode, lang) {
+    // Produces a pretty shareable path like /mal/1735/11/?lang=sub
+    const base = `${location.origin}${location.pathname}`;
+    return `${base}mal/${malId}/${episode}/${lang}/`;
+  }
+
+  function setLang(lang) {
+    currentLang = lang;
+    document.getElementById('btn-dub').classList.toggle('active', lang === 'dub');
+    document.getElementById('btn-sub').classList.toggle('active', lang === 'sub');
+  }
+
+  function showPlayer(src, malId, episode, lang) {
+    const iframe = document.getElementById('player-iframe');
+    const placeholder = document.getElementById('placeholder');
+    iframe.src = src;
+    iframe.style.display = 'block';
+    placeholder.style.display = 'none';
+
+    // Update the URL bar without reloading (history pushState)
+    const prettyUrl = buildPageUrl(malId, episode, lang);
+    history.replaceState({ malId, episode, lang }, '', prettyUrl);
+    document.getElementById('url-display').textContent = prettyUrl;
+    document.title = `MAL ${malId} · Ep ${episode} · ${lang.toUpperCase()}`;
+  }
+
+  function loadPlayer() {
+    const malId   = document.getElementById('inp-mal').value.trim();
+    const episode = document.getElementById('inp-ep').value.trim();
+    if (!malId || !episode) {
+      alert('Please enter both a MAL ID and an episode number.');
+      return;
+    }
+    const src = buildSrc(malId, episode, currentLang);
+    showPlayer(src, malId, episode, currentLang);
+  }
+
+  // ── Parse URL on load ──────────────────────────────────────────────────────
+  //
+  // Supported URL patterns (all relative to wherever index.html is hosted):
+  //   /mal/{malId}/{episode}/
+  //   /mal/{malId}/{episode}/{lang}/
+  //   ?mal=1735&ep=11&lang=dub
+  //
+  (function parseUrl() {
+    // 1. Try path segments: …/mal/1735/11/ or …/mal/1735/11/dub/
+    const path = location.pathname;
+    const malMatch = path.match(/\/mal\/(\d+)\/(\d+)(?:\/(dub|sub))?/i);
+
+    // 2. Fallback: query params ?mal=…&ep=…&lang=…
+    const params = new URLSearchParams(location.search);
+
+    let malId   = malMatch ? malMatch[1] : params.get('mal');
+    let episode = malMatch ? malMatch[2] : params.get('ep');
+    let lang    = (malMatch && malMatch[3]) ? malMatch[3].toLowerCase()
+                : (params.get('lang') || 'dub');
+
+    if (lang !== 'sub') lang = 'dub';   // sanitise — only dub/sub allowed
+
+    // Pre-fill inputs
+    if (malId)   document.getElementById('inp-mal').value = malId;
+    if (episode) document.getElementById('inp-ep').value  = episode;
+
+    setLang(lang);
+
+    // Auto-play if we got both values from the URL
+    if (malId && episode) {
+      const src = buildSrc(malId, episode, lang);
+      showPlayer(src, malId, episode, lang);
+    }
+  })();
+</script>
 </body>
 </html>
