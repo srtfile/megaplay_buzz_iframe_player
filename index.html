@@ -102,7 +102,7 @@
 
     /* ── Player area ── */
     #player-wrap { flex: 1; position: relative; background: #000; overflow: hidden; }
-    #player-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    #player-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; z-index: 1; }
 
     #placeholder {
       position: absolute; inset: 0;
@@ -319,10 +319,19 @@
       <p class="hint">Enter MAL ID + Episode then press Play</p>
     </div>
 
+    <!-- MegaPlay default — no sandbox (built-in player needs full access) -->
     <iframe id="player-iframe"
             allow="autoplay; fullscreen; picture-in-picture"
             allowfullscreen
             referrerpolicy="origin"></iframe>
+
+    <!-- All other servers — strict sandbox blocks ads/popups/redirects -->
+    <iframe id="player-iframe-sb"
+            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen
+            referrerpolicy="no-referrer"
+            style="display:none"></iframe>
 
     <!-- Server toggle floating button -->
     <button id="srv-toggle-btn" onclick="toggleServerPanel()">
@@ -633,12 +642,31 @@ function playServer(srv) {
   if (url) loadIframe(url);
 }
 
+// isMegaplay: only the megaplay.buzz default stream skips the sandbox
+function isMegaplayUrl(url) {
+  return /megaplay\.buzz/i.test(url);
+}
+
 function loadIframe(url) {
-  const iframe      = document.getElementById('player-iframe');
+  const iframePlain = document.getElementById('player-iframe');
+  const iframeSB    = document.getElementById('player-iframe-sb');
   const placeholder = document.getElementById('placeholder');
-  iframe.src                = url;
-  iframe.style.display      = 'block';
+
   placeholder.style.display = 'none';
+
+  if (isMegaplayUrl(url)) {
+    // MegaPlay — unsandboxed, hide the sandboxed one
+    iframeSB.style.display   = 'none';
+    iframeSB.src             = 'about:blank';
+    iframePlain.src          = url;
+    iframePlain.style.display = 'block';
+  } else {
+    // Every other server — sandboxed (blocks ads / popups / top-nav redirects)
+    iframePlain.style.display = 'none';
+    iframePlain.src           = 'about:blank';
+    iframeSB.src              = url;
+    iframeSB.style.display    = 'block';
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -659,7 +687,11 @@ async function showPlayer(src, malId, ep, lang) {
   history.replaceState({ malId, ep, lang }, '', buildPageUrl(malId, ep, lang));
   document.title = `MAL ${malId} · Ep ${ep} · ${lang.toUpperCase()}`;
 
-  watchForEnd(document.getElementById('player-iframe'), malId, ep, lang);
+  // Watch whichever iframe ends up active
+  const activeFrame = isMegaplayUrl(src)
+    ? document.getElementById('player-iframe')
+    : document.getElementById('player-iframe-sb');
+  watchForEnd(activeFrame, malId, ep, lang);
 
   // Show server button & open panel; begin loading
   document.getElementById('srv-toggle-btn').classList.add('show');
@@ -778,8 +810,8 @@ function cancelAutoNext() {
   autoNextTimer = null;
   const overlay = document.getElementById('autonext-overlay');
   if (overlay) overlay.style.display = 'none';
-  const iframe = document.getElementById('player-iframe');
-  if (iframe && iframe._cleanup) { iframe._cleanup(); iframe._cleanup = null; }
+  [document.getElementById('player-iframe'), document.getElementById('player-iframe-sb')]
+    .forEach(f => { if (f && f._cleanup) { f._cleanup(); f._cleanup = null; } });
 }
 
 // ─────────────────────────────────────────────────────────────────
