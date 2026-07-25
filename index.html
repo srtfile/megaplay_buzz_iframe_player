@@ -144,7 +144,6 @@
     /* ── Server panel — drops from topbar right corner ── */
     #srv-wrap {
       position: relative;
-      margin-left: auto;
       flex-shrink: 0;
     }
 
@@ -292,25 +291,25 @@
           Next
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-      </div>
 
-      <!-- Servers toggle + dropdown — pushed to the right -->
-      <div id="srv-wrap">
-        <button id="srv-toggle-btn" onclick="toggleServerPanel()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/>
-          </svg>
-          Servers
-        </button>
-        <div id="server-panel">
-          <div class="sp-row">
-            <span class="sp-title">Servers &amp; Quality</span>
-            <button id="sp-close" onclick="toggleServerPanel()">✕</button>
+        <!-- Servers toggle + dropdown — right beside Next -->
+        <div id="srv-wrap">
+          <button id="srv-toggle-btn" onclick="toggleServerPanel()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/>
+            </svg>
+            Servers
+          </button>
+          <div id="server-panel">
+            <div class="sp-row">
+              <span class="sp-title">Servers &amp; Quality</span>
+              <button id="sp-close" onclick="toggleServerPanel()">✕</button>
+            </div>
+            <div id="quality-row"></div>
+            <div id="sp-loading" style="display:none"><div class="spin"></div> Fetching servers…</div>
+            <div id="sp-error" style="display:none"></div>
+            <div id="server-list"></div>
           </div>
-          <div id="quality-row"></div>
-          <div id="sp-loading" style="display:none"><div class="spin"></div> Fetching servers…</div>
-          <div id="sp-error" style="display:none"></div>
-          <div id="server-list"></div>
         </div>
       </div>
     </div>
