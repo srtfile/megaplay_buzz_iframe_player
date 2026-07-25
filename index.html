@@ -19,14 +19,23 @@
 
     /* ── Top bar ── */
     #topbar {
+      position: relative;
       display: flex; align-items: center; gap: 8px;
       padding: 0 14px; background: #13131a;
       border-bottom: 1px solid #222230;
       flex-shrink: 0; flex-wrap: wrap;
+      /* overflow visible so server dropdown can escape */
+      overflow: visible;
+      /* height collapses via max-height on the inner row */
+    }
+    #topbar-inner {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap; width: 100%;
       max-height: 0; overflow: hidden;
       transition: max-height .28s ease, padding .28s ease;
+      padding: 0;
     }
-    #topbar.open { max-height: 160px; padding: 8px 14px; }
+    #topbar-inner.open { max-height: 160px; padding: 8px 0; }
 
     .brand {
       font-size: 13px; font-weight: 700; letter-spacing: .08em;
@@ -217,29 +226,7 @@
 
 
 
-    /* ── Prev / Next centered bottom ── */
-    #ep-nav {
-      position: absolute; bottom: 40px; left: 50%;
-      transform: translateX(-50%);
-      z-index: 20; display: flex; align-items: center; gap: 14px;
-      opacity: 0; pointer-events: none;
-      transition: opacity .3s ease;
-    }
-    #player-wrap:hover #ep-nav { opacity: 1; pointer-events: auto; }
 
-    .ep-btn {
-      display: flex; align-items: center; gap: 7px;
-      padding: 9px 20px;
-      background: rgba(10,10,20,.82);
-      border: 1px solid rgba(124,109,250,.35);
-      border-radius: 12px; color: #ccc; font-size: 13px; font-weight: 600;
-      cursor: pointer; white-space: nowrap; backdrop-filter: blur(8px);
-      transition: background .18s, border-color .18s, color .18s, transform .12s;
-      user-select: none;
-    }
-    .ep-btn:hover { background: rgba(124,109,250,.22); border-color: #7c6dfa; color: #fff; transform: scale(1.05); }
-    .ep-btn:active { transform: scale(.97); }
-    .ep-btn svg { display: block; flex-shrink: 0; }
 
     /* ── Auto-next countdown ── */
     #autonext-overlay {
@@ -269,60 +256,62 @@
 
   <!-- Controls bar -->
   <div id="topbar">
-    <span class="brand">▶ MegaPlay</span>
+    <div id="topbar-inner">
+      <span class="brand">▶ MegaPlay</span>
 
-    <div class="field-group">
-      <label>MAL ID</label>
-      <input id="inp-mal" type="number" placeholder="e.g. 1735" min="1">
-    </div>
+      <div class="field-group">
+        <label>MAL ID</label>
+        <input id="inp-mal" type="number" placeholder="e.g. 1735" min="1">
+      </div>
 
-    <div class="field-group">
-      <label>Episode</label>
-      <input id="inp-ep" type="number" placeholder="e.g. 11" min="1">
-    </div>
+      <div class="field-group">
+        <label>Episode</label>
+        <input id="inp-ep" type="number" placeholder="e.g. 11" min="1">
+      </div>
 
-    <div id="lang-toggle">
-      <button id="btn-dub" class="active" onclick="setLang('dub')">DUB</button>
-      <button id="btn-sub" onclick="setLang('sub')">SUB</button>
-    </div>
+      <div id="lang-toggle">
+        <button id="btn-dub" class="active" onclick="setLang('dub')">DUB</button>
+        <button id="btn-sub" onclick="setLang('sub')">SUB</button>
+      </div>
 
-    <div id="autonext-wrap">
-      <span>Auto-Next</span>
-      <label class="switch">
-        <input type="checkbox" id="chk-autonext" checked>
-        <span class="slider"></span>
-      </label>
-    </div>
+      <div id="autonext-wrap">
+        <span>Auto-Next</span>
+        <label class="switch">
+          <input type="checkbox" id="chk-autonext" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
 
-    <div class="ctrl-btns">
-      <button class="bar-btn" id="btn-prev-bar" onclick="goPrevEp()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Prev
-      </button>
-      <button class="bar-btn" id="btn-go" onclick="loadPlayer()">▶ Play</button>
-      <button class="bar-btn" id="btn-next-bar" onclick="goNextEp()">
-        Next
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
+      <div class="ctrl-btns">
+        <button class="bar-btn" id="btn-prev-bar" onclick="goPrevEp()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Prev
+        </button>
+        <button class="bar-btn" id="btn-go" onclick="loadPlayer()">▶ Play</button>
+        <button class="bar-btn" id="btn-next-bar" onclick="goNextEp()">
+          Next
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
 
-    <!-- Servers toggle + dropdown — pushed to the right -->
-    <div id="srv-wrap">
-      <button id="srv-toggle-btn" onclick="toggleServerPanel()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/>
-        </svg>
-        Servers
-      </button>
-      <div id="server-panel">
-        <div class="sp-row">
-          <span class="sp-title">Servers &amp; Quality</span>
-          <button id="sp-close" onclick="toggleServerPanel()">✕</button>
+      <!-- Servers toggle + dropdown — pushed to the right -->
+      <div id="srv-wrap">
+        <button id="srv-toggle-btn" onclick="toggleServerPanel()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/>
+          </svg>
+          Servers
+        </button>
+        <div id="server-panel">
+          <div class="sp-row">
+            <span class="sp-title">Servers &amp; Quality</span>
+            <button id="sp-close" onclick="toggleServerPanel()">✕</button>
+          </div>
+          <div id="quality-row"></div>
+          <div id="sp-loading" style="display:none"><div class="spin"></div> Fetching servers…</div>
+          <div id="sp-error" style="display:none"></div>
+          <div id="server-list"></div>
         </div>
-        <div id="quality-row"></div>
-        <div id="sp-loading" style="display:none"><div class="spin"></div> Fetching servers…</div>
-        <div id="sp-error" style="display:none"></div>
-        <div id="server-list"></div>
       </div>
     </div>
   </div>
@@ -364,17 +353,6 @@
 
 
 
-    <!-- Prev / Next centered bottom -->
-    <div id="ep-nav">
-      <button class="ep-btn" onclick="goPrevEp()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Prev
-      </button>
-      <button class="ep-btn" onclick="goNextEp()">
-        Next
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
 
     <!-- Auto-next countdown -->
     <div id="autonext-overlay">
@@ -535,9 +513,9 @@ async function fetchMatchingEntry(malId, ep, lang) {
 //  UI CONTROLS
 // ─────────────────────────────────────────────────────────────────
 function toggleBar() {
-  const bar  = document.getElementById('topbar');
-  const btn  = document.getElementById('toggle-bar-btn');
-  const open = bar.classList.toggle('open');
+  const inner = document.getElementById('topbar-inner');
+  const btn   = document.getElementById('toggle-bar-btn');
+  const open  = inner.classList.toggle('open');
   btn.classList.toggle('open', open);
 }
 
