@@ -652,16 +652,18 @@ function loadIframe(url) {
   const iframeSB    = document.getElementById('player-iframe-sb');
   const placeholder = document.getElementById('placeholder');
 
+  // Always stop the end-watcher BEFORE touching any iframe src,
+  // so blanking the inactive iframe never fires the auto-next trigger.
+  stopEndWatch();
+
   placeholder.style.display = 'none';
 
   if (isMegaplayUrl(url)) {
-    // MegaPlay — unsandboxed, hide the sandboxed one
-    iframeSB.style.display   = 'none';
-    iframeSB.src             = 'about:blank';
-    iframePlain.src          = url;
+    iframeSB.style.display    = 'none';
+    iframeSB.src              = 'about:blank';
+    iframePlain.src           = url;
     iframePlain.style.display = 'block';
   } else {
-    // Every other server — sandboxed (blocks ads / popups / top-nav redirects)
     iframePlain.style.display = 'none';
     iframePlain.src           = 'about:blank';
     iframeSB.src              = url;
@@ -687,7 +689,8 @@ async function showPlayer(src, malId, ep, lang) {
   history.replaceState({ malId, ep, lang }, '', buildPageUrl(malId, ep, lang));
   document.title = `MAL ${malId} · Ep ${ep} · ${lang.toUpperCase()}`;
 
-  // Watch whichever iframe ends up active
+  // Re-register end-of-episode watcher on the now-active iframe
+  // (loadIframe already called stopEndWatch, so this is always a fresh watch)
   const activeFrame = isMegaplayUrl(src)
     ? document.getElementById('player-iframe')
     : document.getElementById('player-iframe-sb');
@@ -749,10 +752,23 @@ function goNextEp() {
 // ─────────────────────────────────────────────────────────────────
 //  END-OF-EPISODE DETECTION
 // ─────────────────────────────────────────────────────────────────
-function watchForEnd(iframe, malId, ep, lang) {
+let _endWatchCleanup = null;
+
+function stopEndWatch() {
   clearInterval(endWatchInterval);
+  endWatchInterval = null;
+  if (_endWatchCleanup) { _endWatchCleanup(); _endWatchCleanup = null; }
+}
+
+function watchForEnd(iframe, malId, ep, lang) {
+  stopEndWatch(); // always clear any previous watcher first
+
+  // Guard: we only fire auto-next if this watcher is still "live"
+  // (i.e. has not been cancelled by a server switch or navigation)
+  let active = true;
 
   function onMessage(e) {
+    if (!active) return;
     const d = e.data;
     if (!d) return;
     const str = typeof d === 'string' ? d : JSON.stringify(d);
@@ -762,7 +778,14 @@ function watchForEnd(iframe, malId, ep, lang) {
   }
 
   window.addEventListener('message', onMessage);
+
+  // Poll only for the watched iframe going blank — but ONLY after a short
+  // settle delay so the just-set src doesn't immediately read as blank.
+  let settled = false;
+  const settleTimer = setTimeout(() => { settled = true; }, 1500);
+
   endWatchInterval = setInterval(() => {
+    if (!active || !settled) return;
     try {
       const s = iframe.src || '';
       if (s === '' || s === 'about:blank') { cleanup(); triggerAutoNext(malId, ep, lang); }
@@ -770,10 +793,15 @@ function watchForEnd(iframe, malId, ep, lang) {
   }, 2000);
 
   function cleanup() {
+    active = false;
+    clearTimeout(settleTimer);
     clearInterval(endWatchInterval);
+    endWatchInterval = null;
     window.removeEventListener('message', onMessage);
+    _endWatchCleanup = null;
   }
-  iframe._cleanup = cleanup;
+
+  _endWatchCleanup = cleanup;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -810,8 +838,7 @@ function cancelAutoNext() {
   autoNextTimer = null;
   const overlay = document.getElementById('autonext-overlay');
   if (overlay) overlay.style.display = 'none';
-  [document.getElementById('player-iframe'), document.getElementById('player-iframe-sb')]
-    .forEach(f => { if (f && f._cleanup) { f._cleanup(); f._cleanup = null; } });
+  stopEndWatch();
 }
 
 // ─────────────────────────────────────────────────────────────────
