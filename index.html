@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MegaPlay Player</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #0a0a0f;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #e2e2e8;
+      overflow: hidden;
+    }
+
+    #app { display: flex; flex-direction: column; width: 100%; height: 100%; }
+
+    /* ── Top bar ── */
+    #topbar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0 14px; background: #13131a;
+      border-bottom: 1px solid #222230;
+      flex-shrink: 0; flex-wrap: wrap;
+      max-height: 0; overflow: hidden;
+      transition: max-height .28s ease, padding .28s ease;
+    }
+    #topbar.open { max-height: 160px; padding: 8px 14px; }
+
+    .brand {
+      font-size: 13px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: #7c6dfa; white-space: nowrap;
+    }
+
+    .field-group { display: flex; align-items: center; gap: 6px; }
+    .field-group label {
+      font-size: 11px; color: #888;
+      text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+    }
+    .field-group input {
+      width: 80px; padding: 4px 8px;
+      background: #1e1e2e; border: 1px solid #2e2e42;
+      border-radius: 6px; color: #e2e2e8; font-size: 13px;
+      outline: none; transition: border-color .15s;
+    }
+    .field-group input:focus { border-color: #7c6dfa; }
+
+    /* DUB / SUB toggle */
+    #lang-toggle {
+      display: flex; background: #1e1e2e;
+      border: 1px solid #2e2e42; border-radius: 8px;
+      overflow: hidden; flex-shrink: 0;
+    }
+    #lang-toggle button {
+      padding: 5px 14px; font-size: 12px; font-weight: 600;
+      border: none; background: transparent; color: #888;
+      cursor: pointer; transition: background .15s, color .15s;
+    }
+    #lang-toggle button.active { background: #7c6dfa; color: #fff; }
+
+    /* Auto-next toggle */
+    #autonext-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+    #autonext-wrap span {
+      font-size: 11px; color: #888;
+      text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+    }
+    .switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0; background: #2e2e42;
+      border-radius: 20px; cursor: pointer; transition: background .2s;
+    }
+    .slider::before {
+      content: ''; position: absolute;
+      width: 14px; height: 14px; left: 3px; top: 3px;
+      background: #fff; border-radius: 50%; transition: transform .2s;
+    }
+    .switch input:checked + .slider { background: #7c6dfa; }
+    .switch input:checked + .slider::before { transform: translateX(16px); }
+
+    /* Control buttons row */
+    .ctrl-btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+    .bar-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 14px; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: background .15s, transform .1s;
+    }
+    .bar-btn:active { transform: scale(.96); }
+
+    #btn-prev-bar, #btn-next-bar {
+      background: #1e1e2e; color: #aaa;
+      border: 1px solid #2e2e42;
+    }
+    #btn-prev-bar:hover, #btn-next-bar:hover {
+      background: rgba(124,109,250,.18); border-color: #7c6dfa; color: #fff;
+    }
+    #btn-go { background: #7c6dfa; color: #fff; }
+    #btn-go:hover { background: #6a5be0; }
+
+    /* ── Player area ── */
+    #player-wrap { flex: 1; position: relative; background: #000; overflow: hidden; }
+    #player-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+    #placeholder {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; color: #444;
+    }
+    #placeholder svg { opacity: .3; }
+    #placeholder p { font-size: 14px; }
+    #placeholder .hint { font-size: 12px; color: #333; }
+
+    #player-iframe { display: none; }
+
+    /* Floating gear button */
+    #toggle-bar-btn {
+      position: absolute; top: 10px; right: 12px; z-index: 20;
+      width: 32px; height: 32px;
+      background: rgba(19,19,26,.85);
+      border: 1px solid #2e2e42; border-radius: 8px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+      transition: background .15s, border-color .15s;
+    }
+    #toggle-bar-btn:hover { background: rgba(40,40,60,.95); border-color: #7c6dfa; }
+    #toggle-bar-btn svg { display: block; transition: transform .25s ease; }
+    #toggle-bar-btn.open svg { transform: rotate(180deg); }
+
+    /* ── Server / Quality panel ── */
+    #server-panel {
+      position: absolute; bottom: 12px; left: 12px; z-index: 25;
+      background: rgba(10,10,20,.93);
+      border: 1px solid #2e2e42; border-radius: 14px;
+      padding: 12px 14px; min-width: 260px; max-width: 340px;
+      backdrop-filter: blur(10px);
+      display: none;
+    }
+    #server-panel.visible { display: block; }
+
+    .sp-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .sp-title { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .07em; }
+    #sp-close {
+      background: none; border: none; color: #666; cursor: pointer;
+      font-size: 16px; line-height: 1; padding: 0 2px;
+    }
+    #sp-close:hover { color: #aaa; }
+
+    /* quality pills */
+    #quality-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .q-pill {
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+      cursor: pointer; border: 1px solid #2e2e42; background: #1e1e2e; color: #888;
+      transition: all .15s;
+    }
+    .q-pill.active { background: #7c6dfa; border-color: #7c6dfa; color: #fff; }
+    .q-pill:hover:not(.active):not(.unavail) { border-color: #7c6dfa; color: #ccc; }
+    .q-pill.unavail { opacity: .3; cursor: default; pointer-events: none; }
+
+    /* server list */
+    #server-list { display: flex; flex-direction: column; gap: 5px; max-height: 220px; overflow-y: auto; }
+    #server-list::-webkit-scrollbar { width: 4px; }
+    #server-list::-webkit-scrollbar-track { background: transparent; }
+    #server-list::-webkit-scrollbar-thumb { background: #2e2e42; border-radius: 4px; }
+
+    .srv-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 10px; border-radius: 8px; border: 1px solid #2e2e42;
+      background: #1a1a26; color: #ccc; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all .15s; text-align: left; width: 100%;
+    }
+    .srv-btn:hover { background: rgba(124,109,250,.18); border-color: #7c6dfa; color: #fff; }
+    .srv-btn.active { background: rgba(124,109,250,.28); border-color: #7c6dfa; color: #fff; }
+    .srv-badge {
+      font-size: 10px; padding: 2px 6px; border-radius: 10px;
+      background: #2e2e42; color: #777; margin-left: 6px; flex-shrink: 0;
+    }
+    .srv-btn.active .srv-badge { background: #7c6dfa; color: #fff; }
+
+    /* Loading / error */
+    #sp-loading {
+      display: flex; align-items: center; gap: 8px;
+      color: #666; font-size: 12px; padding: 8px 0;
+    }
+    .spin {
+      width: 14px; height: 14px; border: 2px solid #2e2e42;
+      border-top-color: #7c6dfa; border-radius: 50%;
+      animation: spin .7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #sp-error { color: #f87171; font-size: 12px; padding: 4px 0; }
+
+    /* Server toggle floating button */
+    #srv-toggle-btn {
+      position: absolute; bottom: 12px; left: 12px; z-index: 26;
+      display: none; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      background: rgba(10,10,20,.88);
+      border: 1px solid rgba(124,109,250,.4);
+      border-radius: 10px; color: #bbb; font-size: 12px; font-weight: 600;
+      cursor: pointer; backdrop-filter: blur(6px);
+      transition: all .15s;
+    }
+    #srv-toggle-btn.show { display: flex; }
+    #srv-toggle-btn:hover { border-color: #7c6dfa; color: #fff; background: rgba(124,109,250,.18); }
+
+    /* ── Prev / Next centered bottom ── */
+    #ep-nav {
+      position: absolute; bottom: 40px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 20; display: flex; align-items: center; gap: 14px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s ease;
+    }
+    #player-wrap:hover #ep-nav { opacity: 1; pointer-events: auto; }
+
+    .ep-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 20px;
+      background: rgba(10,10,20,.82);
+      border: 1px solid rgba(124,109,250,.35);
+      border-radius: 12px; color: #ccc; font-size: 13px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; backdrop-filter: blur(8px);
+      transition: background .18s, border-color .18s, color .18s, transform .12s;
+      user-select: none;
+    }
+    .ep-btn:hover { background: rgba(124,109,250,.22); border-color: #7c6dfa; color: #fff; transform: scale(1.05); }
+    .ep-btn:active { transform: scale(.97); }
+    .ep-btn svg { display: block; flex-shrink: 0; }
+
+    /* ── Auto-next countdown ── */
+    #autonext-overlay {
+      display: none; position: absolute; bottom: 28px; right: 28px;
+      background: rgba(10,10,15,.9); border: 1px solid #2e2e42;
+      border-radius: 14px; padding: 14px 20px; min-width: 220px;
+      z-index: 30; backdrop-filter: blur(6px);
+    }
+    .an-title { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+    .an-ep    { font-size: 15px; font-weight: 700; color: #e2e2e8; margin-bottom: 10px; }
+    #an-bar-bg { width: 100%; height: 4px; background: #2e2e42; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+    #an-bar    { height: 100%; width: 100%; background: #7c6dfa; border-radius: 4px; transform-origin: left; transition: transform linear; }
+    .an-btns   { display: flex; gap: 8px; }
+    .an-btns button {
+      flex: 1; padding: 6px 0; border: none;
+      border-radius: 7px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: background .15s;
+    }
+    #an-btn-now    { background: #7c6dfa; color: #fff; }
+    #an-btn-now:hover { background: #6a5be0; }
+    #an-btn-cancel { background: #1e1e2e; color: #aaa; border: 1px solid #2e2e42; }
+    #an-btn-cancel:hover { background: #2e2e42; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Controls bar -->
+  <div id="topbar">
+    <span class="brand">▶ MegaPlay</span>
+
+    <div class="field-group">
+      <label>MAL ID</label>
+      <input id="inp-mal" type="number" placeholder="e.g. 1735" min="1">
+    </div>
+
+    <div class="field-group">
+      <label>Episode</label>
+      <input id="inp-ep" type="number" placeholder="e.g. 11" min="1">
+    </div>
+
+    <div id="lang-toggle">
+      <button id="btn-dub" class="active" onclick="setLang('dub')">DUB</button>
+      <button id="btn-sub" onclick="setLang('sub')">SUB</button>
+    </div>
+
+    <div id="autonext-wrap">
+      <span>Auto-Next</span>
+      <label class="switch">
+        <input type="checkbox" id="chk-autonext" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="ctrl-btns">
+      <button class="bar-btn" id="btn-prev-bar" onclick="goPrevEp()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Prev
+      </button>
+      <button class="bar-btn" id="btn-go" onclick="loadPlayer()">▶ Play</button>
+      <button class="bar-btn" id="btn-next-bar" onclick="goNextEp()">
+        Next
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Player -->
+  <div id="player-wrap">
+
+    <!-- Gear toggle -->
+    <button id="toggle-bar-btn" onclick="toggleBar()" title="Toggle controls">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+           stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 8 11 13 6"/>
+      </svg>
+    </button>
+
+    <!-- Placeholder -->
+    <div id="placeholder">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="12" cy="12" r="10"/>
+        <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+      </svg>
+      <p>Click ⌄ top-right to open controls</p>
+      <p class="hint">Enter MAL ID + Episode then press Play</p>
+    </div>
+
+    <iframe id="player-iframe"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen
+            referrerpolicy="origin"></iframe>
+
+    <!-- Server toggle floating button -->
+    <button id="srv-toggle-btn" onclick="toggleServerPanel()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/>
+      </svg>
+      Servers
+    </button>
+
+    <!-- Server / Quality panel -->
+    <div id="server-panel">
+      <div class="sp-row">
+        <span class="sp-title">Servers &amp; Quality</span>
+        <button id="sp-close" onclick="toggleServerPanel()">✕</button>
+      </div>
+      <div id="quality-row"></div>
+      <div id="sp-loading" style="display:none"><div class="spin"></div> Fetching servers…</div>
+      <div id="sp-error" style="display:none"></div>
+      <div id="server-list"></div>
+    </div>
+
+    <!-- Prev / Next centered bottom -->
+    <div id="ep-nav">
+      <button class="ep-btn" onclick="goPrevEp()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Prev
+      </button>
+      <button class="ep-btn" onclick="goNextEp()">
+        Next
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <!-- Auto-next countdown -->
+    <div id="autonext-overlay">
+      <div class="an-title">Up next</div>
+      <div class="an-ep" id="an-ep-label">Episode —</div>
+      <div id="an-bar-bg"><div id="an-bar"></div></div>
+      <div class="an-btns">
+        <button id="an-btn-now"    onclick="goNextNow()">Play Now</button>
+        <button id="an-btn-cancel" onclick="cancelAutoNext()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+// ─────────────────────────────────────────────────────────────────
+//  CONSTANTS
+// ─────────────────────────────────────────────────────────────────
+const REPO        = '/megaplay_buzz_iframe_player';
+const COUNTDOWN_S = 10;
+const JSON_BASE   = 'https://raw.githubusercontent.com/donkarboy/anisantch_top/refs/heads/main/';
+// streams.json, streams_2.json … streams_15.json
+const JSON_FILES  = Array.from({length: 15}, (_, i) =>
+  i === 0 ? 'streams.json' : `streams_${i + 1}.json`
+);
+
+let currentLang      = 'dub';
+let autoNextTimer    = null;
+let endWatchInterval = null;
+let serverData       = [];
+let activeServer     = null;
+let activeQuality    = '480';
+
+// ─────────────────────────────────────────────────────────────────
+//  GITHUB PAGES 404 recovery
+// ─────────────────────────────────────────────────────────────────
+(function recoverRedirect() {
+  const p = new URLSearchParams(window.location.search).get('p');
+  if (p) window.history.replaceState(null, '', REPO + p);
+})();
+
+// ─────────────────────────────────────────────────────────────────
+//  URL HELPERS
+// ─────────────────────────────────────────────────────────────────
+function buildMegaplaySrc(malId, ep, lang) {
+  return `https://megaplay.buzz/stream/mal/${malId}/${ep}/${lang}?autostart=true`;
+}
+function buildPageUrl(malId, ep, lang) {
+  return `${REPO}/mal/${malId}/${ep}/${lang}/`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  SERVER URL TRANSFORMERS
+// ─────────────────────────────────────────────────────────────────
+
+// AllanimeHD: pick the m3u8 for chosen quality, fall back to closest
+const QUALITY_TIERS = [360, 480, 720, 1080];
+
+function getAllanimeUrl(entry, quality) {
+  const want  = parseInt(quality, 10);
+  const avail = QUALITY_TIERS.filter(q => entry[`allanime_${q}`]);
+  if (!avail.length) return null;
+  const best  = avail.reduce((a, b) =>
+    Math.abs(a - want) <= Math.abs(b - want) ? a : b
+  );
+  return entry[`allanime_${best}`] || null;
+}
+
+// AniVibe: use the bare "anivibe" field  →  https://vivibebe.site/...
+function getAnivibeUrl(entry) {
+  return entry.anivibe || null;
+}
+
+// OkCDN: use the bare "okcdn" field  →  https://ok.ru/videoembed/...
+function getOkcdnUrl(entry) {
+  return entry.okcdn || null;
+}
+
+// AniCDN: extract hash from /anicdn/{hash}/... → https://as-cdn21.top/video/{hash}
+function getAnicdnUrl(entry) {
+  const raw = entry.anicdn_iframe || entry.anicdn;
+  if (!raw) return null;
+  const m = raw.match(/\/anicdn\/([^/]+)/);
+  return m ? `https://as-cdn21.top/video/${m[1]}` : null;
+}
+
+// Swift: extract id from /swift/{id}/... → https://argon.razorshell.space/embed/{id}
+function getSwiftUrl(entry) {
+  const raw = entry.swift_iframe || entry.swift;
+  if (!raw) return null;
+  const m = raw.match(/\/swift\/([^/]+)/);
+  return m ? `https://argon.razorshell.space/embed/${m[1]}` : null;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  BUILD SERVER LIST FROM A MATCHED JSON ENTRY
+//  Servers kept: AllanimeHD, AniVibe, OkCDN, AniCDN, Swift
+//  Removed: MegaPlay, VidWish, MP4, AniYT
+// ─────────────────────────────────────────────────────────────────
+function buildServers(entry) {
+  const servers = [];
+
+  // 1. AllanimeHD (multi-quality)
+  if (QUALITY_TIERS.some(q => entry[`allanime_${q}`])) {
+    servers.push({ key: 'allanime', label: 'AllanimeHD', type: 'multi-quality', entry });
+  }
+
+  // 2. AniVibe  →  vivibebe.site URL
+  const aviUrl = getAnivibeUrl(entry);
+  if (aviUrl) {
+    servers.push({ key: 'anivibe', label: 'AniVibe', url: aviUrl });
+  }
+
+  // 3. OkCDN  →  ok.ru/videoembed URL
+  const okUrl = getOkcdnUrl(entry);
+  if (okUrl) {
+    servers.push({ key: 'okcdn', label: 'OkCDN', url: okUrl });
+  }
+
+  // 4. AniCDN  →  as-cdn21.top (multi-language)
+  const acdnUrl = getAnicdnUrl(entry);
+  if (acdnUrl) {
+    servers.push({ key: 'anicdn', label: 'AniCDN', badge: 'Multi-Lang', url: acdnUrl });
+  }
+
+  // 5. Swift  →  argon.razorshell.space (Hindi)
+  const swiftUrl = getSwiftUrl(entry);
+  if (swiftUrl) {
+    servers.push({ key: 'swift', label: 'Swift', badge: 'HI', url: swiftUrl });
+  }
+
+  return servers;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  FETCH ALL 15 JSON FILES CONCURRENTLY, RETURN MATCHING ENTRY
+// ─────────────────────────────────────────────────────────────────
+async function fetchMatchingEntry(malId, ep, lang) {
+  const key    = `${malId}/${ep}==${lang}`;
+  const altKey = `${malId}/${ep}==${lang === 'dub' ? 'sub' : 'dub'}`;
+
+  const fetches = JSON_FILES.map(f =>
+    fetch(JSON_BASE + f)
+      .then(r => r.ok ? r.json() : [])
+      .catch(() => [])
+  );
+
+  const results = await Promise.all(fetches);
+  const all     = results.flat();
+
+  // Exact match first, then fallback to opposite lang
+  return all.find(e => e.mal_id_with_ep_and_stream_type === key)
+      || all.find(e => e.mal_id_with_ep_and_stream_type === altKey)
+      || null;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  UI CONTROLS
+// ─────────────────────────────────────────────────────────────────
+function toggleBar() {
+  const bar  = document.getElementById('topbar');
+  const btn  = document.getElementById('toggle-bar-btn');
+  const open = bar.classList.toggle('open');
+  btn.classList.toggle('open', open);
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btn-dub').classList.toggle('active', lang === 'dub');
+  document.getElementById('btn-sub').classList.toggle('active', lang === 'sub');
+  const iframe = document.getElementById('player-iframe');
+  const malId  = document.getElementById('inp-mal').value.trim();
+  const ep     = document.getElementById('inp-ep').value.trim();
+  if (malId && ep && iframe.style.display !== 'none') loadPlayer();
+}
+
+function toggleServerPanel() {
+  document.getElementById('server-panel').classList.toggle('visible');
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  RENDER SERVER / QUALITY PANEL
+// ─────────────────────────────────────────────────────────────────
+function renderServerPanel(servers) {
+  const qRow    = document.getElementById('quality-row');
+  const srvList = document.getElementById('server-list');
+  const spLoad  = document.getElementById('sp-loading');
+  const spErr   = document.getElementById('sp-error');
+
+  spLoad.style.display = 'none';
+  spErr.style.display  = 'none';
+  qRow.innerHTML       = '';
+  srvList.innerHTML    = '';
+
+  if (!servers || !servers.length) {
+    spErr.style.display = 'block';
+    spErr.textContent   = 'No servers found for this episode.';
+    return;
+  }
+
+  // ── Quality pills (only when AllanimeHD is present) ──
+  const allanimeEntry = servers.find(s => s.type === 'multi-quality');
+  if (allanimeEntry) {
+    QUALITY_TIERS.forEach(q => {
+      const avail = !!allanimeEntry.entry[`allanime_${q}`];
+      const pill  = document.createElement('button');
+      pill.className  = 'q-pill' + (q === parseInt(activeQuality) ? ' active' : '') + (avail ? '' : ' unavail');
+      pill.textContent = q + 'p';
+      if (avail) {
+        pill.onclick = () => {
+          activeQuality = String(q);
+          document.querySelectorAll('.q-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          // Reload if AllanimeHD is the active server
+          if (activeServer && activeServer.key === 'allanime') {
+            playServer(activeServer);
+          }
+        };
+      }
+      qRow.appendChild(pill);
+    });
+  }
+
+  // ── Server buttons ──
+  servers.forEach((srv, i) => {
+    const btn = document.createElement('button');
+    btn.className  = 'srv-btn' + (i === 0 ? ' active' : '');
+    btn.dataset.key = srv.key;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = srv.label;
+    btn.appendChild(nameSpan);
+
+    if (srv.badge) {
+      const badge = document.createElement('span');
+      badge.className   = 'srv-badge';
+      badge.textContent = srv.badge;
+      btn.appendChild(badge);
+    } else if (srv.key === 'allanime') {
+      const badge = document.createElement('span');
+      badge.className   = 'srv-badge';
+      badge.textContent = 'HD';
+      btn.appendChild(badge);
+    }
+
+    btn.onclick = () => {
+      document.querySelectorAll('.srv-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeServer = srv;
+      playServer(srv);
+    };
+
+    srvList.appendChild(btn);
+
+    // Auto-activate first server
+    if (i === 0) {
+      activeServer = srv;
+    }
+  });
+}
+
+function playServer(srv) {
+  let url;
+  if (srv.type === 'multi-quality') {
+    url = getAllanimeUrl(srv.entry, activeQuality);
+    if (!url) {
+      // Fallback to best available
+      for (const q of [480, 720, 360, 1080]) {
+        url = srv.entry[`allanime_${q}`];
+        if (url) break;
+      }
+    }
+  } else {
+    url = srv.url;
+  }
+  if (url) loadIframe(url);
+}
+
+function loadIframe(url) {
+  const iframe      = document.getElementById('player-iframe');
+  const placeholder = document.getElementById('placeholder');
+  iframe.src                = url;
+  iframe.style.display      = 'block';
+  placeholder.style.display = 'none';
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  CORE PLAYER
+// ─────────────────────────────────────────────────────────────────
+async function showPlayer(src, malId, ep, lang) {
+  cancelAutoNext();
+  currentLang = lang;
+
+  // Show MegaPlay stream immediately so there's no blank wait
+  loadIframe(src);
+
+  // Sync inputs & URL
+  document.getElementById('inp-mal').value = malId;
+  document.getElementById('inp-ep').value  = ep;
+  document.getElementById('btn-dub').classList.toggle('active', lang === 'dub');
+  document.getElementById('btn-sub').classList.toggle('active', lang === 'sub');
+  history.replaceState({ malId, ep, lang }, '', buildPageUrl(malId, ep, lang));
+  document.title = `MAL ${malId} · Ep ${ep} · ${lang.toUpperCase()}`;
+
+  watchForEnd(document.getElementById('player-iframe'), malId, ep, lang);
+
+  // Show server button & open panel; begin loading
+  document.getElementById('srv-toggle-btn').classList.add('show');
+  document.getElementById('server-panel').classList.add('visible');
+  document.getElementById('quality-row').innerHTML = '';
+  document.getElementById('server-list').innerHTML = '';
+  document.getElementById('sp-loading').style.display = 'flex';
+  document.getElementById('sp-error').style.display   = 'none';
+
+  try {
+    const entry = await fetchMatchingEntry(malId, ep, lang);
+    document.getElementById('sp-loading').style.display = 'none';
+
+    if (entry) {
+      const servers = buildServers(entry);
+      serverData    = servers;
+      renderServerPanel(servers);
+    } else {
+      document.getElementById('sp-error').style.display = 'block';
+      document.getElementById('sp-error').textContent   =
+        `No JSON data found for MAL ${malId} ep ${ep}. Using MegaPlay default.`;
+      serverData = [];
+    }
+  } catch (e) {
+    document.getElementById('sp-loading').style.display = 'none';
+    document.getElementById('sp-error').style.display   = 'block';
+    document.getElementById('sp-error').textContent     = 'Failed to fetch server list.';
+  }
+}
+
+function loadPlayer() {
+  const malId = document.getElementById('inp-mal').value.trim();
+  const ep    = document.getElementById('inp-ep').value.trim();
+  if (!malId || !ep) { alert('Please enter both a MAL ID and an episode number.'); return; }
+  showPlayer(buildMegaplaySrc(malId, ep, currentLang), malId, ep, currentLang);
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  PREV / NEXT
+// ─────────────────────────────────────────────────────────────────
+function goPrevEp() {
+  const malId = document.getElementById('inp-mal').value.trim();
+  const ep    = parseInt(document.getElementById('inp-ep').value.trim(), 10);
+  if (!malId || isNaN(ep) || ep <= 1) return;
+  showPlayer(buildMegaplaySrc(malId, ep - 1, currentLang), malId, ep - 1, currentLang);
+}
+
+function goNextEp() {
+  const malId = document.getElementById('inp-mal').value.trim();
+  const ep    = parseInt(document.getElementById('inp-ep').value.trim(), 10);
+  if (!malId || isNaN(ep)) return;
+  showPlayer(buildMegaplaySrc(malId, ep + 1, currentLang), malId, ep + 1, currentLang);
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  END-OF-EPISODE DETECTION
+// ─────────────────────────────────────────────────────────────────
+function watchForEnd(iframe, malId, ep, lang) {
+  clearInterval(endWatchInterval);
+
+  function onMessage(e) {
+    const d = e.data;
+    if (!d) return;
+    const str = typeof d === 'string' ? d : JSON.stringify(d);
+    if (/ended|complete|finish|event.*end/i.test(str)) {
+      cleanup(); triggerAutoNext(malId, ep, lang);
+    }
+  }
+
+  window.addEventListener('message', onMessage);
+  endWatchInterval = setInterval(() => {
+    try {
+      const s = iframe.src || '';
+      if (s === '' || s === 'about:blank') { cleanup(); triggerAutoNext(malId, ep, lang); }
+    } catch(_) {}
+  }, 2000);
+
+  function cleanup() {
+    clearInterval(endWatchInterval);
+    window.removeEventListener('message', onMessage);
+  }
+  iframe._cleanup = cleanup;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  AUTO-NEXT
+// ─────────────────────────────────────────────────────────────────
+function triggerAutoNext(malId, ep, lang) {
+  if (!document.getElementById('chk-autonext').checked) return;
+  const nextEp = parseInt(ep, 10) + 1;
+  document.getElementById('an-ep-label').textContent = `Episode ${nextEp}`;
+
+  const overlay = document.getElementById('autonext-overlay');
+  const bar     = document.getElementById('an-bar');
+  overlay.style.display = 'block';
+  bar.style.transition  = 'none';
+  bar.style.transform   = 'scaleX(1)';
+  bar.getBoundingClientRect();
+  bar.style.transition  = `transform ${COUNTDOWN_S}s linear`;
+  bar.style.transform   = 'scaleX(0)';
+
+  let remaining = COUNTDOWN_S;
+  autoNextTimer = setInterval(() => { if (--remaining <= 0) goNextNow(); }, 1000);
+}
+
+function goNextNow() {
+  cancelAutoNext();
+  const malId = document.getElementById('inp-mal').value.trim();
+  const ep    = parseInt(document.getElementById('inp-ep').value.trim(), 10);
+  if (!malId || isNaN(ep)) return;
+  showPlayer(buildMegaplaySrc(malId, ep + 1, currentLang), malId, ep + 1, currentLang);
+}
+
+function cancelAutoNext() {
+  clearInterval(autoNextTimer);
+  autoNextTimer = null;
+  const overlay = document.getElementById('autonext-overlay');
+  if (overlay) overlay.style.display = 'none';
+  const iframe = document.getElementById('player-iframe');
+  if (iframe && iframe._cleanup) { iframe._cleanup(); iframe._cleanup = null; }
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  URL PARSER on load
+// ─────────────────────────────────────────────────────────────────
+(function parseUrl() {
+  const m = window.location.pathname.match(/\/mal\/(\d+)\/(\d+)(?:\/(dub|sub))?(?:\/)?$/i);
+  if (m) {
+    const malId = m[1], ep = m[2];
+    const lang  = (m[3] || 'dub').toLowerCase() === 'sub' ? 'sub' : 'dub';
+    showPlayer(buildMegaplaySrc(malId, ep, lang), malId, ep, lang);
+  }
+})();
+</script>
+</body>
+</html>
