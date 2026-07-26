@@ -393,6 +393,7 @@ let serverData       = [];
 let activeServer     = null;
 let activeQuality    = '480';
 let _endWatchCleanup = null;
+let preferredServerKey = null;  // remembers last user-chosen server across episodes
 
 // ─────────────────────────────────────────────────────────────────
 //  GITHUB PAGES 404 recovery
@@ -546,10 +547,15 @@ function renderServerPanel(servers) {
     });
   }
 
-  // Server buttons
+  // Server buttons — auto-select preferred server if it exists in this episode's list
+  const preferredIndex = preferredServerKey
+    ? servers.findIndex(s => s.key === preferredServerKey)
+    : -1;
+  const defaultIndex = preferredIndex >= 0 ? preferredIndex : 0;
+
   servers.forEach((srv, i) => {
     const btn = document.createElement('button');
-    btn.className   = 'srv-btn' + (i === 0 ? ' active' : '');
+    btn.className   = 'srv-btn' + (i === defaultIndex ? ' active' : '');
     btn.dataset.key = srv.key;
 
     const nameSpan = document.createElement('span');
@@ -567,18 +573,24 @@ function renderServerPanel(servers) {
     btn.onclick = () => {
       document.querySelectorAll('.srv-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      activeServer = srv;
+      activeServer       = srv;
+      preferredServerKey = srv.key;  // remember user's choice for future episodes
       playServer(srv);
     };
 
     srvList.appendChild(btn);
-    if (i === 0) activeServer = srv;
+    if (i === defaultIndex) activeServer = srv;
   });
+
+  // Auto-play the preferred (or first) server immediately
+  if (servers[defaultIndex]) playServer(servers[defaultIndex]);
 }
 
 // ─────────────────────────────────────────────────────────────────
 //  PLAY SERVER / LOAD IFRAME
 // ─────────────────────────────────────────────────────────────────
+let _currentEpisodeCtx = null;  // { malId, ep, lang } — set on each episode load
+
 function playServer(srv) {
   let url;
   if (srv.type === 'multi-quality') {
@@ -592,7 +604,16 @@ function playServer(srv) {
   } else {
     url = srv.url;
   }
-  if (url) loadIframe(url);
+  if (!url) return;
+  loadIframe(url);
+  // Re-arm end-watcher on the now-active iframe so auto-next still works
+  if (_currentEpisodeCtx) {
+    const { malId, ep, lang } = _currentEpisodeCtx;
+    const activeFrame = isMegaplayUrl(url)
+      ? document.getElementById('player-iframe')
+      : document.getElementById('player-iframe-sb');
+    watchForEnd(activeFrame, malId, ep, lang);
+  }
 }
 
 function isMegaplayUrl(url) { return /megaplay\.buzz/i.test(url); }
@@ -625,8 +646,9 @@ function loadIframe(url) {
 async function showPlayer(src, malId, ep, lang) {
   cancelAutoNext();
   currentLang = lang;
+  _currentEpisodeCtx = { malId, ep, lang };  // store for playServer to use
 
-  loadIframe(src); // shows immediately
+  loadIframe(src); // show MegaPlay immediately while JSON loads
 
   // Sync inputs & URL
   document.getElementById('inp-mal').value = malId;
@@ -635,12 +657,6 @@ async function showPlayer(src, malId, ep, lang) {
   document.getElementById('btn-sub').classList.toggle('active', lang === 'sub');
   history.replaceState({ malId, ep, lang }, '', buildPageUrl(malId, ep, lang));
   document.title = `MAL ${malId} · Ep ${ep} · ${lang.toUpperCase()}`;
-
-  // Re-arm end-watcher on the now-active iframe
-  const activeFrame = isMegaplayUrl(src)
-    ? document.getElementById('player-iframe')
-    : document.getElementById('player-iframe-sb');
-  watchForEnd(activeFrame, malId, ep, lang);
 
   // Show Servers button; reset panel state (don't auto-open)
   const srvWrap = document.getElementById('srv-wrap');
