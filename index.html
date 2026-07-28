@@ -27,14 +27,12 @@
       z-index: 50;
     }
 
-    /* flex row: inner controls + servers button side by side */
     #topbar-row {
       display: flex;
       align-items: center;
       overflow: visible;
     }
 
-    /* collapsible controls — overflow:hidden only on this part */
     #topbar-inner {
       display: flex;
       align-items: center;
@@ -69,7 +67,6 @@
     }
     .field-group input:focus { border-color: #7c6dfa; }
 
-    /* DUB / SUB */
     #lang-toggle {
       display: flex; background: #1e1e2e;
       border: 1px solid #2e2e42; border-radius: 8px;
@@ -82,7 +79,6 @@
     }
     #lang-toggle button.active { background: #7c6dfa; color: #fff; }
 
-    /* Auto-next */
     #autonext-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
     #autonext-wrap span {
       font-size: 11px; color: #888;
@@ -102,7 +98,6 @@
     .switch input:checked + .slider { background: #7c6dfa; }
     .switch input:checked + .slider::before { transform: translateX(16px); }
 
-    /* Buttons row */
     .ctrl-btns { display: flex; gap: 6px; align-items: center; }
 
     .bar-btn {
@@ -141,7 +136,7 @@
     #srv-toggle-btn:hover  { border-color: #7c6dfa; color: #fff; background: rgba(124,109,250,.18); }
     #srv-toggle-btn.open   { border-color: #7c6dfa; color: #fff; background: rgba(124,109,250,.22); }
 
-    /* dropdown panel — escapes #topbar downward */
+    /* Server panel dropdown */
     #server-panel {
       display: none;
       position: fixed;
@@ -152,8 +147,8 @@
       border: 1px solid #2e2e42;
       border-radius: 12px;
       padding: 12px 14px;
-      min-width: 260px;
-      max-width: 320px;
+      min-width: 280px;
+      max-width: 340px;
       box-shadow: 0 8px 32px rgba(0,0,0,.7);
     }
     #server-panel.visible { display: block; }
@@ -165,6 +160,44 @@
       cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px;
     }
     #sp-close:hover { color: #aaa; }
+
+    /* Source tabs (existing servers vs HiAnime) */
+    #source-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 10px;
+      background: #0e0e18;
+      border-radius: 8px;
+      padding: 3px;
+    }
+    .src-tab {
+      flex: 1; padding: 5px 8px;
+      border: none; border-radius: 6px;
+      font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all .15s;
+      background: transparent; color: #666;
+      letter-spacing: .04em; white-space: nowrap;
+    }
+    .src-tab.active { background: #7c6dfa; color: #fff; }
+    .src-tab:hover:not(.active) { color: #aaa; background: rgba(255,255,255,.04); }
+
+    /* HiAnime sub-source tabs */
+    #hianime-subsrc {
+      display: none;
+      gap: 4px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    #hianime-subsrc.show { display: flex; }
+    .subsrc-tab {
+      padding: 3px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 600;
+      cursor: pointer; border: 1px solid #2e2e42;
+      background: #1e1e2e; color: #888;
+      transition: all .15s;
+    }
+    .subsrc-tab.active { background: #fa6d9a; border-color: #fa6d9a; color: #fff; }
+    .subsrc-tab:hover:not(.active) { border-color: #fa6d9a; color: #ccc; }
 
     #quality-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
     .q-pill {
@@ -188,11 +221,23 @@
     }
     .srv-btn:hover  { background: rgba(124,109,250,.18); border-color: #7c6dfa; color: #fff; }
     .srv-btn.active { background: rgba(124,109,250,.28); border-color: #7c6dfa; color: #fff; }
+    /* HiAnime server buttons get a pink accent */
+    .srv-btn.hianime-srv:hover  { background: rgba(250,109,154,.15); border-color: #fa6d9a; color: #fff; }
+    .srv-btn.hianime-srv.active { background: rgba(250,109,154,.25); border-color: #fa6d9a; color: #fff; }
+
     .srv-badge {
       font-size: 10px; padding: 2px 6px; border-radius: 10px;
       background: #2e2e42; color: #777; margin-left: 6px; flex-shrink: 0;
     }
     .srv-btn.active .srv-badge { background: #7c6dfa; color: #fff; }
+    .srv-btn.hianime-srv.active .srv-badge { background: #fa6d9a; color: #fff; }
+
+    /* HiAnime source label pill */
+    .hi-source-pill {
+      font-size: 9px; padding: 1px 5px; border-radius: 8px;
+      background: rgba(250,109,154,.2); color: #fa6d9a; border: 1px solid rgba(250,109,154,.3);
+      margin-left: 5px; flex-shrink: 0; letter-spacing: .04em; font-weight: 700;
+    }
 
     #sp-loading {
       display: flex; align-items: center; gap: 8px;
@@ -222,7 +267,6 @@
 
     #player-iframe { display: none; }
 
-    /* Floating gear button */
     #toggle-bar-btn {
       position: absolute; top: 10px; right: 12px; z-index: 20;
       width: 32px; height: 32px;
@@ -302,7 +346,6 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
 
-        <!-- Servers — right beside Next, dropdown uses position:fixed to escape clipping -->
         <div id="srv-wrap">
           <button id="srv-toggle-btn" onclick="toggleServerPanel()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -317,6 +360,24 @@
               <span class="sp-title">Servers &amp; Quality</span>
               <button id="sp-close" onclick="toggleServerPanel()">✕</button>
             </div>
+
+            <!-- Source tabs: AnisantCH vs HiAnime -->
+            <div id="source-tabs">
+              <button class="src-tab active" id="tab-anisantch" onclick="switchSource('anisantch')">AnisantCH</button>
+              <button class="src-tab" id="tab-hianime" onclick="switchSource('hianime')">
+                🌸 HiAnime
+              </button>
+            </div>
+
+            <!-- HiAnime sub-source selector (StreamHG / EarnVids / DoodStream / ViviBebe / Bibiemb) -->
+            <div id="hianime-subsrc">
+              <button class="subsrc-tab active" data-subsrc="streamhg"   onclick="setHiSubSrc('streamhg')">StreamHG</button>
+              <button class="subsrc-tab"        data-subsrc="earnvids"   onclick="setHiSubSrc('earnvids')">EarnVids</button>
+              <button class="subsrc-tab"        data-subsrc="doodstream" onclick="setHiSubSrc('doodstream')">DoodStream</button>
+              <button class="subsrc-tab"        data-subsrc="vivibebe"   onclick="setHiSubSrc('vivibebe')">ViviBebe</button>
+              <button class="subsrc-tab"        data-subsrc="bibiemb"    onclick="setHiSubSrc('bibiemb')">Bibiemb</button>
+            </div>
+
             <div id="quality-row"></div>
             <div id="sp-loading" style="display:none"><div class="spin"></div>&nbsp;Fetching servers…</div>
             <div id="sp-error"   style="display:none"></div>
@@ -330,7 +391,6 @@
   <!-- Player -->
   <div id="player-wrap">
 
-    <!-- Gear toggle -->
     <button id="toggle-bar-btn" onclick="toggleBar()" title="Toggle controls">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
            stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -338,7 +398,6 @@
       </svg>
     </button>
 
-    <!-- Placeholder -->
     <div id="placeholder">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
         <circle cx="12" cy="12" r="10"/>
@@ -354,7 +413,7 @@
             allowfullscreen
             referrerpolicy="origin"></iframe>
 
-    <!-- All other servers — sandboxed (blocks ads / popups / redirects) -->
+    <!-- All other servers — sandboxed -->
     <iframe id="player-iframe-sb"
             sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
             allow="autoplay; fullscreen; picture-in-picture"
@@ -372,7 +431,7 @@
         <button id="an-btn-cancel" onclick="cancelAutoNext()">Cancel</button>
       </div>
     </div>
-  </div><!-- /#player-wrap -->
+  </div>
 
 </div>
 <script>
@@ -381,19 +440,42 @@
 // ─────────────────────────────────────────────────────────────────
 const REPO        = '/megaplay_buzz_iframe_player';
 const COUNTDOWN_S = 10;
-const JSON_BASE   = 'https://raw.githubusercontent.com/donkarboy/anisantch_top/refs/heads/main/';
-const JSON_FILES  = Array.from({length: 15}, (_, i) =>
+
+// AnisantCH JSON source (existing)
+const JSON_BASE  = 'https://raw.githubusercontent.com/donkarboy/anisantch_top/refs/heads/main/';
+const JSON_FILES = Array.from({length: 15}, (_, i) =>
   i === 0 ? 'streams.json' : `streams_${i + 1}.json`
 );
 
-let currentLang      = 'dub';
-let autoNextTimer    = null;
-let endWatchInterval = null;
-let serverData       = [];
-let activeServer     = null;
-let activeQuality    = '480';
-let _endWatchCleanup = null;
-let preferredServerKey = null;  // remembers last user-chosen server across episodes
+// HiAnime JSON source (new)
+const HIANIME_JSON_URL = 'https://raw.githubusercontent.com/srtfile/hi_anime_streams_scraper/refs/heads/main/hianime_streams_list.json';
+
+// HiAnime sub-sources (the stream providers within HiAnime)
+const HI_SUBSOURCES = [
+  { key: 'streamhg',   label: 'StreamHG'   },
+  { key: 'earnvids',   label: 'EarnVids'   },
+  { key: 'doodstream', label: 'DoodStream' },
+  { key: 'vivibebe',   label: 'ViviBebe'   },
+  { key: 'bibiemb',    label: 'Bibiemb'    },
+];
+
+let currentLang        = 'dub';
+let autoNextTimer      = null;
+let endWatchInterval   = null;
+let serverData         = [];        // AnisantCH servers
+let hianimeData        = null;      // matched HiAnime entry
+let activeServer       = null;
+let activeQuality      = '480';
+let _endWatchCleanup   = null;
+let preferredServerKey = null;      // remembers last user-chosen server
+
+// Source panel state
+let activeSource  = 'anisantch';   // 'anisantch' | 'hianime'
+let activeHiSubSrc = 'streamhg';   // current HiAnime stream provider
+
+// HiAnime data cache to avoid re-fetching on every episode change
+let _hianimeCacheRaw    = null;    // full parsed JSON array
+let _hianimeLoadPromise = null;    // in-flight fetch promise
 
 // ─────────────────────────────────────────────────────────────────
 //  GITHUB PAGES 404 recovery
@@ -414,7 +496,7 @@ function buildPageUrl(malId, ep, lang) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  SERVER URL BUILDERS
+//  ANISANTCH SERVER URL BUILDERS
 // ─────────────────────────────────────────────────────────────────
 const QUALITY_TIERS = [360, 480, 720, 1080];
 
@@ -427,7 +509,6 @@ function getAllanimeUrl(entry, quality) {
 }
 
 function getAnivibeUrl(entry) { return entry.anivibe || null; }
-
 function getOkcdnUrl(entry)   { return entry.okcdn   || null; }
 
 function getAnicdnUrl(entry) {
@@ -444,25 +525,72 @@ function getSwiftUrl(entry) {
   return m ? `https://argon.razorshell.space/embed/${m[1]}` : null;
 }
 
-function buildServers(entry) {
+function buildAnisantchServers(entry) {
   const servers = [];
   if (QUALITY_TIERS.some(q => entry[`allanime_${q}`]))
-    servers.push({ key: 'allanime', label: 'AllanimeHD', type: 'multi-quality', entry });
+    servers.push({ key: 'allanime', label: 'AllanimeHD', type: 'multi-quality', entry, source: 'anisantch' });
   const avi = getAnivibeUrl(entry);
-  if (avi)  servers.push({ key: 'anivibe', label: 'AniVibe', url: avi });
+  if (avi)  servers.push({ key: 'anivibe', label: 'AniVibe', url: avi, source: 'anisantch' });
   const ok  = getOkcdnUrl(entry);
-  if (ok)   servers.push({ key: 'okcdn',   label: 'OkCDN',   url: ok });
+  if (ok)   servers.push({ key: 'okcdn',   label: 'OkCDN',   url: ok, source: 'anisantch' });
   const cdn = getAnicdnUrl(entry);
-  if (cdn)  servers.push({ key: 'anicdn',  label: 'AniCDN',  badge: 'Multi-Lang', url: cdn });
+  if (cdn)  servers.push({ key: 'anicdn',  label: 'AniCDN',  badge: 'Multi-Lang', url: cdn, source: 'anisantch' });
   const sw  = getSwiftUrl(entry);
-  if (sw)   servers.push({ key: 'swift',   label: 'Swift',   badge: 'HI', url: sw });
+  if (sw)   servers.push({ key: 'swift',   label: 'Swift',   badge: 'HI', url: sw, source: 'anisantch' });
   return servers;
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  FETCH JSON
+//  HIANIME URL BUILDERS
 // ─────────────────────────────────────────────────────────────────
-async function fetchMatchingEntry(malId, ep, lang) {
+
+/**
+ * Given a HiAnime entry object and a lang + subSource, returns the embed URL.
+ * Data keys follow the pattern: {lang}_{subSource}_embed_url_ep_{ep}
+ * e.g. dub_streamhg_embed_url_ep_1, sub_earnvids_embed_url_ep_2, hsub_vivibebe_embed_url_ep_3
+ *
+ * The "hsub" prefix represents "hard sub" — we treat it as an additional sub variant.
+ */
+function getHiAnimeUrl(entry, lang, subSrc) {
+  const ep = entry.episode_no;
+  // Try exact lang first, then fall back to hsub for sub
+  const prefixes = lang === 'sub' ? [lang, 'hsub'] : [lang];
+  for (const prefix of prefixes) {
+    const key = `${prefix}_${subSrc}_embed_url_ep_${ep}`;
+    if (entry[key]) return entry[key];
+  }
+  return null;
+}
+
+/**
+ * Build HiAnime server list for the panel.
+ * Each sub-source becomes its own "server" entry, filtered to only those
+ * that have a URL for the current lang.
+ */
+function buildHiAnimeServers(entry, lang) {
+  const servers = [];
+  for (const ss of HI_SUBSOURCES) {
+    const url = getHiAnimeUrl(entry, lang, ss.key);
+    if (url) {
+      servers.push({
+        key:    'hianime_' + ss.key,
+        label:  ss.label,
+        badge:  'HiAnime',
+        url,
+        source: 'hianime',
+        subsrc: ss.key,
+        hiEntry: entry,
+        hiLang: lang,
+      });
+    }
+  }
+  return servers;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  FETCH ANISANTCH JSON
+// ─────────────────────────────────────────────────────────────────
+async function fetchAnisantchEntry(malId, ep, lang) {
   const key    = `${malId}/${ep}==${lang}`;
   const altKey = `${malId}/${ep}==${lang === 'dub' ? 'sub' : 'dub'}`;
   const results = await Promise.all(
@@ -472,6 +600,34 @@ async function fetchMatchingEntry(malId, ep, lang) {
   return all.find(e => e.mal_id_with_ep_and_stream_type === key)
       || all.find(e => e.mal_id_with_ep_and_stream_type === altKey)
       || null;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  FETCH HIANIME JSON (with caching)
+// ─────────────────────────────────────────────────────────────────
+async function loadHiAnimeRaw() {
+  if (_hianimeCacheRaw) return _hianimeCacheRaw;
+  if (_hianimeLoadPromise) return _hianimeLoadPromise;
+  _hianimeLoadPromise = fetch(HIANIME_JSON_URL)
+    .then(r => r.ok ? r.json() : [])
+    .catch(() => [])
+    .then(data => {
+      _hianimeCacheRaw = Array.isArray(data) ? data : [];
+      _hianimeLoadPromise = null;
+      return _hianimeCacheRaw;
+    });
+  return _hianimeLoadPromise;
+}
+
+async function fetchHiAnimeEntry(malId, ep) {
+  const all = await loadHiAnimeRaw();
+  const mid = parseInt(malId, 10);
+  const epn = parseInt(ep, 10);
+  // Match by mal_id field and episode_no
+  return all.find(e => {
+    const id = e['mal_id/anilist_id/tmdb_id'];
+    return parseInt(id, 10) === mid && parseInt(e.episode_no, 10) === epn;
+  }) || null;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -500,17 +656,47 @@ function toggleServerPanel() {
   const open  = panel.classList.toggle('visible');
   btn.classList.toggle('open', open);
   if (open) {
-    // Position the fixed panel directly below the button
     const rect = btn.getBoundingClientRect();
     panel.style.top  = (rect.bottom + 6) + 'px';
     panel.style.left = rect.left + 'px';
   }
 }
 
+// Switch between AnisantCH source tab and HiAnime source tab
+function switchSource(src) {
+  activeSource = src;
+
+  document.getElementById('tab-anisantch').classList.toggle('active', src === 'anisantch');
+  document.getElementById('tab-hianime').classList.toggle('active', src === 'hianime');
+
+  const hiSubDiv = document.getElementById('hianime-subsrc');
+  const qRow     = document.getElementById('quality-row');
+
+  if (src === 'hianime') {
+    hiSubDiv.classList.add('show');
+    qRow.style.display = 'none';
+    renderHiAnimeServerList();
+  } else {
+    hiSubDiv.classList.remove('show');
+    qRow.style.display = '';
+    renderAnisantchServerList();
+  }
+}
+
+// Switch HiAnime sub-source (StreamHG / EarnVids / etc.)
+function setHiSubSrc(subsrc) {
+  activeHiSubSrc = subsrc;
+  document.querySelectorAll('.subsrc-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.subsrc === subsrc);
+  });
+  // Re-render HiAnime server list with new sub-source active
+  renderHiAnimeServerList();
+}
+
 // ─────────────────────────────────────────────────────────────────
-//  RENDER SERVER PANEL
+//  RENDER SERVER PANEL — AnisantCH side
 // ─────────────────────────────────────────────────────────────────
-function renderServerPanel(servers) {
+function renderAnisantchServerList() {
   const qRow    = document.getElementById('quality-row');
   const srvList = document.getElementById('server-list');
   const spLoad  = document.getElementById('sp-loading');
@@ -520,10 +706,13 @@ function renderServerPanel(servers) {
   spErr.style.display  = 'none';
   qRow.innerHTML       = '';
   srvList.innerHTML    = '';
+  qRow.style.display   = '';
+
+  const servers = serverData; // already fetched
 
   if (!servers || !servers.length) {
     spErr.style.display = 'block';
-    spErr.textContent   = 'No servers found for this episode.';
+    spErr.textContent   = 'No AnisantCH servers for this episode.';
     return;
   }
 
@@ -547,9 +736,8 @@ function renderServerPanel(servers) {
     });
   }
 
-  // Server buttons — auto-select preferred server if it exists in this episode's list
   const preferredIndex = preferredServerKey
-    ? servers.findIndex(s => s.key === preferredServerKey)
+    ? servers.findIndex(s => s.key === preferredServerKey && s.source === 'anisantch')
     : -1;
   const defaultIndex = preferredIndex >= 0 ? preferredIndex : 0;
 
@@ -574,7 +762,7 @@ function renderServerPanel(servers) {
       document.querySelectorAll('.srv-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeServer       = srv;
-      preferredServerKey = srv.key;  // remember user's choice for future episodes
+      preferredServerKey = srv.key;
       playServer(srv);
     };
 
@@ -582,14 +770,78 @@ function renderServerPanel(servers) {
     if (i === defaultIndex) activeServer = srv;
   });
 
-  // Auto-play the preferred (or first) server immediately
   if (servers[defaultIndex]) playServer(servers[defaultIndex]);
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  RENDER SERVER PANEL — HiAnime side
+// ─────────────────────────────────────────────────────────────────
+function renderHiAnimeServerList() {
+  const srvList = document.getElementById('server-list');
+  const spLoad  = document.getElementById('sp-loading');
+  const spErr   = document.getElementById('sp-error');
+
+  spLoad.style.display = 'none';
+  spErr.style.display  = 'none';
+  srvList.innerHTML    = '';
+
+  if (!hianimeData) {
+    spErr.style.display = 'block';
+    spErr.textContent   = 'No HiAnime data for this MAL ID + episode.';
+    return;
+  }
+
+  const servers = buildHiAnimeServers(hianimeData, currentLang);
+
+  if (!servers.length) {
+    spErr.style.display = 'block';
+    spErr.textContent   = `No HiAnime ${currentLang.toUpperCase()} streams found for this episode.`;
+    return;
+  }
+
+  // Highlight the sub-source currently active
+  const defaultIndex = servers.findIndex(s => s.subsrc === activeHiSubSrc);
+  const useIndex = defaultIndex >= 0 ? defaultIndex : 0;
+
+  servers.forEach((srv, i) => {
+    const btn = document.createElement('button');
+    btn.className   = 'srv-btn hianime-srv' + (i === useIndex ? ' active' : '');
+    btn.dataset.key = srv.key;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = srv.label;
+    btn.appendChild(nameSpan);
+
+    // HiAnime source pill
+    const hiPill = document.createElement('span');
+    hiPill.className   = 'hi-source-pill';
+    hiPill.textContent = 'HiAnime';
+    btn.appendChild(hiPill);
+
+    btn.onclick = () => {
+      document.querySelectorAll('.srv-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeServer       = srv;
+      preferredServerKey = srv.key;
+      // Also sync the sub-source tab highlight
+      activeHiSubSrc = srv.subsrc;
+      document.querySelectorAll('.subsrc-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.subsrc === srv.subsrc);
+      });
+      playServer(srv);
+    };
+
+    srvList.appendChild(btn);
+    if (i === useIndex) activeServer = srv;
+  });
+
+  if (servers[useIndex]) playServer(servers[useIndex]);
 }
 
 // ─────────────────────────────────────────────────────────────────
 //  PLAY SERVER / LOAD IFRAME
 // ─────────────────────────────────────────────────────────────────
-let _currentEpisodeCtx = null;  // { malId, ep, lang } — set on each episode load
+let _currentEpisodeCtx = null;
 
 function playServer(srv) {
   let url;
@@ -606,7 +858,6 @@ function playServer(srv) {
   }
   if (!url) return;
   loadIframe(url);
-  // Re-arm end-watcher on the now-active iframe so auto-next still works
   if (_currentEpisodeCtx) {
     const { malId, ep, lang } = _currentEpisodeCtx;
     const activeFrame = isMegaplayUrl(url)
@@ -623,8 +874,7 @@ function loadIframe(url) {
   const sb    = document.getElementById('player-iframe-sb');
   const ph    = document.getElementById('placeholder');
 
-  stopEndWatch(); // stop watcher BEFORE blanking anything
-
+  stopEndWatch();
   ph.style.display = 'none';
 
   if (isMegaplayUrl(url)) {
@@ -646,11 +896,10 @@ function loadIframe(url) {
 async function showPlayer(src, malId, ep, lang) {
   cancelAutoNext();
   currentLang = lang;
-  _currentEpisodeCtx = { malId, ep, lang };  // store for playServer to use
+  _currentEpisodeCtx = { malId, ep, lang };
 
-  loadIframe(src); // show MegaPlay immediately while JSON loads
+  loadIframe(src); // show MegaPlay immediately
 
-  // Sync inputs & URL
   document.getElementById('inp-mal').value = malId;
   document.getElementById('inp-ep').value  = ep;
   document.getElementById('btn-dub').classList.toggle('active', lang === 'dub');
@@ -658,7 +907,6 @@ async function showPlayer(src, malId, ep, lang) {
   history.replaceState({ malId, ep, lang }, '', buildPageUrl(malId, ep, lang));
   document.title = `MAL ${malId} · Ep ${ep} · ${lang.toUpperCase()}`;
 
-  // Show Servers button; reset panel state (don't auto-open)
   const srvWrap = document.getElementById('srv-wrap');
   const srvBtn  = document.getElementById('srv-toggle-btn');
   const panel   = document.getElementById('server-panel');
@@ -666,31 +914,50 @@ async function showPlayer(src, malId, ep, lang) {
   panel.classList.remove('visible');
   srvBtn.classList.remove('open');
 
-  // Reset panel content and show spinner
+  // Reset panel content
   document.getElementById('quality-row').innerHTML  = '';
   document.getElementById('server-list').innerHTML  = '';
   document.getElementById('sp-loading').style.display = 'flex';
   document.getElementById('sp-error').style.display   = 'none';
+  hianimeData = null;
+  serverData  = [];
 
-  try {
-    const entry = await fetchMatchingEntry(malId, ep, lang);
-    document.getElementById('sp-loading').style.display = 'none';
-    if (entry) {
-      const servers = buildServers(entry);
-      serverData = servers;
-      renderServerPanel(servers);
-    } else {
-      const err = document.getElementById('sp-error');
-      err.style.display = 'block';
-      err.textContent   = `No server data for MAL ${malId} ep ${ep}. Using MegaPlay default.`;
-      serverData = [];
-    }
-  } catch (e) {
-    document.getElementById('sp-loading').style.display = 'none';
-    const err = document.getElementById('sp-error');
-    err.style.display = 'block';
-    err.textContent   = 'Failed to fetch server list.';
+  // Fetch both sources in parallel
+  const [anisantchEntry, hiEntry] = await Promise.all([
+    fetchAnisantchEntry(malId, ep, lang).catch(() => null),
+    fetchHiAnimeEntry(malId, ep).catch(() => null),
+  ]);
+
+  document.getElementById('sp-loading').style.display = 'none';
+
+  // Store results
+  if (anisantchEntry) {
+    serverData = buildAnisantchServers(anisantchEntry);
   }
+  hianimeData = hiEntry || null;
+
+  // Update tab availability indicators
+  updateSourceTabAvailability();
+
+  // Render whichever source tab is currently active
+  if (activeSource === 'hianime') {
+    renderHiAnimeServerList();
+  } else {
+    renderAnisantchServerList();
+  }
+
+  // Auto-switch to HiAnime tab if AnisantCH has nothing but HiAnime does
+  if (!serverData.length && hianimeData && activeSource === 'anisantch') {
+    switchSource('hianime');
+  }
+}
+
+/** Dim tab labels when a source has no data for this episode */
+function updateSourceTabAvailability() {
+  const tabAni = document.getElementById('tab-anisantch');
+  const tabHi  = document.getElementById('tab-hianime');
+  tabAni.style.opacity = serverData.length  ? '1' : '0.4';
+  tabHi.style.opacity  = hianimeData        ? '1' : '0.4';
 }
 
 function loadPlayer() {
