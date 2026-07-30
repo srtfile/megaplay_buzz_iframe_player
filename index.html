@@ -369,7 +369,7 @@
               </button>
             </div>
 
-            <!-- HiAnime sub-source selector (StreamHG / EarnVids / DoodStream / ViviBebe / Bibiemb) -->
+            <!-- HiAnime sub-source selector -->
             <div id="hianime-subsrc">
               <button class="subsrc-tab active" data-subsrc="streamhg"   onclick="setHiSubSrc('streamhg')">StreamHG</button>
               <button class="subsrc-tab"        data-subsrc="earnvids"   onclick="setHiSubSrc('earnvids')">EarnVids</button>
@@ -441,16 +441,20 @@
 const REPO        = '/megaplay_buzz_iframe_player';
 const COUNTDOWN_S = 10;
 
-// AnisantCH JSON source (existing)
+// AnisantCH JSON source
 const JSON_BASE  = 'https://raw.githubusercontent.com/donkarboy/anisantch_top/refs/heads/main/';
 const JSON_FILES = Array.from({length: 15}, (_, i) =>
   i === 0 ? 'streams.json' : `streams_${i + 1}.json`
 );
 
-// HiAnime JSON source (new)
-const HIANIME_JSON_URL = 'https://raw.githubusercontent.com/srtfile/hi_anime_streams_scraper/refs/heads/main/hianime_streams_list.json';
+// HiAnime JSON source — 20 files
+// File naming: hianime_streams_list.json, hianime_streams_list_2.json … hianime_streams_list_20.json
+const HIANIME_BASE      = 'https://raw.githubusercontent.com/srtfile/hi_anime_streams_scraper/refs/heads/main/';
+const HIANIME_JSON_FILES = Array.from({length: 20}, (_, i) =>
+  i === 0 ? 'hianime_streams_list.json' : `hianime_streams_list_${i + 1}.json`
+);
 
-// HiAnime sub-sources (the stream providers within HiAnime)
+// HiAnime sub-sources
 const HI_SUBSOURCES = [
   { key: 'streamhg',   label: 'StreamHG'   },
   { key: 'earnvids',   label: 'EarnVids'   },
@@ -462,20 +466,20 @@ const HI_SUBSOURCES = [
 let currentLang        = 'dub';
 let autoNextTimer      = null;
 let endWatchInterval   = null;
-let serverData         = [];        // AnisantCH servers
-let hianimeData        = null;      // matched HiAnime entry
+let serverData         = [];
+let hianimeData        = null;
 let activeServer       = null;
 let activeQuality      = '480';
 let _endWatchCleanup   = null;
-let preferredServerKey = null;      // remembers last user-chosen server
+let preferredServerKey = null;
 
 // Source panel state
-let activeSource  = 'anisantch';   // 'anisantch' | 'hianime'
-let activeHiSubSrc = 'streamhg';   // current HiAnime stream provider
+let activeSource   = 'anisantch';
+let activeHiSubSrc = 'streamhg';
 
-// HiAnime data cache to avoid re-fetching on every episode change
-let _hianimeCacheRaw    = null;    // full parsed JSON array
-let _hianimeLoadPromise = null;    // in-flight fetch promise
+// HiAnime data cache — avoid re-fetching across episode changes
+let _hianimeCacheRaw    = null;   // full merged array from all 20 files
+let _hianimeLoadPromise = null;   // in-flight fetch promise
 
 // ─────────────────────────────────────────────────────────────────
 //  GITHUB PAGES 404 recovery
@@ -543,17 +547,8 @@ function buildAnisantchServers(entry) {
 // ─────────────────────────────────────────────────────────────────
 //  HIANIME URL BUILDERS
 // ─────────────────────────────────────────────────────────────────
-
-/**
- * Given a HiAnime entry object and a lang + subSource, returns the embed URL.
- * Data keys follow the pattern: {lang}_{subSource}_embed_url_ep_{ep}
- * e.g. dub_streamhg_embed_url_ep_1, sub_earnvids_embed_url_ep_2, hsub_vivibebe_embed_url_ep_3
- *
- * The "hsub" prefix represents "hard sub" — we treat it as an additional sub variant.
- */
 function getHiAnimeUrl(entry, lang, subSrc) {
   const ep = entry.episode_no;
-  // Try exact lang first, then fall back to hsub for sub
   const prefixes = lang === 'sub' ? [lang, 'hsub'] : [lang];
   for (const prefix of prefixes) {
     const key = `${prefix}_${subSrc}_embed_url_ep_${ep}`;
@@ -562,11 +557,6 @@ function getHiAnimeUrl(entry, lang, subSrc) {
   return null;
 }
 
-/**
- * Build HiAnime server list for the panel.
- * Each sub-source becomes its own "server" entry, filtered to only those
- * that have a URL for the current lang.
- */
 function buildHiAnimeServers(entry, lang) {
   const servers = [];
   for (const ss of HI_SUBSOURCES) {
@@ -603,19 +593,25 @@ async function fetchAnisantchEntry(malId, ep, lang) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  FETCH HIANIME JSON (with caching)
+//  FETCH HIANIME JSON — all 20 files, merged, with caching
 // ─────────────────────────────────────────────────────────────────
 async function loadHiAnimeRaw() {
   if (_hianimeCacheRaw) return _hianimeCacheRaw;
   if (_hianimeLoadPromise) return _hianimeLoadPromise;
-  _hianimeLoadPromise = fetch(HIANIME_JSON_URL)
-    .then(r => r.ok ? r.json() : [])
-    .catch(() => [])
-    .then(data => {
-      _hianimeCacheRaw = Array.isArray(data) ? data : [];
-      _hianimeLoadPromise = null;
-      return _hianimeCacheRaw;
-    });
+
+  _hianimeLoadPromise = Promise.all(
+    HIANIME_JSON_FILES.map(f =>
+      fetch(HIANIME_BASE + f)
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => [])
+    )
+  ).then(results => {
+    // Flatten all 20 arrays into one merged list
+    _hianimeCacheRaw    = results.flat().filter(Boolean);
+    _hianimeLoadPromise = null;
+    return _hianimeCacheRaw;
+  });
+
   return _hianimeLoadPromise;
 }
 
@@ -623,7 +619,6 @@ async function fetchHiAnimeEntry(malId, ep) {
   const all = await loadHiAnimeRaw();
   const mid = parseInt(malId, 10);
   const epn = parseInt(ep, 10);
-  // Match by mal_id field and episode_no
   return all.find(e => {
     const id = e['mal_id/anilist_id/tmdb_id'];
     return parseInt(id, 10) === mid && parseInt(e.episode_no, 10) === epn;
@@ -662,10 +657,8 @@ function toggleServerPanel() {
   }
 }
 
-// Switch between AnisantCH source tab and HiAnime source tab
 function switchSource(src) {
   activeSource = src;
-
   document.getElementById('tab-anisantch').classList.toggle('active', src === 'anisantch');
   document.getElementById('tab-hianime').classList.toggle('active', src === 'hianime');
 
@@ -683,18 +676,16 @@ function switchSource(src) {
   }
 }
 
-// Switch HiAnime sub-source (StreamHG / EarnVids / etc.)
 function setHiSubSrc(subsrc) {
   activeHiSubSrc = subsrc;
   document.querySelectorAll('.subsrc-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.subsrc === subsrc);
   });
-  // Re-render HiAnime server list with new sub-source active
   renderHiAnimeServerList();
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  RENDER SERVER PANEL — AnisantCH side
+//  RENDER SERVER PANEL — AnisantCH
 // ─────────────────────────────────────────────────────────────────
 function renderAnisantchServerList() {
   const qRow    = document.getElementById('quality-row');
@@ -708,7 +699,7 @@ function renderAnisantchServerList() {
   srvList.innerHTML    = '';
   qRow.style.display   = '';
 
-  const servers = serverData; // already fetched
+  const servers = serverData;
 
   if (!servers || !servers.length) {
     spErr.style.display = 'block';
@@ -716,7 +707,6 @@ function renderAnisantchServerList() {
     return;
   }
 
-  // Quality pills
   const allanimeEntry = servers.find(s => s.type === 'multi-quality');
   if (allanimeEntry) {
     QUALITY_TIERS.forEach(q => {
@@ -774,7 +764,7 @@ function renderAnisantchServerList() {
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  RENDER SERVER PANEL — HiAnime side
+//  RENDER SERVER PANEL — HiAnime
 // ─────────────────────────────────────────────────────────────────
 function renderHiAnimeServerList() {
   const srvList = document.getElementById('server-list');
@@ -799,20 +789,17 @@ function renderHiAnimeServerList() {
     return;
   }
 
-  // Highlight the sub-source currently active
-  const defaultIndex = servers.findIndex(s => s.subsrc === activeHiSubSrc);
-  const useIndex = defaultIndex >= 0 ? defaultIndex : 0;
+  const defaultIndex = Math.max(0, servers.findIndex(s => s.subsrc === activeHiSubSrc));
 
   servers.forEach((srv, i) => {
     const btn = document.createElement('button');
-    btn.className   = 'srv-btn hianime-srv' + (i === useIndex ? ' active' : '');
+    btn.className   = 'srv-btn hianime-srv' + (i === defaultIndex ? ' active' : '');
     btn.dataset.key = srv.key;
 
     const nameSpan = document.createElement('span');
     nameSpan.textContent = srv.label;
     btn.appendChild(nameSpan);
 
-    // HiAnime source pill
     const hiPill = document.createElement('span');
     hiPill.className   = 'hi-source-pill';
     hiPill.textContent = 'HiAnime';
@@ -823,7 +810,6 @@ function renderHiAnimeServerList() {
       btn.classList.add('active');
       activeServer       = srv;
       preferredServerKey = srv.key;
-      // Also sync the sub-source tab highlight
       activeHiSubSrc = srv.subsrc;
       document.querySelectorAll('.subsrc-tab').forEach(t => {
         t.classList.toggle('active', t.dataset.subsrc === srv.subsrc);
@@ -832,10 +818,10 @@ function renderHiAnimeServerList() {
     };
 
     srvList.appendChild(btn);
-    if (i === useIndex) activeServer = srv;
+    if (i === defaultIndex) activeServer = srv;
   });
 
-  if (servers[useIndex]) playServer(servers[useIndex]);
+  if (servers[defaultIndex]) playServer(servers[defaultIndex]);
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -898,7 +884,7 @@ async function showPlayer(src, malId, ep, lang) {
   currentLang = lang;
   _currentEpisodeCtx = { malId, ep, lang };
 
-  loadIframe(src); // show MegaPlay immediately
+  loadIframe(src);
 
   document.getElementById('inp-mal').value = malId;
   document.getElementById('inp-ep').value  = ep;
@@ -914,7 +900,6 @@ async function showPlayer(src, malId, ep, lang) {
   panel.classList.remove('visible');
   srvBtn.classList.remove('open');
 
-  // Reset panel content
   document.getElementById('quality-row').innerHTML  = '';
   document.getElementById('server-list').innerHTML  = '';
   document.getElementById('sp-loading').style.display = 'flex';
@@ -930,34 +915,26 @@ async function showPlayer(src, malId, ep, lang) {
 
   document.getElementById('sp-loading').style.display = 'none';
 
-  // Store results
-  if (anisantchEntry) {
-    serverData = buildAnisantchServers(anisantchEntry);
-  }
+  if (anisantchEntry) serverData = buildAnisantchServers(anisantchEntry);
   hianimeData = hiEntry || null;
 
-  // Update tab availability indicators
   updateSourceTabAvailability();
 
-  // Render whichever source tab is currently active
   if (activeSource === 'hianime') {
     renderHiAnimeServerList();
   } else {
     renderAnisantchServerList();
   }
 
-  // Auto-switch to HiAnime tab if AnisantCH has nothing but HiAnime does
+  // Auto-switch to HiAnime if AnisantCH has nothing
   if (!serverData.length && hianimeData && activeSource === 'anisantch') {
     switchSource('hianime');
   }
 }
 
-/** Dim tab labels when a source has no data for this episode */
 function updateSourceTabAvailability() {
-  const tabAni = document.getElementById('tab-anisantch');
-  const tabHi  = document.getElementById('tab-hianime');
-  tabAni.style.opacity = serverData.length  ? '1' : '0.4';
-  tabHi.style.opacity  = hianimeData        ? '1' : '0.4';
+  document.getElementById('tab-anisantch').style.opacity = serverData.length ? '1' : '0.4';
+  document.getElementById('tab-hianime').style.opacity   = hianimeData        ? '1' : '0.4';
 }
 
 function loadPlayer() {
