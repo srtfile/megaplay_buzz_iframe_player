@@ -90,6 +90,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   max-height: 500px; overflow-y: auto;
 }
 #search-dropdown.show { display: block; }
+#search-dropdown.show { display: block; }
 .sd-item {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 12px; cursor: pointer;
@@ -549,20 +550,51 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   .h-scroll-wrap { padding: 0 14px 20px; }
   #genre-bar { padding: 0 14px 16px; }
   
-  /* Navbar responsive */
-  #navbar { padding: 0 12px; height: 56px; gap: 8px; flex-wrap: nowrap; overflow-x: auto; }
-  .logo { font-size: 18px; }
-  #search-wrap { max-width: 200px; flex: 1; min-width: 120px; }
-  #search-inp { font-size: 12px; padding: 7px 12px 7px 32px; }
-  .search-icon { left: 10px; }
-  .nav-btn { font-size: 11px; padding: 6px 12px; }
+  /* Navbar responsive - wrap layout */
+  #navbar { 
+    flex-wrap: wrap; 
+    height: auto; 
+    padding: 8px 10px; 
+    gap: 6px; 
+  }
+  
+  /* Logo and buttons on first row */
+  .logo { 
+    font-size: 16px; 
+    padding: 4px 8px;
+    order: 1;
+  }
+  .nav-btn { 
+    font-size: 10px; 
+    padding: 5px 10px; 
+    white-space: nowrap;
+    order: 1;
+  }
+  
+  /* Search bar on second row, full width */
+  #search-wrap { 
+    order: 2; 
+    flex-basis: 100%; 
+    max-width: 100%; 
+    margin-top: 6px;
+  }
+  #search-inp { 
+    font-size: 13px; 
+    padding: 8px 12px 8px 34px;
+    width: 100%;
+  }
+  .search-icon { left: 10px; width: 14px; height: 14px; }
   
   /* Search dropdown mobile */
-  #search-dropdown { max-height: 350px; }
-  .sd-item { padding: 6px 10px; gap: 8px; }
-  .sd-img { width: 32px; height: 45px; }
+  #search-dropdown { 
+    max-height: 60vh;
+    border-radius: 12px;
+  }
+  .sd-item { padding: 8px 10px; gap: 8px; }
+  .sd-img { width: 30px; height: 42px; }
   .sd-title { font-size: 12px; }
   .sd-meta { font-size: 10px; }
+  .sd-score { font-size: 10px; }
   
   /* Episode modal mobile */
   #ep-modal { max-height: 80vh; }
@@ -575,11 +607,11 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   .ep-btn { font-size: 12px; padding: 8px 4px; }
   
   /* Player controls mobile */
-  #player-topbar { padding: 0 10px; gap: 6px; }
-  #back-btn { padding: 5px 10px; font-size: 12px; }
-  #player-lang-toggle button { padding: 4px 10px; font-size: 10px; }
-  .ep-nav-btn { padding: 5px 8px; font-size: 10px; }
-  #srv-panel-btn { padding: 5px 10px; font-size: 10px; }
+  #player-topbar { padding: 0 8px; gap: 4px; }
+  #back-btn { padding: 5px 8px; font-size: 11px; }
+  #player-lang-toggle button { padding: 4px 8px; font-size: 10px; }
+  .ep-nav-btn { padding: 4px 6px; font-size: 10px; }
+  #srv-panel-btn { padding: 5px 8px; font-size: 10px; }
   
   /* Server dropdown mobile */
   #server-dropdown { min-width: 260px; max-width: 90vw; }
@@ -596,10 +628,11 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 
 @media (max-width: 400px) {
   .anime-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
-  #search-wrap { max-width: 150px; }
-  .nav-btn:nth-child(n+5) { display: none; }
   #hero { min-height: 300px; }
   #hero-title { font-size: 18px; }
+  .logo { font-size: 14px; padding: 4px 6px; }
+  .nav-btn { font-size: 9px; padding: 4px 8px; }
+  #search-inp { font-size: 12px; }
 }
 </style>
 </head>
@@ -1241,16 +1274,49 @@ searchInp.addEventListener('keypress', (e) => {
 });
 
 searchInp.addEventListener('focus', () => {
-  if (searchInp.value.trim()) searchDD.classList.add('show');
+  if (searchInp.value.trim()) {
+    searchDD.classList.add('show');
+    positionSearchDropdown();
+  }
 });
+
+// Position search dropdown correctly on mobile
+function positionSearchDropdown() {
+  const isMobile = window.innerWidth <= 600;
+  if (!isMobile) {
+    // Desktop: position relative to search input
+    searchDD.style.position = 'absolute';
+    searchDD.style.top = 'calc(100% + 6px)';
+    searchDD.style.left = '0';
+    searchDD.style.right = '0';
+    searchDD.style.width = 'auto';
+  } else {
+    // Mobile: position fixed below navbar
+    const navbar = document.getElementById('navbar');
+    const navbarRect = navbar.getBoundingClientRect();
+    searchDD.style.position = 'fixed';
+    searchDD.style.top = (navbarRect.bottom + 6) + 'px';
+    searchDD.style.left = '10px';
+    searchDD.style.right = '10px';
+    searchDD.style.width = 'calc(100% - 20px)';
+  }
+}
 
 document.addEventListener('click', e => {
   if (!e.target.closest('#search-wrap')) searchDD.classList.remove('show');
 });
 
+// Reposition search dropdown on window resize
+window.addEventListener('resize', () => {
+  if (searchDD.classList.contains('show')) {
+    positionSearchDropdown();
+  }
+});
+
 async function doSearch(q) {
   searchDD.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">Searching…</div>';
   searchDD.classList.add('show');
+  positionSearchDropdown();
   
   try {
     console.log('Searching for:', q);
