@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TVStreamX — Stream TV Shows Free</title>
+<title>AnimeStreamX — Stream Anime Free</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -558,13 +558,13 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 <div id="view-home">
   <!-- Navbar -->
   <nav id="navbar">
-    <div class="logo" onclick="goHome()">TV<span>X</span></div>
+    <div class="logo" onclick="goHome()">Anime<span>X</span></div>
     <div id="search-wrap">
       <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input id="search-inp" type="text" placeholder="Search TV shows…" autocomplete="off">
+      <input id="search-inp" type="text" placeholder="Search anime…" autocomplete="off">
       <div id="search-dropdown"></div>
     </div>
-    <button class="nav-btn" onclick="loadSection('top-airing')">On Air</button>
+    <button class="nav-btn" onclick="loadSection('top-airing')">Airing</button>
     <button class="nav-btn" onclick="loadSection('top')">Top Rated</button>
     <button class="nav-btn" onclick="loadSection('popular')">Popular</button>
   </nav>
@@ -574,7 +574,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
     <div id="hero-bg"></div>
     <div id="hero-overlay"></div>
     <div id="hero-content">
-      <div class="hero-badge">✦ Featured TV Show</div>
+      <div class="hero-badge">✦ Featured Anime</div>
       <div id="hero-title">Loading…</div>
       <div id="hero-meta" class="hero-meta"></div>
       <div id="hero-desc"></div>
@@ -612,7 +612,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   <!-- Trending (horizontal scroll) -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title"><span class="dot"></span> Currently On Air</div>
+      <div class="section-title"><span class="dot"></span> Currently Airing</div>
       <span class="see-all" onclick="loadSection('top-airing')">See all →</span>
     </div>
   </section>
@@ -623,7 +623,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   <!-- Top This Season -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title"><span class="dot" style="background:var(--pink)"></span> Top Rated</div>
+      <div class="section-title"><span class="dot" style="background:var(--pink)"></span> Top Rated Anime</div>
       <span class="see-all" onclick="loadSection('top')">See all →</span>
     </div>
   </section>
@@ -634,7 +634,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   <!-- Popular Grid -->
   <section class="section">
     <div class="section-header">
-      <div class="section-title"><span class="dot" style="background:#34d399"></span> Popular All-Time</div>
+      <div class="section-title"><span class="dot" style="background:#34d399"></span> Popular Anime</div>
       <span class="see-all" onclick="loadSection('popular')">See all →</span>
     </div>
     <div class="anime-grid" id="popular-grid"></div>
@@ -952,10 +952,11 @@ async function initHome() {
 }
 
 async function loadHero() {
-  const d = await tmdb('/tv/popular?page=1');
+  // Load popular animation shows only (genre 16 = Animation)
+  const d = await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&page=1');
   if (!d?.results?.length) return;
   
-  // Get a random popular show
+  // Get a random popular animated show
   heroAnime = normalizeTMDB(d.results[Math.floor(Math.random() * Math.min(5, d.results.length))], 'tv');
   
   // Fetch full details to get episode count
@@ -1029,7 +1030,8 @@ function skeletonCards(n, container, row=false) {
 async function loadAiringRow() {
   const row = document.getElementById('airing-row');
   skeletonCards(8, row, true);
-  const d = await tmdb('/tv/on_the_air?page=1');
+  // Load only animation shows that are currently on air
+  const d = await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&air_date.gte=2024-01-01&page=1');
   row.innerHTML = '';
   (d?.results||[]).forEach(item => row.appendChild(renderCard(normalizeTMDB(item, 'tv'), true)));
 }
@@ -1037,7 +1039,8 @@ async function loadAiringRow() {
 async function loadTopRow() {
   const row = document.getElementById('top-row');
   skeletonCards(8, row, true);
-  const d = await tmdb('/tv/top_rated?page=1');
+  // Load top rated animation shows only
+  const d = await tmdb('/discover/tv?with_genres=16&sort_by=vote_average.desc&vote_count.gte=100&page=1');
   row.innerHTML = '';
   (d?.results||[]).forEach(item => row.appendChild(renderCard(normalizeTMDB(item, 'tv'), true)));
 }
@@ -1045,7 +1048,8 @@ async function loadTopRow() {
 async function loadPopularGrid() {
   const grid = document.getElementById('popular-grid');
   skeletonCards(12, grid);
-  const d = await tmdb('/tv/popular?page=1');
+  // Load popular animation shows only
+  const d = await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&page=1');
   grid.innerHTML = '';
   (d?.results||[]).forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
 }
@@ -1055,7 +1059,13 @@ async function filterGenre(genreId, el) {
   el.classList.add('active');
   const grid = document.getElementById('popular-grid');
   skeletonCards(12, grid);
-  const path = genreId ? `/discover/tv?with_genres=${genreId}&sort_by=popularity.desc` : '/tv/popular?page=1';
+  // Always include Animation genre (16) plus the selected genre
+  let path;
+  if (genreId) {
+    path = `/discover/tv?with_genres=16,${genreId}&sort_by=popularity.desc`;
+  } else {
+    path = '/discover/tv?with_genres=16&sort_by=popularity.desc&page=1';
+  }
   const d = await tmdb(path);
   grid.innerHTML = '';
   (d?.results||[]).forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
@@ -1063,9 +1073,9 @@ async function filterGenre(genreId, el) {
 
 async function loadSection(type) {
   const pathMap = { 
-    'top-airing': '/tv/on_the_air?page=1', 
-    'top': '/tv/top_rated?page=1', 
-    'popular': '/tv/popular?page=1'
+    'top-airing': '/discover/tv?with_genres=16&sort_by=popularity.desc&air_date.gte=2024-01-01&page=1', 
+    'top': '/discover/tv?with_genres=16&sort_by=vote_average.desc&vote_count.gte=100&page=1', 
+    'popular': '/discover/tv?with_genres=16&sort_by=popularity.desc&page=1'
   };
   const grid = document.getElementById('popular-grid');
   grid.scrollIntoView({ behavior:'smooth' });
@@ -1099,13 +1109,25 @@ document.addEventListener('click', e => {
 async function doSearch(q) {
   searchDD.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">Searching…</div>';
   searchDD.classList.add('show');
+  // Search only animation shows (genre 16)
   const d = await tmdb(`/search/tv?query=${encodeURIComponent(q)}&page=1`);
   searchDD.innerHTML = '';
   if (!d?.results?.length) {
     searchDD.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">No results found.</div>';
     return;
   }
-  d.results.slice(0, 8).forEach(item => {
+  // Filter results to only show animation
+  const animatedResults = d.results.filter(item => {
+    const normalized = normalizeTMDB(item, 'tv');
+    return isAnimation(normalized);
+  }).slice(0, 8);
+  
+  if (animatedResults.length === 0) {
+    searchDD.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">No animated shows found.</div>';
+    return;
+  }
+  
+  animatedResults.forEach(item => {
     const a = normalizeTMDB(item, 'tv');
     const searchItem = document.createElement('div');
     searchItem.className = 'sd-item';
