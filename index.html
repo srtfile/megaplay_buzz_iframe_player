@@ -878,32 +878,8 @@ async function tmdbToMalId(tmdbId, show = null) {
       return null;
     }
     
-    // Method 1: Try AniList API with external ID (most reliable)
+    // Method 1: Try Anime-Lists mapping database (most reliable)
     try {
-      const query = `
-        query ($idTmdb: Int, $type: MediaType) {
-          Media(idMal: $idTmdb, type: $type) {
-            idMal
-          }
-        }
-      `;
-      
-      // Note: AniList doesn't have direct TMDB lookup, trying alternative approach
-      const query2 = `
-        query {
-          Page(page: 1, perPage: 1) {
-            media(type: ANIME, externalIds: {idMal: null, tmdbId: ${tmdbId}}) {
-              idMal
-              title {
-                romaji
-              }
-            }
-          }
-        }
-      `;
-      
-      // Method 2: Use publicly available mapping database
-      // Anime-Lists mapping database (GitHub hosted JSON)
       const mappingUrl = `https://raw.githubusercontent.com/Fribb/anime-lists/master/anime-list-full.json`;
       const mappingResponse = await fetch(mappingUrl);
       
@@ -924,12 +900,12 @@ async function tmdbToMalId(tmdbId, show = null) {
         }
       }
     } catch (err) {
-      console.log('Mapping database lookup failed, trying fallback method');
+      console.log('Anime-Lists mapping lookup failed:', err);
     }
     
-    // Method 3: Try ARM (Anime Relations Mapping) database
+    // Method 2: Try ARM (Anime Relations Mapping) database - Fixed URL
     try {
-      const armUrl = `https://raw.githubusercontent.com/manami-project/anime-offline-database/master/anime-offline-database-minified.json`;
+      const armUrl = `https://raw.githubusercontent.com/manami-project/anime-offline-database/master/anime-offline-database.json`;
       const armResponse = await fetch(armUrl);
       
       if (armResponse.ok) {
@@ -953,7 +929,7 @@ async function tmdbToMalId(tmdbId, show = null) {
         }
       }
     } catch (err) {
-      console.log('ARM database lookup failed');
+      console.log('ARM database lookup failed:', err);
     }
     
     console.log(`Could not find MAL ID for TMDB ID ${tmdbId}`);
