@@ -880,21 +880,22 @@ async function tmdbToMalId(tmdbId, show = null) {
     
     // Method 1: Try Anime-Lists mapping database (most reliable)
     try {
-      const mappingUrl = `https://raw.githubusercontent.com/Fribb/anime-lists/master/anime-list-full.json`;
+      const mappingUrl = `https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-full.json`;
       const mappingResponse = await fetch(mappingUrl);
       
       if (mappingResponse.ok) {
         const mappingData = await mappingResponse.json();
         
         // Search for TMDB ID in the mapping
+        // Data structure: themoviedb_id: { tv: 31910 } and mal_id: 1735
         for (const anime of mappingData) {
-          if (anime.themoviedb_id === parseInt(tmdbId) || 
-              anime.themoviedb_id === tmdbId ||
-              (anime.themoviedb && anime.themoviedb === parseInt(tmdbId))) {
-            if (anime.mal_id || anime.myanimelist_id) {
-              const malId = anime.mal_id || anime.myanimelist_id;
-              console.log(`Found MAL ID ${malId} for TMDB ID ${tmdbId} via Anime-Lists mapping`);
-              return malId;
+          // Check if themoviedb_id exists and has tv property
+          if (anime.themoviedb_id && anime.themoviedb_id.tv) {
+            if (parseInt(anime.themoviedb_id.tv) === parseInt(tmdbId)) {
+              if (anime.mal_id) {
+                console.log(`Found MAL ID ${anime.mal_id} for TMDB ID ${tmdbId} via Anime-Lists mapping`);
+                return anime.mal_id;
+              }
             }
           }
         }
@@ -903,7 +904,7 @@ async function tmdbToMalId(tmdbId, show = null) {
       console.log('Anime-Lists mapping lookup failed:', err);
     }
     
-    // Method 2: Try ARM (Anime Relations Mapping) database - Fixed URL
+    // Method 2: Try ARM (Anime Relations Mapping) database as fallback
     try {
       const armUrl = `https://raw.githubusercontent.com/manami-project/anime-offline-database/master/anime-offline-database.json`;
       const armResponse = await fetch(armUrl);
