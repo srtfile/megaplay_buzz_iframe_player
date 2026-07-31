@@ -1267,6 +1267,8 @@ async function filterGenre(genreId, el) {
   document.querySelectorAll('.genre-pill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   const grid = document.getElementById('popular-grid');
+  const myToken = ++sectionLoadToken;
+  setGridTitle(`<span class="dot" style="background:#34d399"></span> Popular Anime`);
   skeletonCards(12, grid);
   // Always include Animation genre (16) plus the selected genre
   let path;
@@ -1276,6 +1278,7 @@ async function filterGenre(genreId, el) {
     path = '/discover/tv?with_genres=16&sort_by=popularity.desc&page=1';
   }
   const d = await tmdb(path);
+  if (myToken !== sectionLoadToken) return;
   grid.innerHTML = '';
   if (d?.results) {
     // Filter to only include shows with Animation genre
@@ -1283,62 +1286,116 @@ async function filterGenre(genreId, el) {
       const normalized = normalizeTMDB(item, 'tv');
       return isAnimation(normalized);
     });
+    if (!animatedShows.length) { showGridMessage(grid, 'No anime found for this genre.'); return; }
     animatedShows.forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
   }
 }
 
+// Config for the anime-only grid sections (title + TMDB discover path)
+const SECTION_CONFIG = {
+  'top-airing': { path: '/discover/tv?with_genres=16&sort_by=popularity.desc&air_date.gte=2024-01-01&page=1', title: 'Currently Airing', dot: 'var(--accent)' },
+  'top':        { path: '/discover/tv?with_genres=16&sort_by=vote_average.desc&vote_count.gte=100&page=1', title: 'Top Rated Anime', dot: 'var(--pink)' },
+  'popular':    { path: '/discover/tv?with_genres=16&sort_by=popularity.desc&page=1', title: 'Popular Anime', dot: '#34d399' }
+};
+
+let sectionLoadToken = 0; // guards against out-of-order responses when buttons are clicked rapidly
+
+function getGridTitleEl() {
+  return document.querySelector('#popular-grid')?.closest('section')?.querySelector('.section-title');
+}
+
+function setGridTitle(html) {
+  const el = getGridTitleEl();
+  if (el) el.innerHTML = html;
+}
+
+function resetGenrePills() {
+  document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('active'));
+}
+
+function showGridMessage(grid, msg) {
+  grid.innerHTML = `<div style="grid-column:1/-1;padding:30px 0;text-align:center;color:var(--text2);font-size:13px">${msg}</div>`;
+}
+
 async function loadSection(type) {
   if (type === 'movies-tv') { loadMoviesTVSection(); return; }
-  const pathMap = {
-    'top-airing': '/discover/tv?with_genres=16&sort_by=popularity.desc&air_date.gte=2024-01-01&page=1',
-    'top': '/discover/tv?with_genres=16&sort_by=vote_average.desc&vote_count.gte=100&page=1',
-    'popular': '/discover/tv?with_genres=16&sort_by=popularity.desc&page=1'
-  };
+
+  const cfg = SECTION_CONFIG[type] || SECTION_CONFIG.popular;
   const grid = document.getElementById('popular-grid');
-  // Update section title back to anime
-  const sectionTitle = grid.closest('.section') || grid.parentElement?.closest('.section');
-  const titleEl = document.querySelector('#popular-grid')?.closest('section')?.querySelector('.section-title');
-  if (titleEl) titleEl.innerHTML = '<span class="dot" style="background:#34d399"></span> Popular Anime';
+  const myToken = ++sectionLoadToken;
+
+  setGridTitle(`<span class="dot" style="background:${cfg.dot}"></span> ${cfg.title}`);
+  resetGenrePills();
+  document.querySelector('.genre-pill')?.classList.add('active'); // "All" pill back on for anime sections
   grid.scrollIntoView({ behavior:'smooth' });
   skeletonCards(16, grid);
-  const d = await tmdb(pathMap[type] || pathMap.popular);
-  grid.innerHTML = '';
-  if (d?.results) {
-    const animatedShows = d.results.filter(item => {
-      const normalized = normalizeTMDB(item, 'tv');
-      return isAnimation(normalized);
-    });
+
+  try {
+    const d = await tmdb(cfg.path);
+    if (myToken !== sectionLoadToken) return; // a newer section was requested meanwhile, discard this response
+
+    grid.innerHTML = '';
+    const animatedShows = (d?.results || []).filter(item => isAnimation(normalizeTMDB(item, 'tv')));
+
+    if (!animatedShows.length) {
+      showGridMessage(grid, 'No results found for this section right now. Please try again.');
+      return;
+    }
     animatedShows.forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
+  } catch (err) {
+    console.error('loadSection error:', err);
+    if (myToken === sectionLoadToken) showGridMessage(grid, 'Something went wrong loading this section. Please try again.');
   }
 }
 
 async function loadMoviesTVSection() {
   const grid = document.getElementById('popular-grid');
-  // Update section title
-  const titleEl = document.querySelector('#popular-grid')?.closest('section')?.querySelector('.section-title');
-  if (titleEl) titleEl.innerHTML = '<span class="dot" style="background:var(--pink)"></span> Movies &amp; TV Shows';
+  const myToken = ++sectionLoadToken;
+
+  setGridTitle('<span class="dot" style="background:var(--pink)"></span> Movies &amp; TV Shows');
+  resetGenrePills(); // genre pills only apply to the anime grid, not this mixed feed
   grid.scrollIntoView({ behavior:'smooth' });
   skeletonCards(16, grid);
 
-  // Fetch popular movies and TV shows (non-animation focus)
-  const [movies, tv] = await Promise.all([
-    tmdb('/movie/popular?page=1'),
-    tmdb('/tv/popular?page=1')
-  ]);
+  try {
+    // Use the same /discover endpoints the rest of the app already relies on successfully,
+    // rather than /movie/popular /tv/popular, for consistent behavior. Pull a couple of pages
+    // of each so the grid feels full, and run them all in parallel.
+    const requests = [
+      tmdb('/discover/movie?sort_by=popularity.desc&page=1'),
+      tmdb('/discover/movie?sort_by=popularity.desc&page=2'),
+      tmdb('/discover/tv?sort_by=popularity.desc&page=1'),
+      tmdb('/discover/tv?sort_by=popularity.desc&page=2')
+    ];
+    const [movies1, movies2, tv1, tv2] = await Promise.all(requests);
+    if (myToken !== sectionLoadToken) return;
 
-  grid.innerHTML = '';
-  let combined = [];
-  if (movies?.results) combined = combined.concat(movies.results.map(i => ({ ...i, _mt: 'movie' })));
-  if (tv?.results)     combined = combined.concat(tv.results.map(i => ({ ...i, _mt: 'tv' })));
+    let combined = [];
+    [movies1, movies2].forEach(d => { if (d?.results) combined = combined.concat(d.results.map(i => ({ ...i, _mt: 'movie' }))); });
+    [tv1, tv2].forEach(d => { if (d?.results) combined = combined.concat(d.results.map(i => ({ ...i, _mt: 'tv' }))); });
 
-  // Sort by popularity descending
-  combined.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    // De-duplicate (movie ids and tv ids can overlap numerically, so key on type+id)
+    const seen = new Set();
+    combined = combined.filter(item => {
+      const key = `${item._mt}-${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
-  combined.forEach(item => {
-    const mt = item._mt;
-    const a = normalizeTMDB(item, mt);
-    grid.appendChild(renderCard(a));
-  });
+    // Interleave movies/TV roughly by popularity so it doesn't read as two separate blocks
+    combined.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
+    grid.innerHTML = '';
+    if (!combined.length) {
+      showGridMessage(grid, 'Could not load movies &amp; TV shows right now. Please try again.');
+      return;
+    }
+    combined.forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, item._mt))));
+  } catch (err) {
+    console.error('loadMoviesTVSection error:', err);
+    if (myToken === sectionLoadToken) showGridMessage(grid, 'Could not load movies &amp; TV shows right now. Please try again.');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
