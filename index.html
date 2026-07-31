@@ -862,7 +862,7 @@ function isAnimation(show) {
   }) || (show.genre_ids && show.genre_ids.includes(16));
 }
 
-// Convert TMDB ID to MAL ID for animation shows
+// Convert TMDB ID to MAL ID for animation shows using AniList GraphQL API
 async function tmdbToMalId(tmdbId, show = null) {
   try {
     // First check if the show is animation
@@ -878,26 +878,49 @@ async function tmdbToMalId(tmdbId, show = null) {
       return null;
     }
     
-    // Use the show name to search on Jikan (MAL API) for ID mapping only
-    const showName = showData.name || showData.title;
-    if (showName) {
-      const jikanSearch = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(showName)}&limit=5&sfw=true`);
-      if (jikanSearch.ok) {
-        const jikanData = await jikanSearch.json();
-        if (jikanData.data && jikanData.data.length > 0) {
-          // Try to match by year and name similarity
-          const year = (showData.first_air_date || '').split('-')[0];
-          for (const anime of jikanData.data) {
-            const animeYear = anime.year || (anime.aired?.from || '').split('-')[0];
-            // Check if years match or are close (within 1 year)
-            if (year && animeYear && Math.abs(parseInt(year) - parseInt(animeYear)) <= 1) {
-              console.log(`Matched TMDB ID ${tmdbId} to MAL ID ${anime.mal_id} (${anime.title})`);
-              return anime.mal_id;
-            }
+    // Use AniList GraphQL API to convert TMDB ID to MAL ID
+    const query = `
+      query ($idMal: Int, $search: String, $type: MediaType) {
+        Media(idMal: $idMal, search: $search, type: $type) {
+          idMal
+          title {
+            romaji
+            english
+            native
           }
-          // If no year match, return the first result as best guess
-          console.log(`Best guess: TMDB ID ${tmdbId} to MAL ID ${jikanData.data[0].mal_id} (${jikanData.data[0].title})`);
-          return jikanData.data[0].mal_id;
+          startDate {
+            year
+          }
+        }
+      }
+    `;
+    
+    const showName = showData.name || showData.title;
+    const variables = {
+      search: showName,
+      type: 'ANIME'
+    };
+    
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ query, variables })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.data && data.data.Media && data.data.Media.idMal) {
+        const malId = data.data.Media.idMal;
+        const year = (showData.first_air_date || '').split('-')[0];
+        const anilistYear = data.data.Media.startDate?.year;
+        
+        // Verify year match (within 1 year tolerance)
+        if (!year || !anilistYear || Math.abs(parseInt(year) - parseInt(anilistYear)) <= 1) {
+          console.log(`Matched TMDB ID ${tmdbId} to MAL ID ${malId} via AniList`);
+          return malId;
         }
       }
     }
