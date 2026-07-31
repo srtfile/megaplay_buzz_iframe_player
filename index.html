@@ -887,6 +887,8 @@ let modalAnime   = null;
 let modalLang    = 'dub';
 let playerMalId  = null;
 let playerImdbId = null;
+let playerTmdbId = null;   // raw TMDB id, needed for web.nxsha.app which takes TMDB ids directly
+let playerMediaType = 'tv'; // 'tv' or 'movie', needed to build the correct nxsha URL
 let playerEp     = 1;
 let playerLang   = 'dub';
 let playerIsAnimation = false;
@@ -1599,6 +1601,8 @@ function startWatch(show, ep, lang) {
   // Store both MAL ID and IMDB ID
   playerMalId = show.mal_id || show.id; // For anime
   playerImdbId = show.imdb_id || null;  // For non-anime
+  playerTmdbId = show.id || null;       // Raw TMDB id (used by web.nxsha.app)
+  playerMediaType = show.type === 'Movie' ? 'movie' : 'tv';
   playerEp    = ep;
   playerLang  = lang;
   playerTitle = showTitle(show);
@@ -1705,32 +1709,32 @@ function openEpPickerFromPlayer() {
 // ═══════════════════════════════════════════════════════════
 //  LOAD EPISODE
 // ═══════════════════════════════════════════════════════════
-async function loadEpisode(malId, ep, lang, imdbId = null) {
+async function loadEpisode(malId, ep, lang, imdbId = undefined) {
   cancelAN();
   stopEndWatch();
   playerMalId = malId;
-  playerImdbId = imdbId;
+  // Only overwrite playerImdbId if a value was explicitly passed; otherwise
+  // keep whatever was already set (e.g. from startWatch) so prev/next nav
+  // and language switches for movies/TV don't lose the IMDB id.
+  if (imdbId !== undefined) playerImdbId = imdbId;
   playerEp = ep;
   playerLang = lang;
   document.getElementById('player-ep-label').textContent = `Episode ${ep}`;
 
-  // If it's not animation and we have IMDB ID, use insertunit.ws embed
-  if (imdbId && !playerIsAnimation) {
-    const imdbSrc = `https://api.insertunit.ws/embed/imdb/${imdbId}`;
-    console.log(`Loading non-anime with IMDB ID: ${imdbId}`);
-    loadIframe(imdbSrc, true); // Use ad-blocking iframe
-
-    // For non-anime, we don't need server panel functionality
-    document.getElementById('qual-row').innerHTML = '';
-    document.getElementById('srv-list-inner').innerHTML = '<div style="font-size:12px;color:var(--text2);padding:6px 0">Streaming via IMDB embed</div>';
-    document.getElementById('srv-loading').classList.remove('show');
-
-    const activeFrame = document.getElementById('pf-sb');
-    watchEnd(activeFrame, imdbId, ep, lang);
+  // Non-anime content: build a real server list (API Instrument + Movie Servers)
+  // instead of hardcoding a single embed. This lets the person switch sources
+  // from the Servers panel just like anime does.
+  if (!playerIsAnimation) {
+    serverData = [];
+    hianimeEntry = null;
+    buildNonAnimeServers();
+    updateSrcTabOpacity();
+    renderNonAnimeList();
     return;
   }
 
   // Animation path: Use megaplay default immediately
+  document.getElementById('src-tabs').style.display = '';
   const megaSrc = `https://megaplay.buzz/stream/mal/${malId}/${ep}/${lang}?autostart=true`;
   loadIframe(megaSrc);
 
@@ -1759,6 +1763,89 @@ async function loadEpisode(malId, ep, lang, imdbId = null) {
   const activeFrame = document.getElementById('pf-plain').style.display !== 'none'
     ? document.getElementById('pf-plain') : document.getElementById('pf-sb');
   watchEnd(activeFrame, malId, ep, lang);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NON-ANIME SERVERS (Movies / TV) — API Instrument + Movie Servers
+// ═══════════════════════════════════════════════════════════
+function buildNonAnimeServers() {
+  const s = [];
+
+  // "API Instrument" — insertunit.ws, needs an IMDB id
+  if (playerImdbId) {
+    s.push({
+      key: 'apiinstrument',
+      label: 'API Instrument',
+      badge: 'IMDB',
+      url: `https://api.insertunit.ws/embed/imdb/${playerImdbId}`,
+      source: 'nonanime',
+      adBlock: true
+    });
+  }
+
+  // "Movie Servers" — web.nxsha.app, takes TMDB id directly.
+  // TV format:    /watch/tv/{tmdbId}/{season}/{episode}
+  // Movie format: /watch/movie/{tmdbId}
+  if (playerTmdbId) {
+    const nxshaUrl = playerMediaType === 'movie'
+      ? `https://web.nxsha.app/watch/movie/${playerTmdbId}`
+      : `https://web.nxsha.app/watch/tv/${playerTmdbId}/1/${playerEp}`;
+    s.push({
+      key: 'movieservers',
+      label: 'Movie Servers',
+      badge: 'TMDB',
+      url: nxshaUrl,
+      source: 'nonanime',
+      adBlock: true
+    });
+  }
+
+  serverData = s;
+}
+
+function renderNonAnimeList() {
+  const list = document.getElementById('srv-list-inner');
+  const qRow = document.getElementById('qual-row');
+  qRow.innerHTML = '';
+  qRow.style.display = 'none';
+  list.innerHTML = '';
+  document.getElementById('srv-loading').classList.remove('show');
+  // AnisantCH/HiAnime tabs are anime-only; hide them for movies/TV
+  document.getElementById('src-tabs').style.display = 'none';
+  document.getElementById('hi-subsrc-row').classList.remove('show');
+
+  if (!serverData.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--text2);padding:6px 0">No servers available for this title.</div>';
+    loadIframe('about:blank');
+    document.getElementById('player-ph').style.display = 'flex';
+    return;
+  }
+
+  const defIdx = prefSrvKey ? Math.max(0, serverData.findIndex(s => s.key === prefSrvKey)) : 0;
+  serverData.forEach((srv, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'srv-item' + (i === defIdx ? ' active' : '');
+    btn.innerHTML = `<span>${srv.label}</span><span class="srv-badge-sm">${srv.badge || 'HD'}</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('.srv-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeServer = srv;
+      prefSrvKey = srv.key;
+      playNonAnimeSrv(srv);
+    };
+    list.appendChild(btn);
+  });
+
+  activeServer = serverData[defIdx];
+  playNonAnimeSrv(serverData[defIdx]);
+}
+
+function playNonAnimeSrv(srv) {
+  if (!srv || !srv.url) return;
+  loadIframe(srv.url, !!srv.adBlock);
+  const frame = document.getElementById('pf-sb').style.display !== 'none'
+    ? document.getElementById('pf-sb') : document.getElementById('pf-plain');
+  watchEnd(frame, playerTmdbId || playerImdbId, playerEp, playerLang);
 }
 
 // ═══════════════════════════════════════════════════════════
