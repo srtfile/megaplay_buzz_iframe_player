@@ -853,13 +853,25 @@ function showTitle(a) {
   return a.title_english || a.title || a.name || 'Untitled';
 }
 
-// Check if a show is animation
+// Check if a show is animation - must contain "Animation" in genres
 function isAnimation(show) {
-  if (!show.genres) return false;
-  return show.genres.some(g => {
-    const name = typeof g === 'object' ? g.name : g;
-    return name === 'Animation' || name === 'Anime';
-  }) || (show.genre_ids && show.genre_ids.includes(16));
+  if (!show) return false;
+  
+  // Check in genres array (normalized or raw)
+  if (show.genres && Array.isArray(show.genres)) {
+    const hasAnimation = show.genres.some(g => {
+      const name = typeof g === 'object' ? (g.name || '') : String(g);
+      return name.toLowerCase().includes('animation') || name.toLowerCase().includes('anime');
+    });
+    if (hasAnimation) return true;
+  }
+  
+  // Check in genre_ids array (TMDB uses 16 for Animation)
+  if (show.genre_ids && Array.isArray(show.genre_ids)) {
+    if (show.genre_ids.includes(16)) return true;
+  }
+  
+  return false;
 }
 
 // Convert TMDB ID to MAL ID using multiple methods
@@ -956,14 +968,29 @@ async function loadHero() {
   const d = await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&page=1');
   if (!d?.results?.length) return;
   
+  // Filter to only shows with Animation genre
+  const animatedShows = d.results.filter(item => {
+    const normalized = normalizeTMDB(item, 'tv');
+    return isAnimation(normalized);
+  });
+  
+  if (!animatedShows.length) return;
+  
   // Get a random popular animated show
-  heroAnime = normalizeTMDB(d.results[Math.floor(Math.random() * Math.min(5, d.results.length))], 'tv');
+  heroAnime = normalizeTMDB(animatedShows[Math.floor(Math.random() * Math.min(5, animatedShows.length))], 'tv');
   
   // Fetch full details to get episode count
   const details = await tmdb(`/tv/${heroAnime.id}`);
   if (details) {
     heroAnime.episodes = details.number_of_episodes;
     heroAnime.status = details.status;
+    heroAnime.genres = details.genres;
+  }
+  
+  // Double check it's animation
+  if (!isAnimation(heroAnime)) {
+    console.log('Hero show is not animation, reloading...');
+    return loadHero();
   }
   
   const a = heroAnime;
@@ -1033,7 +1060,14 @@ async function loadAiringRow() {
   // Load only animation shows that are currently on air
   const d = await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&air_date.gte=2024-01-01&page=1');
   row.innerHTML = '';
-  (d?.results||[]).forEach(item => row.appendChild(renderCard(normalizeTMDB(item, 'tv'), true)));
+  if (d?.results) {
+    // Filter to only include shows with Animation genre
+    const animatedShows = d.results.filter(item => {
+      const normalized = normalizeTMDB(item, 'tv');
+      return isAnimation(normalized);
+    });
+    animatedShows.forEach(item => row.appendChild(renderCard(normalizeTMDB(item, 'tv'), true)));
+  }
 }
 
 async function loadTopRow() {
@@ -1042,7 +1076,14 @@ async function loadTopRow() {
   // Load top rated animation shows only
   const d = await tmdb('/discover/tv?with_genres=16&sort_by=vote_average.desc&vote_count.gte=100&page=1');
   row.innerHTML = '';
-  (d?.results||[]).forEach(item => row.appendChild(renderCard(normalizeTMDB(item, 'tv'), true)));
+  if (d?.results) {
+    // Filter to only include shows with Animation genre
+    const animatedShows = d.results.filter(item => {
+      const normalized = normalizeTMDB(item, 'tv');
+      return isAnimation(normalized);
+    });
+    animatedShows.forEach(item => row.appendChild(renderCard(normalizeTMDB(item, 'tv'), true)));
+  }
 }
 
 async function loadPopularGrid() {
@@ -1051,7 +1092,14 @@ async function loadPopularGrid() {
   // Load popular animation shows only
   const d = await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&page=1');
   grid.innerHTML = '';
-  (d?.results||[]).forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
+  if (d?.results) {
+    // Filter to only include shows with Animation genre
+    const animatedShows = d.results.filter(item => {
+      const normalized = normalizeTMDB(item, 'tv');
+      return isAnimation(normalized);
+    });
+    animatedShows.forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
+  }
 }
 
 async function filterGenre(genreId, el) {
@@ -1068,7 +1116,14 @@ async function filterGenre(genreId, el) {
   }
   const d = await tmdb(path);
   grid.innerHTML = '';
-  (d?.results||[]).forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
+  if (d?.results) {
+    // Filter to only include shows with Animation genre
+    const animatedShows = d.results.filter(item => {
+      const normalized = normalizeTMDB(item, 'tv');
+      return isAnimation(normalized);
+    });
+    animatedShows.forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
+  }
 }
 
 async function loadSection(type) {
@@ -1082,7 +1137,14 @@ async function loadSection(type) {
   skeletonCards(16, grid);
   const d = await tmdb(pathMap[type] || pathMap.popular);
   grid.innerHTML = '';
-  (d?.results||[]).forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
+  if (d?.results) {
+    // Filter to only include shows with Animation genre
+    const animatedShows = d.results.filter(item => {
+      const normalized = normalizeTMDB(item, 'tv');
+      return isAnimation(normalized);
+    });
+    animatedShows.forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
