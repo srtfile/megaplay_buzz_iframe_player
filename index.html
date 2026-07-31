@@ -117,6 +117,16 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   cursor: pointer; transition: all var(--trans); white-space: nowrap;
 }
 .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.nav-btn-highlight {
+  background: linear-gradient(135deg, rgba(108,99,255,.18), rgba(244,114,182,.12));
+  border-color: rgba(108,99,255,.45); color: var(--accent2);
+}
+.nav-btn-highlight:hover { background: linear-gradient(135deg, rgba(108,99,255,.3), rgba(244,114,182,.2)); border-color: var(--accent); color: #fff; }
+
+/* Nav button row — inline on desktop, scrollable strip on mobile */
+#nav-btn-row {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
 
 /* ══════════ HOME PAGE ══════════ */
 #view-home {
@@ -564,39 +574,51 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   .h-scroll-wrap { padding: 0 14px 20px; }
   #genre-bar { padding: 0 14px 16px; }
 
-  /* Navbar responsive - wrap layout */
+  /* Navbar responsive - two row layout */
   #navbar {
     flex-wrap: wrap;
     height: auto;
-    padding: 8px 10px;
-    gap: 6px;
+    padding: 8px 10px 6px;
+    gap: 0;
     position: sticky;
   }
 
-  /* Logo and buttons on first row */
+  /* Row 1: logo + search */
   .logo {
     font-size: 16px;
-    padding: 4px 8px;
+    padding: 4px 0;
     order: 1;
+    flex-shrink: 0;
   }
-  .nav-btn {
-    font-size: 10px;
-    padding: 5px 10px;
-    white-space: nowrap;
-    order: 1;
-  }
-
-  /* Search bar on second row, full width */
   #search-wrap {
     order: 2;
-    flex-basis: 100%;
-    max-width: 100%;
-    margin-top: 6px;
+    flex: 1;
+    max-width: none;
+    margin-left: 10px;
   }
   #search-inp {
     font-size: 16px; /* prevents iOS zoom on focus */
     padding: 8px 12px 8px 34px;
     width: 100%;
+  }
+
+  /* Row 2: nav buttons scrollable strip */
+  #nav-btn-row {
+    order: 3;
+    flex-basis: 100%;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 0 2px;
+  }
+  #nav-btn-row::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    font-size: 10px;
+    padding: 5px 11px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .search-icon { left: 10px; width: 14px; height: 14px; }
 
@@ -652,7 +674,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   .anime-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
   #hero { min-height: 300px; }
   #hero-title { font-size: 18px; }
-  .logo { font-size: 14px; padding: 4px 6px; }
+  .logo { font-size: 14px; }
   .nav-btn { font-size: 9px; padding: 4px 8px; }
 }
 
@@ -676,9 +698,12 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
       <input id="search-inp" type="text" placeholder="Search anime…" autocomplete="off" enterkeyhint="search">
       <div id="search-dropdown"></div>
     </div>
-    <button class="nav-btn" onclick="loadSection('top-airing')">Airing</button>
-    <button class="nav-btn" onclick="loadSection('top')">Top Rated</button>
-    <button class="nav-btn" onclick="loadSection('popular')">Popular</button>
+    <div id="nav-btn-row">
+      <button class="nav-btn" onclick="loadSection('top-airing')">Airing</button>
+      <button class="nav-btn" onclick="loadSection('top')">Top Rated</button>
+      <button class="nav-btn" onclick="loadSection('popular')">Popular</button>
+      <button class="nav-btn nav-btn-highlight" onclick="loadSection('movies-tv')">Movies &amp; TV</button>
+    </div>
   </nav>
 
   <!-- Hero -->
@@ -1263,24 +1288,57 @@ async function filterGenre(genreId, el) {
 }
 
 async function loadSection(type) {
+  if (type === 'movies-tv') { loadMoviesTVSection(); return; }
   const pathMap = {
     'top-airing': '/discover/tv?with_genres=16&sort_by=popularity.desc&air_date.gte=2024-01-01&page=1',
     'top': '/discover/tv?with_genres=16&sort_by=vote_average.desc&vote_count.gte=100&page=1',
     'popular': '/discover/tv?with_genres=16&sort_by=popularity.desc&page=1'
   };
   const grid = document.getElementById('popular-grid');
+  // Update section title back to anime
+  const sectionTitle = grid.closest('.section') || grid.parentElement?.closest('.section');
+  const titleEl = document.querySelector('#popular-grid')?.closest('section')?.querySelector('.section-title');
+  if (titleEl) titleEl.innerHTML = '<span class="dot" style="background:#34d399"></span> Popular Anime';
   grid.scrollIntoView({ behavior:'smooth' });
   skeletonCards(16, grid);
   const d = await tmdb(pathMap[type] || pathMap.popular);
   grid.innerHTML = '';
   if (d?.results) {
-    // Filter to only include shows with Animation genre
     const animatedShows = d.results.filter(item => {
       const normalized = normalizeTMDB(item, 'tv');
       return isAnimation(normalized);
     });
     animatedShows.forEach(item => grid.appendChild(renderCard(normalizeTMDB(item, 'tv'))));
   }
+}
+
+async function loadMoviesTVSection() {
+  const grid = document.getElementById('popular-grid');
+  // Update section title
+  const titleEl = document.querySelector('#popular-grid')?.closest('section')?.querySelector('.section-title');
+  if (titleEl) titleEl.innerHTML = '<span class="dot" style="background:var(--pink)"></span> Movies &amp; TV Shows';
+  grid.scrollIntoView({ behavior:'smooth' });
+  skeletonCards(16, grid);
+
+  // Fetch popular movies and TV shows (non-animation focus)
+  const [movies, tv] = await Promise.all([
+    tmdb('/movie/popular?page=1'),
+    tmdb('/tv/popular?page=1')
+  ]);
+
+  grid.innerHTML = '';
+  let combined = [];
+  if (movies?.results) combined = combined.concat(movies.results.map(i => ({ ...i, _mt: 'movie' })));
+  if (tv?.results)     combined = combined.concat(tv.results.map(i => ({ ...i, _mt: 'tv' })));
+
+  // Sort by popularity descending
+  combined.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
+  combined.forEach(item => {
+    const mt = item._mt;
+    const a = normalizeTMDB(item, mt);
+    grid.appendChild(renderCard(a));
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
