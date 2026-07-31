@@ -853,6 +853,77 @@ function showTitle(a) {
   return a.title_english || a.title || a.name || 'Untitled';
 }
 
+// Check if a show is animation
+function isAnimation(show) {
+  if (!show.genres) return false;
+  return show.genres.some(g => {
+    const name = typeof g === 'object' ? g.name : g;
+    return name === 'Animation' || name === 'Anime';
+  }) || (show.genre_ids && show.genre_ids.includes(16));
+}
+
+// Convert TMDB ID to MAL ID for animation shows
+async function tmdbToMalId(tmdbId, show = null) {
+  try {
+    // First check if the show is animation
+    let showData = show;
+    if (!showData) {
+      showData = await tmdb(`/tv/${tmdbId}`);
+      if (!showData) return null;
+    }
+    
+    // Only proceed if it's an animation
+    if (!isAnimation(showData)) {
+      console.log('Not an animation show, skipping MAL ID conversion');
+      return null;
+    }
+    
+    // Fetch external IDs from TMDB
+    const externalIds = await tmdb(`/tv/${tmdbId}/external_ids`);
+    
+    // Check for MAL ID in various possible fields
+    if (externalIds) {
+      // TMDB doesn't directly store MAL ID, but we can try alternative methods
+      // Method 1: Check if there's a direct mal_id field (rarely exists)
+      if (externalIds.mal_id) {
+        console.log(`Found MAL ID: ${externalIds.mal_id}`);
+        return externalIds.mal_id;
+      }
+      
+      // Method 2: Use AniList/MyAnimeList mapping services
+      // We'll use the show name to search on Jikan (MAL API)
+      const showName = showData.name || showData.title;
+      if (showName) {
+        const jikanSearch = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(showName)}&limit=5&sfw=true`);
+        if (jikanSearch.ok) {
+          const jikanData = await jikanSearch.json();
+          if (jikanData.data && jikanData.data.length > 0) {
+            // Try to match by year and name similarity
+            const year = (showData.first_air_date || '').split('-')[0];
+            for (const anime of jikanData.data) {
+              const animeYear = anime.year || (anime.aired?.from || '').split('-')[0];
+              // Check if years match or are close (within 1 year)
+              if (year && animeYear && Math.abs(parseInt(year) - parseInt(animeYear)) <= 1) {
+                console.log(`Matched TMDB ID ${tmdbId} to MAL ID ${anime.mal_id} (${anime.title})`);
+                return anime.mal_id;
+              }
+            }
+            // If no year match, return the first result as best guess
+            console.log(`Best guess: TMDB ID ${tmdbId} to MAL ID ${jikanData.data[0].mal_id} (${jikanData.data[0].title})`);
+            return jikanData.data[0].mal_id;
+          }
+        }
+      }
+    }
+    
+    console.log(`Could not find MAL ID for TMDB ID ${tmdbId}`);
+    return null;
+  } catch (err) {
+    console.error('Error converting TMDB to MAL ID:', err);
+    return null;
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 //  HOME — INIT
 // ═══════════════════════════════════════════════════════════
@@ -906,12 +977,15 @@ function renderCard(a, mini=false) {
   const score= a.score ? `★ ${a.score}` : '';
   const eps  = a.episodes ? `${a.episodes} ep` : a.status === 'Returning Series' ? 'On Air' : '';
   const type = a.type || '';
+  const animated = isAnimation(a);
+  
   div.innerHTML = `
     <div class="card-poster">
       <img src="${img}" alt="" loading="lazy">
       ${score ? `<div class="card-score">${score}</div>`:''}
       ${type  ? `<div class="card-type">${type}</div>`:''}
       ${eps   ? `<div class="card-ep-badge">${eps}</div>`:''}
+      ${animated ? `<div class="card-type" style="background:var(--pink);right:auto;left:7px;top:auto;bottom:7px;">ANIME</div>`:''}
       <div class="card-overlay">
         <div class="play-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
       </div>
@@ -1054,15 +1128,39 @@ async function openEpModal(show) {
 
   // Fetch full TV show details including episode count
   let total = show.episodes || 0;
+  let fullShowData = show;
   if (!total && show.id) {
     const d = await tmdb(`/tv/${show.id}`);
     total = d?.number_of_episodes || 0;
     if (d) {
-      modalAnime = normalizeTMDB(d, 'tv');
-      modalAnime.episodes = total;
+      fullShowData = normalizeTMDB(d, 'tv');
+      fullShowData.episodes = total;
+      modalAnime = fullShowData;
       if (!show.episodes && total) document.getElementById('ep-modal-meta').innerHTML += `<span class="em-badge">${total} eps</span>`;
     }
   }
+  
+  // Convert TMDB ID to MAL ID if it's an animation
+  if (isAnimation(fullShowData)) {
+    meta.innerHTML += `<span class="em-badge" style="background:var(--accent);color:#fff">Converting ID...</span>`;
+    const malId = await tmdbToMalId(fullShowData.id, fullShowData);
+    if (malId) {
+      modalAnime.mal_id = malId;
+      // Update the badge to show it's an anime
+      const badges = meta.querySelectorAll('.em-badge');
+      badges[badges.length - 1].textContent = 'Anime (MAL)';
+      badges[badges.length - 1].style.background = 'var(--accent)';
+      badges[badges.length - 1].style.color = '#fff';
+      console.log(`Using MAL ID ${malId} for episode streaming`);
+    } else {
+      // Remove the converting badge if conversion failed
+      const badges = meta.querySelectorAll('.em-badge');
+      if (badges[badges.length - 1].textContent === 'Converting ID...') {
+        badges[badges.length - 1].remove();
+      }
+    }
+  }
+  
   playerTotal = total || 999;
   renderEpList(total || 999);
 }
@@ -1112,7 +1210,8 @@ document.getElementById('ep-modal-bg').addEventListener('click', e => {
 // ═══════════════════════════════════════════════════════════
 function startWatch(show, ep, lang) {
   closeEpModal();
-  playerMalId = show.id || show.mal_id;
+  // Prefer MAL ID for anime shows, otherwise use TMDB ID
+  playerMalId = show.mal_id || show.id;
   playerEp    = ep;
   playerLang  = lang;
   playerTitle = showTitle(show);
