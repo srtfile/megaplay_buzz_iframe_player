@@ -1171,29 +1171,50 @@ document.addEventListener('click', e => {
 async function doSearch(q) {
   searchDD.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">Searching…</div>';
   searchDD.classList.add('show');
-  // Search all TV shows (no genre filter)
-  const d = await tmdb(`/search/tv?query=${encodeURIComponent(q)}&page=1`);
-  searchDD.innerHTML = '';
-  if (!d?.results?.length) {
-    searchDD.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">No results found.</div>';
-    return;
-  }
   
-  // Show all results (no animation filter for search)
-  d.results.slice(0, 8).forEach(item => {
-    const a = normalizeTMDB(item, 'tv');
-    const searchItem = document.createElement('div');
-    searchItem.className = 'sd-item';
-    searchItem.innerHTML = `
-      <img class="sd-img" src="${a.images?.jpg?.small_image_url||''}" alt="" loading="lazy">
-      <div class="sd-info">
-        <div class="sd-title">${showTitle(a)}</div>
-        <div class="sd-meta">${a.type||''} · ${a.year||'—'} · ${a.episodes ? a.episodes+' eps' : 'Ongoing'}</div>
-        ${a.score ? `<div class="sd-score">★ ${a.score}</div>`:''}
-      </div>`;
-    searchItem.onclick = () => { searchDD.classList.remove('show'); searchInp.value=''; openEpModal(a); };
-    searchDD.appendChild(searchItem);
-  });
+  try {
+    // Search both TV shows and movies using multi search
+    const d = await tmdb(`/search/multi?query=${encodeURIComponent(q)}&page=1`);
+    searchDD.innerHTML = '';
+    
+    if (!d?.results?.length) {
+      searchDD.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">No results found.</div>';
+      return;
+    }
+    
+    // Filter only TV and movie results, show all genres
+    const filteredResults = d.results.filter(item => item.media_type === 'tv' || item.media_type === 'movie').slice(0, 8);
+    
+    if (filteredResults.length === 0) {
+      searchDD.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">No TV shows or movies found.</div>';
+      return;
+    }
+    
+    // Show all results (no animation filter for search)
+    filteredResults.forEach(item => {
+      const mediaType = item.media_type === 'movie' ? 'movie' : 'tv';
+      const a = normalizeTMDB(item, mediaType);
+      const searchItem = document.createElement('div');
+      searchItem.className = 'sd-item';
+      const typeLabel = mediaType === 'movie' ? 'Movie' : 'TV';
+      searchItem.innerHTML = `
+        <img class="sd-img" src="${a.images?.jpg?.small_image_url||''}" alt="" loading="lazy">
+        <div class="sd-info">
+          <div class="sd-title">${showTitle(a)}</div>
+          <div class="sd-meta">${typeLabel} · ${a.year||'—'}${a.episodes ? ' · '+a.episodes+' eps' : ''}</div>
+          ${a.score ? `<div class="sd-score">★ ${a.score}</div>`:''}
+        </div>`;
+      searchItem.onclick = () => { 
+        searchDD.classList.remove('show'); 
+        searchInp.value=''; 
+        openEpModal(a); 
+      };
+      searchDD.appendChild(searchItem);
+    });
+  } catch (err) {
+    console.error('Search error:', err);
+    searchDD.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">Search failed. Please try again.</div>';
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
