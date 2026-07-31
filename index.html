@@ -1531,33 +1531,49 @@ async function openEpModal(show) {
     }
   }
 
-  playerTotal = total || 999;
-  renderEpList(total || 999);
+  playerTotal = total || 0;
+  if (total && total > 0) {
+    renderEpList(total);
+  } else {
+    document.getElementById('ep-list').innerHTML =
+      '<div style="grid-column:1/-1;font-size:12px;color:var(--text2);padding:16px 0;text-align:center">Could not determine episode count for this show.</div>';
+  }
 }
 
 function renderEpList(total) {
   const list = document.getElementById('ep-list');
   list.innerHTML = '';
-  const count = Math.min(total, 500);
-  for (let i=1;i<=count;i++) {
+  total = Math.max(1, parseInt(total, 10) || 1);
+
+  // Render ALL episodes — no artificial cap. Uses a fragment so inserting
+  // 1000+ buttons (e.g. One Piece at 1170+ episodes) stays fast.
+  const frag = document.createDocumentFragment();
+  const btns = [];
+  for (let i = 1; i <= total; i++) {
     const btn = document.createElement('button');
     btn.className = 'ep-btn';
     btn.textContent = i;
+    btn.dataset.ep = i;
     btn.onclick = () => startWatch(modalAnime, i, modalLang);
-    list.appendChild(btn);
+    frag.appendChild(btn);
+    btns.push(btn);
   }
-  if (total > 500) {
-    const more = document.createElement('div');
-    more.style.cssText = 'grid-column:1/-1;font-size:11px;color:var(--text2);padding:8px 0;';
-    more.textContent = `Showing first 500 of ${total} episodes.`;
-    list.appendChild(more);
-  }
-  document.getElementById('em-ep-search').addEventListener('input', function(){
-    const v = parseInt(this.value);
+  list.appendChild(frag);
+
+  const searchInput = document.getElementById('em-ep-search');
+  searchInput.max = total;
+  // Clone to drop any previously-attached listener from an earlier call, then re-add fresh
+  const freshSearchInput = searchInput.cloneNode(true);
+  searchInput.parentNode.replaceChild(freshSearchInput, searchInput);
+  freshSearchInput.addEventListener('input', function () {
+    const v = parseInt(this.value, 10);
+    btns.forEach(b => b.classList.remove('active'));
     if (!isNaN(v) && v >= 1 && v <= total) {
-      document.querySelectorAll('.ep-btn').forEach(b=>b.classList.toggle('active', +b.textContent===v));
-      const target = list.children[v-1];
-      if (target) target.scrollIntoView({ block:'center', behavior:'smooth' });
+      const target = btns[v - 1];
+      if (target) {
+        target.classList.add('active');
+        target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
     }
   });
 }
@@ -1620,7 +1636,7 @@ function openEpPickerFromPlayer() {
     document.getElementById('em-dub').classList.toggle('active', playerLang==='dub');
     document.getElementById('em-sub').classList.toggle('active', playerLang==='sub');
     // Re-render list in case it wasn't rendered with the full total (e.g. modal was opened before episode count resolved)
-    renderEpList(playerTotal || modalAnime.episodes || 999);
+    renderEpList(playerTotal || modalAnime.episodes);
     document.getElementById('ep-modal-bg').classList.add('show');
     return;
   }
@@ -1636,7 +1652,7 @@ function openEpPickerFromPlayer() {
     title: playerTitle,
     title_english: playerTitle,
     images: modalAnime?.images || { jpg: { image_url: '', small_image_url: '' } },
-    episodes: playerTotal || modalAnime?.episodes || 999,
+    episodes: playerTotal || modalAnime?.episodes || 0,
     type: playerIsAnimation ? 'TV' : (modalAnime?.type || 'TV'),
     score: modalAnime?.score || null,
     status: modalAnime?.status || null,
@@ -1658,7 +1674,12 @@ function openEpPickerFromPlayer() {
 
   document.getElementById('em-ep-search').value = '';
   document.getElementById('ep-modal-bg').classList.add('show');
-  renderEpList(fallbackShow.episodes);
+  if (fallbackShow.episodes && fallbackShow.episodes > 0) {
+    renderEpList(fallbackShow.episodes);
+  } else {
+    document.getElementById('ep-list').innerHTML =
+      '<div style="grid-column:1/-1;font-size:12px;color:var(--text2);padding:16px 0;text-align:center">Could not determine episode count for this show.</div>';
+  }
 
   // Try to enrich with real TMDB metadata (score/poster/genres) in the background
   // without blocking the episode list from showing immediately. Only attempt
