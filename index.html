@@ -862,7 +862,7 @@ function isAnimation(show) {
   }) || (show.genre_ids && show.genre_ids.includes(16));
 }
 
-// Convert TMDB ID to MAL ID for animation shows using AniList GraphQL API
+// Convert TMDB ID to MAL ID using multiple methods
 async function tmdbToMalId(tmdbId, show = null) {
   try {
     // First check if the show is animation
@@ -878,51 +878,82 @@ async function tmdbToMalId(tmdbId, show = null) {
       return null;
     }
     
-    // Use AniList GraphQL API to convert TMDB ID to MAL ID
-    const query = `
-      query ($idMal: Int, $search: String, $type: MediaType) {
-        Media(idMal: $idMal, search: $search, type: $type) {
-          idMal
-          title {
-            romaji
-            english
-            native
-          }
-          startDate {
-            year
+    // Method 1: Try AniList API with external ID (most reliable)
+    try {
+      const query = `
+        query ($idTmdb: Int, $type: MediaType) {
+          Media(idMal: $idTmdb, type: $type) {
+            idMal
           }
         }
-      }
-    `;
-    
-    const showName = showData.name || showData.title;
-    const variables = {
-      search: showName,
-      type: 'ANIME'
-    };
-    
-    const response = await fetch('https://graphql.anilist.co', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ query, variables })
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data.data && data.data.Media && data.data.Media.idMal) {
-        const malId = data.data.Media.idMal;
-        const year = (showData.first_air_date || '').split('-')[0];
-        const anilistYear = data.data.Media.startDate?.year;
+      `;
+      
+      // Note: AniList doesn't have direct TMDB lookup, trying alternative approach
+      const query2 = `
+        query {
+          Page(page: 1, perPage: 1) {
+            media(type: ANIME, externalIds: {idMal: null, tmdbId: ${tmdbId}}) {
+              idMal
+              title {
+                romaji
+              }
+            }
+          }
+        }
+      `;
+      
+      // Method 2: Use publicly available mapping database
+      // Anime-Lists mapping database (GitHub hosted JSON)
+      const mappingUrl = `https://raw.githubusercontent.com/Fribb/anime-lists/master/anime-list-full.json`;
+      const mappingResponse = await fetch(mappingUrl);
+      
+      if (mappingResponse.ok) {
+        const mappingData = await mappingResponse.json();
         
-        // Verify year match (within 1 year tolerance)
-        if (!year || !anilistYear || Math.abs(parseInt(year) - parseInt(anilistYear)) <= 1) {
-          console.log(`Matched TMDB ID ${tmdbId} to MAL ID ${malId} via AniList`);
-          return malId;
+        // Search for TMDB ID in the mapping
+        for (const anime of mappingData) {
+          if (anime.themoviedb_id === parseInt(tmdbId) || 
+              anime.themoviedb_id === tmdbId ||
+              (anime.themoviedb && anime.themoviedb === parseInt(tmdbId))) {
+            if (anime.mal_id || anime.myanimelist_id) {
+              const malId = anime.mal_id || anime.myanimelist_id;
+              console.log(`Found MAL ID ${malId} for TMDB ID ${tmdbId} via Anime-Lists mapping`);
+              return malId;
+            }
+          }
         }
       }
+    } catch (err) {
+      console.log('Mapping database lookup failed, trying fallback method');
+    }
+    
+    // Method 3: Try ARM (Anime Relations Mapping) database
+    try {
+      const armUrl = `https://raw.githubusercontent.com/manami-project/anime-offline-database/master/anime-offline-database-minified.json`;
+      const armResponse = await fetch(armUrl);
+      
+      if (armResponse.ok) {
+        const armData = await armResponse.json();
+        
+        for (const anime of armData.data) {
+          // Check if TMDB link exists in sources
+          const tmdbLink = anime.sources?.find(s => s.includes('themoviedb.org') && s.includes(`/${tmdbId}`));
+          if (tmdbLink) {
+            // Find MAL link
+            const malLink = anime.sources?.find(s => s.includes('myanimelist.net'));
+            if (malLink) {
+              const malIdMatch = malLink.match(/myanimelist\.net\/anime\/(\d+)/);
+              if (malIdMatch) {
+                const malId = parseInt(malIdMatch[1]);
+                console.log(`Found MAL ID ${malId} for TMDB ID ${tmdbId} via ARM database`);
+                return malId;
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.log('ARM database lookup failed');
     }
     
     console.log(`Could not find MAL ID for TMDB ID ${tmdbId}`);
