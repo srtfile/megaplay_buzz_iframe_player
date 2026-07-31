@@ -774,8 +774,10 @@ let heroAnime    = null;
 let modalAnime   = null;
 let modalLang    = 'dub';
 let playerMalId  = null;
+let playerImdbId = null;
 let playerEp     = 1;
 let playerLang   = 'dub';
+let playerIsAnimation = false;
 let playerTotal  = 0;
 let playerTitle  = '';
 let activeSrc    = 'anisantch';
@@ -872,6 +874,25 @@ function isAnimation(show) {
   }
   
   return false;
+}
+
+// Convert TMDB ID to IMDB ID for non-animation shows/movies
+async function tmdbToImdbId(tmdbId, mediaType = 'tv') {
+  try {
+    // Fetch external IDs from TMDB
+    const externalIds = await tmdb(`/${mediaType}/${tmdbId}/external_ids`);
+    
+    if (externalIds && externalIds.imdb_id) {
+      console.log(`Found IMDB ID ${externalIds.imdb_id} for TMDB ID ${tmdbId}`);
+      return externalIds.imdb_id;
+    }
+    
+    console.log(`Could not find IMDB ID for TMDB ID ${tmdbId}`);
+    return null;
+  } catch (err) {
+    console.error('Error converting TMDB to IMDB ID:', err);
+    return null;
+  }
 }
 
 // Convert TMDB ID to MAL ID using multiple methods
@@ -1264,33 +1285,54 @@ async function openEpModal(show) {
   // Fetch full TV show details including episode count
   let total = show.episodes || 0;
   let fullShowData = show;
+  const mediaType = show.type === 'Movie' ? 'movie' : 'tv';
+  
   if (!total && show.id) {
-    const d = await tmdb(`/tv/${show.id}`);
-    total = d?.number_of_episodes || 0;
+    const d = await tmdb(`/${mediaType}/${show.id}`);
+    total = d?.number_of_episodes || (mediaType === 'movie' ? 1 : 0);
     if (d) {
-      fullShowData = normalizeTMDB(d, 'tv');
+      fullShowData = normalizeTMDB(d, mediaType);
       fullShowData.episodes = total;
+      fullShowData.genres = d.genres;
       modalAnime = fullShowData;
       if (!show.episodes && total) document.getElementById('ep-modal-meta').innerHTML += `<span class="em-badge">${total} eps</span>`;
     }
   }
   
-  // Convert TMDB ID to MAL ID if it's an animation
+  // Check if animation and convert accordingly
   if (isAnimation(fullShowData)) {
+    // Animation: Convert TMDB ID to MAL ID
     meta.innerHTML += `<span class="em-badge" style="background:var(--accent);color:#fff">Converting ID...</span>`;
     const malId = await tmdbToMalId(fullShowData.id, fullShowData);
     if (malId) {
       modalAnime.mal_id = malId;
-      // Update the badge to show it's an anime
+      modalAnime.imdb_id = null; // Clear IMDB ID for anime
       const badges = meta.querySelectorAll('.em-badge');
       badges[badges.length - 1].textContent = 'Anime (MAL)';
       badges[badges.length - 1].style.background = 'var(--accent)';
       badges[badges.length - 1].style.color = '#fff';
-      console.log(`Using MAL ID ${malId} for episode streaming`);
+      console.log(`Using MAL ID ${malId} for anime streaming`);
     } else {
-      // Remove the converting badge if conversion failed
       const badges = meta.querySelectorAll('.em-badge');
       if (badges[badges.length - 1].textContent === 'Converting ID...') {
+        badges[badges.length - 1].remove();
+      }
+    }
+  } else {
+    // Non-animation: Convert TMDB ID to IMDB ID
+    meta.innerHTML += `<span class="em-badge" style="background:var(--pink);color:#fff">Getting IMDB ID...</span>`;
+    const imdbId = await tmdbToImdbId(fullShowData.id, mediaType);
+    if (imdbId) {
+      modalAnime.imdb_id = imdbId;
+      modalAnime.mal_id = null; // Clear MAL ID for non-anime
+      const badges = meta.querySelectorAll('.em-badge');
+      badges[badges.length - 1].textContent = `IMDB: ${imdbId}`;
+      badges[badges.length - 1].style.background = 'var(--pink)';
+      badges[badges.length - 1].style.color = '#fff';
+      console.log(`Using IMDB ID ${imdbId} for streaming`);
+    } else {
+      const badges = meta.querySelectorAll('.em-badge');
+      if (badges[badges.length - 1].textContent === 'Getting IMDB ID...') {
         badges[badges.length - 1].remove();
       }
     }
@@ -1345,12 +1387,14 @@ document.getElementById('ep-modal-bg').addEventListener('click', e => {
 // ═══════════════════════════════════════════════════════════
 function startWatch(show, ep, lang) {
   closeEpModal();
-  // Prefer MAL ID for anime shows, otherwise use TMDB ID
-  playerMalId = show.mal_id || show.id;
+  // Store both MAL ID and IMDB ID
+  playerMalId = show.mal_id || show.id; // For anime
+  playerImdbId = show.imdb_id || null;  // For non-anime
   playerEp    = ep;
   playerLang  = lang;
   playerTitle = showTitle(show);
   playerTotal = show.episodes || playerTotal || 999;
+  playerIsAnimation = isAnimation(show);
 
   document.getElementById('view-player').classList.add('active');
   document.getElementById('view-home').classList.add('hidden');
@@ -1359,7 +1403,7 @@ function startWatch(show, ep, lang) {
   document.getElementById('pl-dub').classList.toggle('active', lang==='dub');
   document.getElementById('pl-sub').classList.toggle('active', lang==='sub');
 
-  loadEpisode(playerMalId, ep, lang);
+  loadEpisode(playerMalId, ep, lang, playerImdbId);
 }
 
 function goHome() {
@@ -1396,13 +1440,32 @@ function openEpPickerFromPlayer() {
 // ═══════════════════════════════════════════════════════════
 //  LOAD EPISODE
 // ═══════════════════════════════════════════════════════════
-async function loadEpisode(malId, ep, lang) {
+async function loadEpisode(malId, ep, lang, imdbId = null) {
   cancelAN();
   stopEndWatch();
-  playerMalId = malId; playerEp = ep; playerLang = lang;
+  playerMalId = malId; 
+  playerImdbId = imdbId;
+  playerEp = ep; 
+  playerLang = lang;
   document.getElementById('player-ep-label').textContent = `Episode ${ep}`;
 
-  // Show megaplay default immediately
+  // If it's not animation and we have IMDB ID, use insertunit.ws embed
+  if (imdbId && !playerIsAnimation) {
+    const imdbSrc = `https://api.insertunit.ws/embed/imdb/${imdbId}`;
+    console.log(`Loading non-anime with IMDB ID: ${imdbId}`);
+    loadIframe(imdbSrc, true); // Use ad-blocking iframe
+    
+    // For non-anime, we don't need server panel functionality
+    document.getElementById('qual-row').innerHTML = '';
+    document.getElementById('srv-list-inner').innerHTML = '<div style="font-size:12px;color:var(--text2);padding:6px 0">Streaming via IMDB embed</div>';
+    document.getElementById('srv-loading').classList.remove('show');
+    
+    const activeFrame = document.getElementById('pf-sb');
+    watchEnd(activeFrame, imdbId, ep, lang);
+    return;
+  }
+
+  // Animation path: Use megaplay default immediately
   const megaSrc = `https://megaplay.buzz/stream/mal/${malId}/${ep}/${lang}?autostart=true`;
   loadIframe(megaSrc);
 
