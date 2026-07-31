@@ -878,40 +878,26 @@ async function tmdbToMalId(tmdbId, show = null) {
       return null;
     }
     
-    // Fetch external IDs from TMDB
-    const externalIds = await tmdb(`/tv/${tmdbId}/external_ids`);
-    
-    // Check for MAL ID in various possible fields
-    if (externalIds) {
-      // TMDB doesn't directly store MAL ID, but we can try alternative methods
-      // Method 1: Check if there's a direct mal_id field (rarely exists)
-      if (externalIds.mal_id) {
-        console.log(`Found MAL ID: ${externalIds.mal_id}`);
-        return externalIds.mal_id;
-      }
-      
-      // Method 2: Use AniList/MyAnimeList mapping services
-      // We'll use the show name to search on Jikan (MAL API)
-      const showName = showData.name || showData.title;
-      if (showName) {
-        const jikanSearch = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(showName)}&limit=5&sfw=true`);
-        if (jikanSearch.ok) {
-          const jikanData = await jikanSearch.json();
-          if (jikanData.data && jikanData.data.length > 0) {
-            // Try to match by year and name similarity
-            const year = (showData.first_air_date || '').split('-')[0];
-            for (const anime of jikanData.data) {
-              const animeYear = anime.year || (anime.aired?.from || '').split('-')[0];
-              // Check if years match or are close (within 1 year)
-              if (year && animeYear && Math.abs(parseInt(year) - parseInt(animeYear)) <= 1) {
-                console.log(`Matched TMDB ID ${tmdbId} to MAL ID ${anime.mal_id} (${anime.title})`);
-                return anime.mal_id;
-              }
+    // Use the show name to search on Jikan (MAL API) for ID mapping only
+    const showName = showData.name || showData.title;
+    if (showName) {
+      const jikanSearch = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(showName)}&limit=5&sfw=true`);
+      if (jikanSearch.ok) {
+        const jikanData = await jikanSearch.json();
+        if (jikanData.data && jikanData.data.length > 0) {
+          // Try to match by year and name similarity
+          const year = (showData.first_air_date || '').split('-')[0];
+          for (const anime of jikanData.data) {
+            const animeYear = anime.year || (anime.aired?.from || '').split('-')[0];
+            // Check if years match or are close (within 1 year)
+            if (year && animeYear && Math.abs(parseInt(year) - parseInt(animeYear)) <= 1) {
+              console.log(`Matched TMDB ID ${tmdbId} to MAL ID ${anime.mal_id} (${anime.title})`);
+              return anime.mal_id;
             }
-            // If no year match, return the first result as best guess
-            console.log(`Best guess: TMDB ID ${tmdbId} to MAL ID ${jikanData.data[0].mal_id} (${jikanData.data[0].title})`);
-            return jikanData.data[0].mal_id;
           }
+          // If no year match, return the first result as best guess
+          console.log(`Best guess: TMDB ID ${tmdbId} to MAL ID ${jikanData.data[0].mal_id} (${jikanData.data[0].title})`);
+          return jikanData.data[0].mal_id;
         }
       }
     }
