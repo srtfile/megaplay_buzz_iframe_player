@@ -1613,21 +1613,72 @@ function goHome() {
 }
 
 function openEpPickerFromPlayer() {
-  if (!modalAnime || (modalAnime.id || modalAnime.mal_id) !== playerMalId) {
-    if (playerMalId) {
-      tmdb(`/tv/${playerMalId}`).then(d => {
-        if (d) {
-          const show = normalizeTMDB(d, 'tv');
-          openEpModal(show);
-          modalLang = playerLang;
-          setModalLang(playerLang);
-        }
-      });
-    }
+  // If we already have the matching show loaded in modalAnime (same id, has episode count), just reopen the modal instantly with its full episode list.
+  const matches = modalAnime && ((modalAnime.mal_id && modalAnime.mal_id === playerMalId) || (modalAnime.id && modalAnime.id === playerMalId));
+  if (matches && modalAnime.episodes) {
+    setModalLang(playerLang);
+    document.getElementById('em-dub').classList.toggle('active', playerLang==='dub');
+    document.getElementById('em-sub').classList.toggle('active', playerLang==='sub');
+    // Re-render list in case it wasn't rendered with the full total (e.g. modal was opened before episode count resolved)
+    renderEpList(playerTotal || modalAnime.episodes || 999);
+    document.getElementById('ep-modal-bg').classList.add('show');
     return;
   }
-  setModalLang(playerLang);
+
+  // Otherwise, rebuild a minimal show object from what we already know about
+  // the currently playing title/episode count, and open the picker with it —
+  // this covers anime (playerMalId is a MAL id, not fetchable via /tv/) as
+  // well as any case where modalAnime got cleared or mismatched.
+  const fallbackShow = {
+    mal_id: playerIsAnimation ? playerMalId : null,
+    id: playerMalId,
+    imdb_id: playerImdbId,
+    title: playerTitle,
+    title_english: playerTitle,
+    images: modalAnime?.images || { jpg: { image_url: '', small_image_url: '' } },
+    episodes: playerTotal || modalAnime?.episodes || 999,
+    type: playerIsAnimation ? 'TV' : (modalAnime?.type || 'TV'),
+    score: modalAnime?.score || null,
+    status: modalAnime?.status || null,
+    genres: modalAnime?.genres || (playerIsAnimation ? [{ name: 'Animation' }] : [])
+  };
+
+  modalAnime = fallbackShow;
+  modalLang = playerLang;
+  document.getElementById('em-dub').classList.toggle('active', playerLang==='dub');
+  document.getElementById('em-sub').classList.toggle('active', playerLang==='sub');
+  document.getElementById('ep-modal-title').textContent = playerTitle;
+  document.getElementById('ep-modal-poster').src = fallbackShow.images?.jpg?.image_url || '';
+
+  const meta = document.getElementById('ep-modal-meta');
+  meta.innerHTML = '';
+  if (fallbackShow.score) meta.innerHTML += `<span class="em-badge">★ ${fallbackShow.score}</span>`;
+  if (fallbackShow.type)  meta.innerHTML += `<span class="em-badge">${fallbackShow.type}</span>`;
+  if (fallbackShow.episodes) meta.innerHTML += `<span class="em-badge">${fallbackShow.episodes} eps</span>`;
+
+  document.getElementById('em-ep-search').value = '';
   document.getElementById('ep-modal-bg').classList.add('show');
+  renderEpList(fallbackShow.episodes);
+
+  // Try to enrich with real TMDB metadata (score/poster/genres) in the background
+  // without blocking the episode list from showing immediately. Only attempt
+  // this for non-anime or when we have a plausible TMDB id to look up.
+  if (!playerIsAnimation && playerMalId) {
+    tmdb(`/tv/${playerMalId}`).then(d => {
+      if (d && modalAnime === fallbackShow) {
+        const enriched = normalizeTMDB(d, 'tv');
+        enriched.episodes = fallbackShow.episodes;
+        enriched.imdb_id = playerImdbId;
+        modalAnime = enriched;
+        document.getElementById('ep-modal-poster').src = enriched.images?.jpg?.image_url || '';
+        const m2 = document.getElementById('ep-modal-meta');
+        m2.innerHTML = '';
+        if (enriched.score) m2.innerHTML += `<span class="em-badge">★ ${enriched.score}</span>`;
+        if (enriched.type)  m2.innerHTML += `<span class="em-badge">${enriched.type}</span>`;
+        if (enriched.episodes) m2.innerHTML += `<span class="em-badge">${enriched.episodes} eps</span>`;
+      }
+    }).catch(()=>{});
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
