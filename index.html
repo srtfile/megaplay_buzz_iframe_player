@@ -742,6 +742,26 @@ const Q_TIERS  = [360,480,720,1080];
 // AniList <-> MAL ID cache
 let malToAnilistCache = {};
 
+// Test API on load
+(async function testAPI() {
+  try {
+    const testQuery = `{ Media(id: 1) { id title { romaji } } }`;
+    const response = await fetch(ANILIST, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ query: testQuery })
+    });
+    const result = await response.json();
+    if(result.data) {
+      console.log('✅ AniList API is working!', result.data);
+    } else {
+      console.error('❌ AniList API returned no data:', result);
+    }
+  } catch(err) {
+    console.error('❌ AniList API test failed:', err);
+  }
+})();
+
 // ════════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════════
@@ -781,13 +801,26 @@ async function anilist(query, variables = {}) {
   try {
     const r = await fetch(ANILIST, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({ query, variables })
     });
-    if(!r.ok) return null;
+    if(!r.ok) {
+      console.error('AniList API Error:', r.status, r.statusText);
+      return null;
+    }
     const json = await r.json();
+    if(json.errors) {
+      console.error('AniList GraphQL Errors:', json.errors);
+      return null;
+    }
     return json.data || null;
-  } catch { return null; }
+  } catch(err) {
+    console.error('AniList Fetch Error:', err);
+    return null;
+  }
 }
 
 // Convert AniList data to Jikan-like format for compatibility
@@ -1671,7 +1704,13 @@ document.addEventListener('click',e=>{
 // ════════════════════════════════════════════
 //  BOOT
 // ════════════════════════════════════════════
-initHome();
+console.log('Initializing AnimeX...');
+initHome().catch(err => {
+  console.error('Failed to initialize:', err);
+  // Show error message to user
+  const hero = document.getElementById('hero-title');
+  if(hero) hero.textContent = 'Failed to load anime data. Please check console for errors.';
+});
 </script>
 </body>
 </html>
