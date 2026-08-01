@@ -851,8 +851,13 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
       referrerpolicy="origin" style="display:none"></iframe>
     <iframe id="pf-sb"
       sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
-      allow="autoplay; fullscreen; picture-in-picture" allowfullscreen
-      referrerpolicy="no-referrer" style="display:none"></iframe>
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen referrerpolicy="no-referrer" style="display:none"></iframe>
+    <!-- Strict ad-block iframe: no popups, no top-nav, no downloads -->
+    <iframe id="pf-adblock"
+      sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen referrerpolicy="no-referrer" style="display:none"></iframe>
 
     <!-- Auto-next overlay -->
     <div id="an-overlay">
@@ -1739,10 +1744,12 @@ function goHome() {
   stopEndWatch();
   document.getElementById('view-player').classList.remove('active');
   document.getElementById('view-home').classList.remove('hidden');
-  document.getElementById('pf-plain').src = 'about:blank';
-  document.getElementById('pf-sb').src    = 'about:blank';
-  document.getElementById('pf-plain').style.display = 'none';
-  document.getElementById('pf-sb').style.display    = 'none';
+  document.getElementById('pf-plain').src    = 'about:blank';
+  document.getElementById('pf-sb').src      = 'about:blank';
+  document.getElementById('pf-adblock').src = 'about:blank';
+  document.getElementById('pf-plain').style.display    = 'none';
+  document.getElementById('pf-sb').style.display      = 'none';
+  document.getElementById('pf-adblock').style.display = 'none';
   document.getElementById('player-ph').style.display = 'flex';
   closeSrvPanel();
 }
@@ -1869,6 +1876,18 @@ async function loadEpisode(malId, ep, lang, imdbId = undefined) {
   document.getElementById('srv-loading').classList.remove('show');
   if (aEntry)  serverData   = buildACSrvs(aEntry);
   if (hiEntry) hianimeEntry = hiEntry;
+
+  // ── Append TMDB-based extra anime servers ─────────────────
+  if (playerTmdbId) {
+    const id = playerTmdbId, epn = playerEp;
+    serverData.push(
+      { key:'xtra_nxsha',    label:'NxSha',    badge:'TMDB', url:`https://web.nxsha.app/embed/tv/${id}/1/${epn}`,         source:'anisantch', adBlock:true },
+      { key:'xtra_111mv',    label:'111Movies', badge:'TMDB', url:`https://111movies.net/tv/${id}/1/${epn}`,               source:'anisantch', adBlock:true },
+      { key:'xtra_anyembed', label:'AnyEmbed',  badge:'TMDB', url:`https://anyembed.xyz/embed/tmdb-tv-${id}-1-${epn}`,     source:'anisantch', adBlock:true },
+      { key:'xtra_nontongo', label:'NonTongo',  badge:'TMDB', url:`https://www.nontongo.win/embed/tv/${id}/1/${epn}`,      source:'anisantch', adBlock:true }
+    );
+  }
+
   updateSrcTabOpacity();
   if (activeSrc === 'hianime') renderHiList();
   else renderACList();
@@ -1881,38 +1900,46 @@ async function loadEpisode(malId, ep, lang, imdbId = undefined) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  NON-ANIME SERVERS (Movies / TV) — API Instrument + Movie Servers
+//  NON-ANIME SERVERS (Movies / TV)
 // ═══════════════════════════════════════════════════════════
 function buildNonAnimeServers() {
   const s = [];
+  const id  = playerTmdbId;
+  const ep  = playerEp;
+  const isMovie = playerMediaType === 'movie';
 
-  // "API Instrument" — insertunit.ws, needs an IMDB id
-  if (playerImdbId) {
-    s.push({
-      key: 'apiinstrument',
-      label: 'API Instrument',
-      badge: 'IMDB',
-      url: `https://api.insertunit.ws/embed/imdb/${playerImdbId}`,
-      source: 'nonanime',
-      adBlock: true
-    });
-  }
-
-  // "Movie Servers" — web.nxsha.app, takes TMDB id directly.
-  // TV format:    /watch/tv/{tmdbId}/{season}/{episode}
-  // Movie format: /watch/movie/{tmdbId}
-  if (playerTmdbId) {
-    const nxshaUrl = playerMediaType === 'movie'
-      ? `https://web.nxsha.app/watch/movie/${playerTmdbId}`
-      : `https://web.nxsha.app/watch/tv/${playerTmdbId}/1/${playerEp}`;
-    s.push({
-      key: 'movieservers',
-      label: 'Movie Servers',
-      badge: 'TMDB',
-      url: nxshaUrl,
-      source: 'nonanime',
-      adBlock: true
-    });
+  if (isMovie) {
+    // ── MOVIE SERVERS ──────────────────────────────────────
+    if (playerImdbId) {
+      s.push({ key: 'apiinstrument', label: 'API Instrument', badge: 'IMDB',
+        url: `https://api.insertunit.ws/embed/imdb/${playerImdbId}`, source: 'nonanime', adBlock: true });
+    }
+    if (id) {
+      s.push({ key: 'nxsha_mv',    label: 'NxSha',       badge: 'TMDB',
+        url: `https://web.nxsha.app/embed/movie/${id}`,      source: 'nonanime', adBlock: true });
+      s.push({ key: '111movies_mv',label: '111Movies',    badge: 'TMDB',
+        url: `https://111movies.net/movie/${id}`,             source: 'nonanime', adBlock: true });
+      s.push({ key: 'anyembed_mv', label: 'AnyEmbed',     badge: 'TMDB',
+        url: `https://anyembed.xyz/embed/tmdb-movie-${id}`,  source: 'nonanime', adBlock: true });
+      s.push({ key: 'nontongo_mv', label: 'NonTongo',     badge: 'TMDB',
+        url: `https://www.nontongo.win/embed/movie/${id}`,   source: 'nonanime', adBlock: true });
+    }
+  } else {
+    // ── TV / ANIME-SERVERS (non-animation) ─────────────────
+    if (playerImdbId) {
+      s.push({ key: 'apiinstrument', label: 'API Instrument', badge: 'IMDB',
+        url: `https://api.insertunit.ws/embed/imdb/${playerImdbId}`, source: 'nonanime', adBlock: true });
+    }
+    if (id) {
+      s.push({ key: 'nxsha_tv',    label: 'NxSha',       badge: 'TMDB',
+        url: `https://web.nxsha.app/embed/tv/${id}/1/${ep}`,         source: 'nonanime', adBlock: true });
+      s.push({ key: '111movies_tv',label: '111Movies',    badge: 'TMDB',
+        url: `https://111movies.net/tv/${id}/1/${ep}`,               source: 'nonanime', adBlock: true });
+      s.push({ key: 'anyembed_tv', label: 'AnyEmbed',     badge: 'TMDB',
+        url: `https://anyembed.xyz/embed/tmdb-tv-${id}-1-${ep}`,     source: 'nonanime', adBlock: true });
+      s.push({ key: 'nontongo_tv', label: 'NonTongo',     badge: 'TMDB',
+        url: `https://www.nontongo.win/embed/tv/${id}/1/${ep}`,      source: 'nonanime', adBlock: true });
+    }
   }
 
   serverData = s;
@@ -1958,8 +1985,11 @@ function renderNonAnimeList() {
 function playNonAnimeSrv(srv) {
   if (!srv || !srv.url) return;
   loadIframe(srv.url, !!srv.adBlock);
-  const frame = document.getElementById('pf-sb').style.display !== 'none'
-    ? document.getElementById('pf-sb') : document.getElementById('pf-plain');
+  const frame = (needsAdBlock(srv.url) || srv.adBlock)
+    ? document.getElementById('pf-adblock')
+    : document.getElementById('pf-sb').style.display !== 'none'
+      ? document.getElementById('pf-sb')
+      : document.getElementById('pf-plain');
   watchEnd(frame, playerTmdbId || playerImdbId, playerEp, playerLang);
 }
 
@@ -1969,24 +1999,48 @@ function playNonAnimeSrv(srv) {
 function isMega(url) { return /megaplay\.buzz/i.test(url); }
 function isInsertUnit(url) { return /insertunit\.ws/i.test(url); }
 
+// Sources that need our strictest ad-block iframe
+// (no allow-popups, no allow-top-navigation)
+const ADBLOCK_HOSTS = [
+  /insertunit\.ws/i,
+  /nxsha\.app/i,
+  /111movies\.net/i,
+  /anyembed\.xyz/i,
+  /nontongo\.win/i
+];
+function needsAdBlock(url) {
+  return ADBLOCK_HOSTS.some(re => re.test(url));
+}
+
 function loadIframe(url, forceAdBlock = false) {
-  const plain = document.getElementById('pf-plain');
-  const sb    = document.getElementById('pf-sb');
-  const ph    = document.getElementById('player-ph');
+  const plain   = document.getElementById('pf-plain');
+  const sb      = document.getElementById('pf-sb');
+  const adblock = document.getElementById('pf-adblock');
+  const ph      = document.getElementById('player-ph');
   stopEndWatch();
   ph.style.display = 'none';
 
-  // Use ad-blocking sandbox for insertunit.ws or when forceAdBlock is true
-  if (isInsertUnit(url) || forceAdBlock) {
+  // Helper: hide all frames cleanly
+  function hideAll() {
     plain.style.display='none'; plain.src='about:blank';
-    sb.src=url; sb.style.display='block';
-    console.log('Using ad-blocking sandbox iframe');
+    sb.style.display='none';    sb.src='about:blank';
+    adblock.style.display='none'; adblock.src='about:blank';
+  }
+
+  if (forceAdBlock || needsAdBlock(url)) {
+    // Strictest sandbox — blocks popups & top-navigation entirely
+    hideAll();
+    adblock.src = url;
+    adblock.style.display = 'block';
+    console.log('[AdBlock] strict sandbox iframe →', url);
   } else if (isMega(url)) {
-    sb.style.display='none'; sb.src='about:blank';
-    plain.src=url; plain.style.display='block';
+    hideAll();
+    plain.src = url;
+    plain.style.display = 'block';
   } else {
-    plain.style.display='none'; plain.src='about:blank';
-    sb.src=url; sb.style.display='block';
+    hideAll();
+    sb.src = url;
+    sb.style.display = 'block';
   }
 }
 
@@ -2168,8 +2222,13 @@ function playSrv(srv) {
     if (!url) for (const q of [480,720,360,1080]) { url=srv.entry[`allanime_${q}`]; if(url)break; }
   } else { url=srv.url; }
   if (!url) return;
-  loadIframe(url);
-  const frame=isMega(url)?document.getElementById('pf-plain'):document.getElementById('pf-sb');
+  loadIframe(url, !!srv.adBlock);
+  // Pick the active frame for watchEnd tracking
+  const frame = needsAdBlock(url)||srv.adBlock
+    ? document.getElementById('pf-adblock')
+    : isMega(url)
+      ? document.getElementById('pf-plain')
+      : document.getElementById('pf-sb');
   watchEnd(frame, playerMalId, playerEp, playerLang);
 }
 
