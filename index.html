@@ -20,6 +20,7 @@
   --accent2:  #a78bfa;
   --pink:     #f472b6;
   --green:    #34d399;
+  --orange:   #fb923c;
   --text:     #e8e8f0;
   --text2:    #9090b0;
   --text3:    #55556a;
@@ -311,7 +312,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .skip-btn-ed { background: rgba(244,114,182,.9); color: #fff; }
 .skip-btn-ed:hover { background: var(--pink); transform: translateY(-1px); }
 
-/* Countdown timer on skip buttons */
 .skip-timer {
   display: inline-block; min-width: 18px; text-align: center;
   background: rgba(0,0,0,.3); border-radius: 4px; padding: 0 4px;
@@ -330,10 +330,12 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 }
 #server-dropdown.show { display: block; }
 .sd-sec-title { font-size: 10px; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
-#src-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 3px; margin-bottom: 10px; }
-.src-t { flex: 1; padding: 5px 8px; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all .15s; background: transparent; color: var(--text3); }
+#src-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 3px; margin-bottom: 10px; flex-wrap: wrap; }
+.src-t { flex: 1; padding: 5px 8px; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all .15s; background: transparent; color: var(--text3); min-width: 60px; }
 .src-t.active { background: var(--accent); color: #fff; }
 .src-t:hover:not(.active) { color: var(--text2); }
+/* M4UHD tab gets orange accent when active */
+#tab-m4u.active { background: var(--orange); }
 #hi-subsrc-row { display: none; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
 #hi-subsrc-row.show { display: flex; }
 .subsrc-pill { padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); font-size: 10px; font-weight: 700; cursor: pointer; transition: all .15s; }
@@ -350,12 +352,26 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .srv-item.active { border-color: var(--accent); background: rgba(108,99,255,.22); color: var(--text); }
 .srv-item.hi:hover  { border-color: var(--pink); background: rgba(244,114,182,.1); }
 .srv-item.hi.active { border-color: var(--pink); background: rgba(244,114,182,.18); }
+/* M4UHD server items get orange style */
+.srv-item.m4u:hover  { border-color: var(--orange); background: rgba(251,146,60,.1); }
+.srv-item.m4u.active { border-color: var(--orange); background: rgba(251,146,60,.18); color: var(--text); }
+.srv-item.m4u.active .srv-badge-sm { background: var(--orange); color: #fff; }
 .srv-badge-sm { font-size: 9px; padding: 2px 6px; border-radius: 8px; background: var(--bg4); color: var(--text3); font-weight: 700; }
 .srv-item.active .srv-badge-sm { background: var(--accent); color: #fff; }
 .srv-item.hi.active .srv-badge-sm { background: var(--pink); color: #fff; }
 #srv-loading { display: none; align-items: center; gap: 8px; color: var(--text2); font-size: 12px; padding: 6px 0; }
 #srv-loading.show { display: flex; }
 .spin-sm { width: 12px; height: 12px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+
+/* M4UHD status badge in server panel */
+#m4u-status-row {
+  display: none; align-items: center; gap: 6px;
+  padding: 6px 8px; border-radius: 8px;
+  background: rgba(251,146,60,.08); border: 1px solid rgba(251,146,60,.25);
+  margin-bottom: 8px; font-size: 11px; color: var(--orange); font-weight: 600;
+}
+#m4u-status-row.show { display: flex; }
+#m4u-status-row svg { flex-shrink: 0; }
 
 /* Skip times indicator in server panel */
 #skip-info-row {
@@ -441,6 +457,8 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   .skip-btn { padding: 8px 14px; font-size: 12px; }
   #multi-modal-bg { padding: 0; align-items: flex-end; }
   #multi-modal { max-height: 88vh; border-radius: 20px 20px 0 0; max-width: 100%; }
+  #src-tabs { flex-wrap: wrap; }
+  .src-t { min-width: 50px; font-size: 10px; padding: 4px 6px; }
 }
 
 @media (max-width: 400px) {
@@ -638,9 +656,17 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   <div id="server-dropdown">
     <div class="sd-sec-title">Source</div>
     <div id="src-tabs">
-      <button class="src-t active" id="tab-ac" onclick="switchSrc('anisantch')">AnisantCH</button>
-      <button class="src-t" id="tab-hi" onclick="switchSrc('hianime')">🌸 HiAnime</button>
+      <button class="src-t active" id="tab-ac"  onclick="switchSrc('anisantch')">AnisantCH</button>
+      <button class="src-t"        id="tab-hi"  onclick="switchSrc('hianime')">🌸 HiAnime</button>
+      <button class="src-t"        id="tab-m4u" onclick="switchSrc('m4uhd')">🎬 M4UHD</button>
     </div>
+
+    <!-- M4UHD status indicator -->
+    <div id="m4u-status-row">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="m4u-status-text">Checking M4UHD library…</span>
+    </div>
+
     <div id="hi-subsrc-row">
       <button class="subsrc-pill active" data-ss="streamhg"   onclick="setHiSS('streamhg')">StreamHG</button>
       <button class="subsrc-pill"        data-ss="earnvids"   onclick="setHiSS('earnvids')">EarnVids</button>
@@ -680,6 +706,15 @@ const Q_TIERS      = [360,480,720,1080];
 const ANISKIP_BASE = 'https://api.aniskip.com/v2/skip-times';
 const ANIME_LIST_URL = 'https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-full.json';
 
+// ── M4UHD constants ──
+const M4U_BASE   = 'https://raw.githubusercontent.com/ytbro8326-sudo/m4uhurlcollector-main4_seris/refs/heads/main/';
+const M4U_SERIES_FILES = Array.from({length:10}, (_,i) => i===0 ? 'series.json' : `series${i+1}.json`);
+const M4U_MOVIES_FILES = Array.from({length:25}, (_,i) => i===0 ? 'movies.json' : `movies${i+1}.json`);
+
+// Allowed server keys for M4UHD (skip vidsrcme = server3)
+const M4U_ALLOWED_SERVERS = ['server1','server2','server4'];
+const M4U_SERVER_LABELS   = { server1:'StreamHQ', server2:'AbyssPlayer', server4:'YT-Prime' };
+
 // ═══════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════
@@ -714,12 +749,20 @@ let debounceT       = null;
 let lastSearchQuery = '';
 let sectionLoadToken= 0;
 
+// M4UHD state
+let m4uSeriesEntry  = null;  // matched series entry from M4UHD
+let m4uMovieEntry   = null;  // matched movie entry from M4UHD
+let _m4uSeriesCache = null;  // raw flat array of all series entries
+let _m4uSeriesProm  = null;
+let _m4uMoviesCache = null;  // raw flat array of all movie entries
+let _m4uMoviesProm  = null;
+
 // AniSkip state
 let skipTimes       = { op: null, ed: null };
 let skipCheckInt    = null;
-let skipFakeTime    = 0;   // simulated playback seconds (since we can't read iframe time)
+let skipFakeTime    = 0;
 let skipFakeTimer   = null;
-let _pendingMultiMatches = null; // for multi-match modal callback
+let _pendingMultiMatches = null;
 let _pendingMultiShow    = null;
 
 // ═══════════════════════════════════════════════════════════
@@ -780,6 +823,98 @@ async function tmdbToImdbId(tmdbId, mediaType = 'tv') {
 }
 
 // ═══════════════════════════════════════════════════════════
+//  M4UHD DATA LOADER
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * Load all M4UHD series JSON files and cache them flat.
+ */
+async function loadM4USeries() {
+  if (_m4uSeriesCache) return _m4uSeriesCache;
+  if (_m4uSeriesProm)  return _m4uSeriesProm;
+  _m4uSeriesProm = Promise.all(
+    M4U_SERIES_FILES.map(f =>
+      fetch(M4U_BASE + f)
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => [])
+    )
+  ).then(results => {
+    _m4uSeriesCache = results.flat().filter(Boolean);
+    _m4uSeriesProm  = null;
+    console.log(`[M4UHD] Loaded ${_m4uSeriesCache.length} series entries`);
+    return _m4uSeriesCache;
+  });
+  return _m4uSeriesProm;
+}
+
+/**
+ * Load all M4UHD movies JSON files and cache them flat.
+ */
+async function loadM4UMovies() {
+  if (_m4uMoviesCache) return _m4uMoviesCache;
+  if (_m4uMoviesProm)  return _m4uMoviesProm;
+  _m4uMoviesProm = Promise.all(
+    M4U_MOVIES_FILES.map(f =>
+      fetch(M4U_BASE + f)
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => [])
+    )
+  ).then(results => {
+    _m4uMoviesCache = results.flat().filter(Boolean);
+    _m4uMoviesProm  = null;
+    console.log(`[M4UHD] Loaded ${_m4uMoviesCache.length} movie entries`);
+    return _m4uMoviesCache;
+  });
+  return _m4uMoviesProm;
+}
+
+/**
+ * Find a M4UHD series entry by TMDB ID.
+ * Only matches TV series / animation TV (type === 'series').
+ */
+async function fetchM4USeriesEntry(tmdbId) {
+  if (!tmdbId) return null;
+  const tid = String(tmdbId);
+  const all = await loadM4USeries();
+  return all.find(e => String(e.tmdb_id) === tid) || null;
+}
+
+/**
+ * Find a M4UHD movie entry by TMDB ID.
+ */
+async function fetchM4UMovieEntry(tmdbId) {
+  if (!tmdbId) return null;
+  const tid = String(tmdbId);
+  const all = await loadM4UMovies();
+  return all.find(e => String(e.tmdb_id) === tid) || null;
+}
+
+/**
+ * Extract allowed server URLs for a given episode from an M4UHD entry.
+ * Returns array of { key, label, url, source, adBlock }
+ */
+function buildM4USrvs(entry, ep) {
+  const srvs = [];
+  const epN = parseInt(ep, 10);
+  for (const skey of M4U_ALLOWED_SERVERS) {
+    const dataKey = `episode-${epN}-${skey}`;
+    const url = entry[dataKey];
+    if (!url || !url.trim()) continue;
+    // Double-check: skip any vidsrc URLs that sneak through
+    if (/vidsrc/i.test(url)) continue;
+    srvs.push({
+      key:    `m4u_ep${epN}_${skey}`,
+      label:  M4U_SERVER_LABELS[skey] || skey,
+      badge:  'M4UHD',
+      url:    url.trim(),
+      source: 'm4uhd',
+      adBlock: true   // use sandboxed iframe for these
+    });
+  }
+  return srvs;
+}
+
+// ═══════════════════════════════════════════════════════════
 //  ANIME-LIST DATABASE (cached, loaded once)
 // ═══════════════════════════════════════════════════════════
 async function loadAnimeList() {
@@ -792,10 +927,6 @@ async function loadAnimeList() {
   return _animeListProm;
 }
 
-/**
- * Find ALL anime-list entries matching a given TMDB TV ID.
- * Returns array sorted: TV type first, then OVA, Movie, ONA, Special.
- */
 async function findAllByTmdbId(tmdbId) {
   const list = await loadAnimeList();
   const id = parseInt(tmdbId, 10);
@@ -808,24 +939,13 @@ async function findAllByTmdbId(tmdbId) {
   return matches;
 }
 
-/**
- * Smart resolve: returns best single MAL id for a TMDB id.
- * If multiple found, returns null to let caller show picker.
- * Returns { malId, matches } — caller decides what to do.
- */
 async function resolveMalId(tmdbId, show = null) {
-  // Only for animation
   let showData = show;
   if (!showData) { showData = await tmdb(`/tv/${tmdbId}`); }
   if (!showData || !isAnimation(showData)) return { malId: null, matches: [] };
-
   const matches = await findAllByTmdbId(tmdbId);
   if (!matches.length) return { malId: null, matches: [] };
-
-  // If only one match, use it directly
   if (matches.length === 1) return { malId: matches[0].mal_id, matches };
-
-  // Multiple matches: prefer TV type first
   const tvMatch = matches.find(m => m.type === 'TV');
   return { malId: tvMatch ? tvMatch.mal_id : matches[0].mal_id, matches };
 }
@@ -844,20 +964,13 @@ async function fetchSkipTimes(malId, ep) {
     const data = await r.json();
     if (!data.found || !data.results?.length) return;
     for (const item of data.results) {
-      if (item.skip_type === 'op') {
-        skipTimes.op = { start: item.interval.start_time, end: item.interval.end_time };
-      }
-      if (item.skip_type === 'ed') {
-        skipTimes.ed = { start: item.interval.start_time, end: item.interval.end_time };
-      }
+      if (item.skip_type === 'op') skipTimes.op = { start: item.interval.start_time, end: item.interval.end_time };
+      if (item.skip_type === 'ed') skipTimes.ed = { start: item.interval.start_time, end: item.interval.end_time };
     }
     console.log('[AniSkip] skip times:', skipTimes);
     updateSkipInfoPanel();
-    // Start simulated playback clock from 0
     startSkipFakeClock();
-  } catch(e) {
-    console.log('[AniSkip] error:', e);
-  }
+  } catch(e) { console.log('[AniSkip] error:', e); }
 }
 
 function clearSkipUI() {
@@ -876,17 +989,10 @@ function updateSkipInfoPanel() {
   if (!skipTimes.op && !skipTimes.ed) { row.classList.remove('show'); return; }
   row.classList.add('show');
   const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
-  if (skipTimes.op) {
-    inner.innerHTML += `<div class="skip-time-row"><div class="skip-dot skip-dot-op"></div><span class="skip-time-label">Intro</span><span class="skip-time-val">${fmt(skipTimes.op.start)} – ${fmt(skipTimes.op.end)}</span></div>`;
-  }
-  if (skipTimes.ed) {
-    inner.innerHTML += `<div class="skip-time-row"><div class="skip-dot skip-dot-ed"></div><span class="skip-time-label">Outro</span><span class="skip-time-val">${fmt(skipTimes.ed.start)} – ${fmt(skipTimes.ed.end)}</span></div>`;
-  }
+  if (skipTimes.op) inner.innerHTML += `<div class="skip-time-row"><div class="skip-dot skip-dot-op"></div><span class="skip-time-label">Intro</span><span class="skip-time-val">${fmt(skipTimes.op.start)} – ${fmt(skipTimes.op.end)}</span></div>`;
+  if (skipTimes.ed) inner.innerHTML += `<div class="skip-time-row"><div class="skip-dot skip-dot-ed"></div><span class="skip-time-label">Outro</span><span class="skip-time-val">${fmt(skipTimes.ed.start)} – ${fmt(skipTimes.ed.end)}</span></div>`;
 }
 
-// Simulated playback clock — increments every second.
-// Because we cannot read the iframe's currentTime, we fake it from t=0.
-// This means skip buttons appear at approximate times. Not perfect, but functional.
 function startSkipFakeClock() {
   stopSkipFakeClock();
   skipFakeTime = 0;
@@ -896,24 +1002,18 @@ function startSkipFakeClock() {
     const opBtn = document.getElementById('skip-op-btn');
     const edBtn = document.getElementById('skip-ed-btn');
     let anyVisible = false;
-    // Intro
     if (skipTimes.op && t >= skipTimes.op.start - 2 && t < skipTimes.op.end) {
       const remaining = Math.max(0, Math.round(skipTimes.op.end - t));
       opBtn.style.display = '';
       document.getElementById('skip-op-timer').textContent = remaining > 0 ? remaining+'s' : '';
       anyVisible = true;
-    } else {
-      opBtn.style.display = 'none';
-    }
-    // Outro
+    } else { opBtn.style.display = 'none'; }
     if (skipTimes.ed && t >= skipTimes.ed.start - 2 && t < skipTimes.ed.end) {
       const remaining = Math.max(0, Math.round(skipTimes.ed.end - t));
       edBtn.style.display = '';
       document.getElementById('skip-ed-timer').textContent = remaining > 0 ? remaining+'s' : '';
       anyVisible = true;
-    } else {
-      edBtn.style.display = 'none';
-    }
+    } else { edBtn.style.display = 'none'; }
     document.getElementById('skip-bar').classList.toggle('show', anyVisible);
   }, 1000);
 }
@@ -925,16 +1025,12 @@ function stopSkipFakeClock() {
 
 function skipIntro() {
   if (!skipTimes.op) return;
-  // Jump fake clock to just after intro
   skipFakeTime = Math.ceil(skipTimes.op.end) + 1;
   document.getElementById('skip-op-btn').style.display = 'none';
   document.getElementById('skip-bar').classList.remove('show');
-  // Attempt postMessage to iframe (works on some players)
   const frames = [document.getElementById('pf-plain'), document.getElementById('pf-sb'), document.getElementById('pf-adblock')];
   const active = frames.find(f => f.style.display !== 'none');
-  if (active) {
-    try { active.contentWindow.postMessage({ action:'seekTo', time: skipTimes.op.end }, '*'); } catch{}
-  }
+  if (active) { try { active.contentWindow.postMessage({ action:'seekTo', time: skipTimes.op.end }, '*'); } catch{} }
 }
 
 function skipOutro() {
@@ -944,9 +1040,7 @@ function skipOutro() {
   document.getElementById('skip-bar').classList.remove('show');
   const frames = [document.getElementById('pf-plain'), document.getElementById('pf-sb'), document.getElementById('pf-adblock')];
   const active = frames.find(f => f.style.display !== 'none');
-  if (active) {
-    try { active.contentWindow.postMessage({ action:'seekTo', time: skipTimes.ed.end }, '*'); } catch{}
-  }
+  if (active) { try { active.contentWindow.postMessage({ action:'seekTo', time: skipTimes.ed.end }, '*'); } catch{} }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -957,22 +1051,15 @@ function openMultiModal(matches, show, onPick) {
   _pendingMultiShow    = show;
   document.getElementById('multi-modal-title').textContent = `Multiple Versions Found`;
   document.getElementById('multi-modal-subtitle').textContent = `"${showTitle(show)}" has ${matches.length} entries. The ✦ highlighted one is the best match — or pick another.`;
-
   const list = document.getElementById('multi-modal-list');
   list.innerHTML = '';
-  const TYPE_PRIORITY = { 'TV': 0, 'ONA': 1, 'OVA': 2, 'Movie': 3, 'Special': 4 };
   const recommended = matches.find(m => m.type === 'TV') || matches[0];
-
-  matches.forEach((m, i) => {
+  matches.forEach(m => {
     const isRec = m === recommended;
     const item = document.createElement('div');
     item.className = 'multi-item';
-    item.style.position = 'relative';
     if (isRec) item.style.borderColor = 'var(--accent)';
-
-    // Fetch MAL details for this entry (mal_id) asynchronously to fill poster
     const poster = show.images?.jpg?.image_url || '';
-
     item.innerHTML = `
       <img class="multi-item-poster" src="${poster}" alt="">
       <div class="multi-item-info">
@@ -986,20 +1073,13 @@ function openMultiModal(matches, show, onPick) {
         </div>
       </div>
       <div class="multi-item-arr">›</div>`;
-
-    item.onclick = () => {
-      closeMultiModal();
-      onPick(m.mal_id, m);
-    };
+    item.onclick = () => { closeMultiModal(); onPick(m.mal_id, m); };
     list.appendChild(item);
   });
-
   document.getElementById('multi-modal-bg').classList.add('show');
 }
 
-function closeMultiModal() {
-  document.getElementById('multi-modal-bg').classList.remove('show');
-}
+function closeMultiModal() { document.getElementById('multi-modal-bg').classList.remove('show'); }
 document.getElementById('multi-modal-bg').addEventListener('click', e => {
   if (e.target === document.getElementById('multi-modal-bg')) closeMultiModal();
 });
@@ -1008,8 +1088,10 @@ document.getElementById('multi-modal-bg').addEventListener('click', e => {
 //  HOME INIT
 // ═══════════════════════════════════════════════════════════
 async function initHome() {
-  // Preload anime list in background
+  // Preload all databases in background
   loadAnimeList().catch(()=>{});
+  loadM4USeries().catch(()=>{});
+  loadM4UMovies().catch(()=>{});
   loadHero();
   loadAiringRow();
   loadTopRow();
@@ -1025,7 +1107,6 @@ async function loadHero() {
   const details = await tmdb(`/tv/${heroAnime.id}`);
   if (details) { heroAnime.episodes = details.number_of_episodes; heroAnime.status = details.status; heroAnime.genres = details.genres; }
   if (!isAnimation(heroAnime)) return loadHero();
-
   const a = heroAnime;
   document.getElementById('hero-title').textContent = showTitle(a);
   document.getElementById('hero-desc').textContent  = a.synopsis?.replace(/\[Written.*\]/,'').trim() || '';
@@ -1304,15 +1385,12 @@ async function openEpModal(show) {
   playerTotal = total || 0;
 
   if (isAnimation(fullShowData)) {
-    // ── ANIME PATH: resolve MAL id, handle multi-match ────
+    // ── ANIME PATH ────────────────────────────────────────
     meta.innerHTML += `<span class="em-badge" style="background:rgba(108,99,255,.25);color:var(--accent2)" id="em-resolving-badge">Resolving MAL ID…</span>`;
-
     const { malId, matches } = await resolveMalId(fullShowData.id, fullShowData);
-
     const badge = document.getElementById('em-resolving-badge');
 
     if (matches.length > 1) {
-      // Multiple matches found — show badge + option to pick
       if (badge) {
         badge.textContent = `${matches.length} versions found`;
         badge.style.background = 'rgba(244,114,182,.2)';
@@ -1326,7 +1404,6 @@ async function openEpModal(show) {
             modalAnime.imdb_id = null;
             const b2 = document.getElementById('em-resolving-badge');
             if (b2) { b2.textContent = `MAL #${pickedMalId} (${pickedEntry.type})`; b2.style.background='rgba(108,99,255,.25)'; b2.style.color='var(--accent2)'; b2.style.cursor='default'; b2.onclick=null; }
-            // Also add a "Change" button
             const chgBtn = document.createElement('span');
             chgBtn.className = 'em-badge';
             chgBtn.textContent = '↩ Change version';
@@ -1344,14 +1421,8 @@ async function openEpModal(show) {
           });
         };
       }
-
-      // Auto-select the best one (TV first) while showing multi badge
-      if (malId) {
-        modalAnime.mal_id = malId;
-        modalAnime.imdb_id = null;
-      }
+      if (malId) { modalAnime.mal_id = malId; modalAnime.imdb_id = null; }
     } else if (malId) {
-      // Single clean match
       modalAnime.mal_id = malId;
       modalAnime.imdb_id = null;
       if (badge) { badge.textContent = `MAL #${malId}`; badge.style.background='rgba(108,99,255,.25)'; badge.style.color='var(--accent2)'; }
@@ -1359,7 +1430,6 @@ async function openEpModal(show) {
       if (badge) badge.remove();
     }
 
-    // If this was a multi-match and we hadn't previously shown a "Change" button, add it now
     if (matches.length > 1 && !document.querySelector('#ep-modal-meta .chg-ver-btn')) {
       const chgBtn = document.createElement('span');
       chgBtn.className = 'em-badge chg-ver-btn';
@@ -1376,9 +1446,8 @@ async function openEpModal(show) {
       };
       document.getElementById('ep-modal-meta').appendChild(chgBtn);
     }
-
   } else {
-    // ── NON-ANIME PATH: IMDB id ───────────────────────────
+    // ── NON-ANIME PATH ────────────────────────────────────
     meta.innerHTML += `<span class="em-badge" style="background:rgba(244,114,182,.2);color:var(--pink)" id="em-resolving-badge">Getting IMDB ID…</span>`;
     const imdbId = await tmdbToImdbId(fullShowData.id, mediaType);
     const badge = document.getElementById('em-resolving-badge');
@@ -1450,6 +1519,10 @@ function startWatch(show, ep, lang) {
   document.getElementById('pl-dub').classList.toggle('active',lang==='dub');
   document.getElementById('pl-sub').classList.toggle('active',lang==='sub');
 
+  // Reset M4UHD entries for new show
+  m4uSeriesEntry = null;
+  m4uMovieEntry  = null;
+
   loadEpisode(playerMalId, ep, lang, playerImdbId);
 }
 
@@ -1464,6 +1537,9 @@ function goHome() {
   });
   document.getElementById('player-ph').style.display='flex';
   closeSrvPanel();
+  // Reset M4UHD tab opacity
+  document.getElementById('tab-m4u').style.opacity='1';
+  document.getElementById('m4u-status-row').classList.remove('show');
 }
 
 function openEpPickerFromPlayer() {
@@ -1517,11 +1593,17 @@ async function loadEpisode(malId, ep, lang, imdbId=undefined) {
   playerEp = ep; playerLang = lang;
   document.getElementById('player-ep-label').textContent = `Episode ${ep}`;
 
+  // Reset M4UHD status
+  setM4UStatus('', false);
+  document.getElementById('tab-m4u').style.opacity = '0.4';
+
   if (!playerIsAnimation) {
     serverData=[];hianimeEntry=null;
     buildNonAnimeServers();
     updateSrcTabOpacity();
     renderNonAnimeList();
+    // Also try M4UHD for non-anime TV/movies
+    fetchM4UForCurrentMedia();
     return;
   }
 
@@ -1536,11 +1618,12 @@ async function loadEpisode(malId, ep, lang, imdbId=undefined) {
   document.getElementById('srv-list-inner').innerHTML='';
   document.getElementById('srv-loading').classList.add('show');
 
-  // Fetch skip times + stream data in parallel
+  // Fetch all sources in parallel including M4UHD
   const [aEntry, hiEntry] = await Promise.all([
     fetchACEntry(malId, ep, lang),
     fetchHiEntry(malId, ep),
-    fetchSkipTimes(malId, ep)   // fire-and-forget (returns undefined, that's fine)
+    fetchSkipTimes(malId, ep),        // fire-and-forget
+    fetchM4UForCurrentMedia()          // fire-and-forget for M4UHD
   ]);
 
   document.getElementById('srv-loading').classList.remove('show');
@@ -1558,12 +1641,141 @@ async function loadEpisode(malId, ep, lang, imdbId=undefined) {
   }
 
   updateSrcTabOpacity();
-  if (activeSrc==='hianime') renderHiList(); else renderACList();
+  if (activeSrc==='hianime') renderHiList();
+  else if (activeSrc==='m4uhd') renderM4UList();
+  else renderACList();
+
   if (!serverData.length&&hianimeEntry&&activeSrc==='anisantch') switchSrc('hianime');
 
   const activeFrame = document.getElementById('pf-plain').style.display!=='none'
     ? document.getElementById('pf-plain') : document.getElementById('pf-sb');
   watchEnd(activeFrame, malId, ep, lang);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  M4UHD FETCH FOR CURRENT MEDIA
+// ═══════════════════════════════════════════════════════════
+async function fetchM4UForCurrentMedia() {
+  if (!playerTmdbId) return;
+  try {
+    if (playerMediaType === 'movie') {
+      const entry = await fetchM4UMovieEntry(playerTmdbId);
+      m4uMovieEntry = entry;
+      if (entry) {
+        console.log(`[M4UHD] Movie match found: "${entry.title}" (TMDB ${entry.tmdb_id})`);
+        setM4UStatus(`✓ Found: ${entry.title}`, true);
+        document.getElementById('tab-m4u').style.opacity = '1';
+        if (activeSrc === 'm4uhd') renderM4UList();
+      } else {
+        setM4UStatus('Not in M4UHD library', false);
+      }
+    } else {
+      // TV series — only match for series type (not anime-only restriction,
+      // but M4UHD data naturally contains TV series & animation TV)
+      const entry = await fetchM4USeriesEntry(playerTmdbId);
+      m4uSeriesEntry = entry;
+      if (entry) {
+        console.log(`[M4UHD] Series match found: "${entry.title}" (TMDB ${entry.tmdb_id}), total eps: ${entry.total_episodes}`);
+        setM4UStatus(`✓ Found: ${entry.title}`, true);
+        document.getElementById('tab-m4u').style.opacity = '1';
+        // Update total episodes from M4UHD if higher
+        if (entry.total_episodes && entry.total_episodes > playerTotal) {
+          playerTotal = entry.total_episodes;
+        }
+        if (activeSrc === 'm4uhd') renderM4UList();
+      } else {
+        setM4UStatus('Not in M4UHD library', false);
+      }
+    }
+  } catch(e) {
+    console.log('[M4UHD] fetch error:', e);
+    setM4UStatus('M4UHD lookup failed', false);
+  }
+}
+
+function setM4UStatus(text, found) {
+  const row  = document.getElementById('m4u-status-row');
+  const span = document.getElementById('m4u-status-text');
+  if (!text) { row.classList.remove('show'); return; }
+  span.textContent = text;
+  row.classList.add('show');
+  row.style.background  = found ? 'rgba(52,211,153,.08)'  : 'rgba(251,146,60,.08)';
+  row.style.borderColor = found ? 'rgba(52,211,153,.25)'  : 'rgba(251,146,60,.25)';
+  row.style.color       = found ? 'var(--green)'           : 'var(--orange)';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER M4UHD SERVER LIST
+// ═══════════════════════════════════════════════════════════
+function renderM4UList() {
+  const list = document.getElementById('srv-list-inner');
+  const qRow = document.getElementById('qual-row');
+  qRow.innerHTML = ''; qRow.style.display = 'none';
+  list.innerHTML = '';
+  document.getElementById('hi-subsrc-row').classList.remove('show');
+  document.getElementById('srv-loading').classList.remove('show');
+
+  const entry = playerMediaType === 'movie' ? m4uMovieEntry : m4uSeriesEntry;
+
+  if (!entry) {
+    list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:8px 0;line-height:1.6">
+      No M4UHD data available for this title.<br>
+      <span style="font-size:11px;color:var(--text3)">Try AnisantCH or HiAnime sources.</span>
+    </div>`;
+    return;
+  }
+
+  if (playerMediaType === 'movie') {
+    // Movie: show available servers directly
+    const srvs = [];
+    for (const skey of M4U_ALLOWED_SERVERS) {
+      const url = entry[skey];
+      if (!url || !url.trim() || /vidsrc/i.test(url)) continue;
+      srvs.push({ key: `m4u_mv_${skey}`, label: M4U_SERVER_LABELS[skey]||skey, badge:'M4UHD', url: url.trim(), source:'m4uhd', adBlock:true });
+    }
+    if (!srvs.length) {
+      list.innerHTML = '<div style="font-size:12px;color:var(--text2);padding:6px 0">No available servers for this movie.</div>';
+      return;
+    }
+    renderM4USrvBtns(list, srvs);
+  } else {
+    // Series: build servers for current episode
+    const srvs = buildM4USrvs(entry, playerEp);
+    if (!srvs.length) {
+      const maxEp = entry.total_episodes || 1;
+      list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:6px 0;line-height:1.6">
+        No M4UHD servers for Episode ${playerEp}.<br>
+        <span style="font-size:11px;color:var(--text3)">Available: ${maxEp} episode${maxEp!==1?'s':''}.</span>
+      </div>`;
+      return;
+    }
+    renderM4USrvBtns(list, srvs);
+  }
+}
+
+function renderM4USrvBtns(list, srvs) {
+  const di = prefSrvKey ? Math.max(0, srvs.findIndex(s=>s.key===prefSrvKey)) : 0;
+  srvs.forEach((srv, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'srv-item m4u' + (i===di ? ' active' : '');
+    btn.innerHTML = `<span>${srv.label}</span><span class="srv-badge-sm">M4UHD</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('.srv-item').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeServer = srv;
+      prefSrvKey   = srv.key;
+      playM4USrv(srv);
+    };
+    list.appendChild(btn);
+    if (i === di) activeServer = srv;
+  });
+  if (srvs[di]) playM4USrv(srvs[di]);
+}
+
+function playM4USrv(srv) {
+  if (!srv?.url) return;
+  loadIframe(srv.url, true);
+  watchEnd(document.getElementById('pf-adblock'), playerMalId, playerEp, playerLang);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1596,7 +1808,7 @@ function renderNonAnimeList() {
   const qRow=document.getElementById('qual-row');
   qRow.innerHTML=''; qRow.style.display='none'; list.innerHTML='';
   document.getElementById('srv-loading').classList.remove('show');
-  document.getElementById('src-tabs').style.display='none';
+  document.getElementById('src-tabs').style.display='';
   document.getElementById('hi-subsrc-row').classList.remove('show');
   if (!serverData.length) {
     list.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 0">No servers available.</div>';
@@ -1627,7 +1839,7 @@ function playNonAnimeSrv(srv) {
 //  IFRAME
 // ═══════════════════════════════════════════════════════════
 function isMega(url) { return /megaplay\.buzz/i.test(url); }
-const ADBLOCK_HOSTS=[/insertunit\.ws/i,/nxsha\.app/i,/111movies\.net/i,/anyembed\.xyz/i,/nontongo\.win/i];
+const ADBLOCK_HOSTS=[/insertunit\.ws/i,/nxsha\.app/i,/111movies\.net/i,/anyembed\.xyz/i,/nontongo\.win/i,/abyssplayer\.com/i,/ppzj-youtube/i,/youtube-prime\.rpmvip/i];
 function needsAdBlock(url) { return ADBLOCK_HOSTS.some(re=>re.test(url)); }
 
 function loadIframe(url, forceAdBlock=false) {
@@ -1711,6 +1923,11 @@ function toggleSrvPanel() {
     const r=btn.getBoundingClientRect();
     panel.style.top=(r.bottom+6)+'px';
     panel.style.left=window.innerWidth<=600?'4vw':Math.min(r.left,window.innerWidth-350)+'px';
+    // Show M4UHD status if we have it
+    const hasM4U = playerMediaType==='movie' ? !!m4uMovieEntry : !!m4uSeriesEntry;
+    if (!hasM4U && playerTmdbId) {
+      setM4UStatus('Checking M4UHD library…', false);
+    }
   }
 }
 function closeSrvPanel() { srvPanelOpen=false;document.getElementById('server-dropdown').classList.remove('show');document.getElementById('srv-panel-btn').classList.remove('open'); }
@@ -1719,10 +1936,20 @@ function switchSrc(src) {
   activeSrc=src;
   document.getElementById('tab-ac').classList.toggle('active',src==='anisantch');
   document.getElementById('tab-hi').classList.toggle('active',src==='hianime');
+  document.getElementById('tab-m4u').classList.toggle('active',src==='m4uhd');
   const hiRow=document.getElementById('hi-subsrc-row');
   const qRow=document.getElementById('qual-row');
-  if(src==='hianime'){hiRow.classList.add('show');qRow.style.display='none';renderHiList();}
-  else{hiRow.classList.remove('show');qRow.style.display='';renderACList();}
+
+  if (src==='hianime') {
+    hiRow.classList.add('show'); qRow.style.display='none';
+    renderHiList();
+  } else if (src==='m4uhd') {
+    hiRow.classList.remove('show'); qRow.style.display='none';
+    renderM4UList();
+  } else {
+    hiRow.classList.remove('show'); qRow.style.display='';
+    renderACList();
+  }
 }
 
 function setHiSS(ss) {
@@ -1734,6 +1961,8 @@ function setHiSS(ss) {
 function updateSrcTabOpacity() {
   document.getElementById('tab-ac').style.opacity=serverData.length?'1':'0.4';
   document.getElementById('tab-hi').style.opacity=hianimeEntry?'1':'0.4';
+  const hasM4U = playerMediaType==='movie' ? !!m4uMovieEntry : !!m4uSeriesEntry;
+  document.getElementById('tab-m4u').style.opacity=hasM4U?'1':'0.4';
 }
 
 function renderACList() {
