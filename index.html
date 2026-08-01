@@ -1860,10 +1860,12 @@ async function loadEpisode(malId, ep, lang, imdbId = undefined) {
   const megaSrc = `https://megaplay.buzz/stream/mal/${malId}/${ep}/${lang}?autostart=true`;
   loadIframe(megaSrc);
 
-  // Reset server panel
-  serverData   = [];
+  // Reset server panel — seed with MegaPlay immediately so it's always visible
+  serverData   = [
+    { key:'megaplay', label:'MegaPlay', badge:'MAL', url:`https://megaplay.buzz/stream/mal/${malId}/${ep}/${lang}?autostart=true`, source:'anisantch', adBlock:false }
+  ];
   hianimeEntry = null;
-  activeServer = null;
+  activeServer = serverData[0];
   document.getElementById('qual-row').innerHTML     = '';
   document.getElementById('srv-list-inner').innerHTML = '';
   document.getElementById('srv-loading').classList.add('show');
@@ -1874,7 +1876,8 @@ async function loadEpisode(malId, ep, lang, imdbId = undefined) {
   ]);
 
   document.getElementById('srv-loading').classList.remove('show');
-  if (aEntry)  serverData   = buildACSrvs(aEntry);
+  // Keep MegaPlay as first server, then append the rest
+  if (aEntry) serverData = [serverData[0], ...buildACSrvs(aEntry)];
   if (hiEntry) hianimeEntry = hiEntry;
 
   // ── Append TMDB-based extra anime servers ─────────────────
