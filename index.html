@@ -21,6 +21,7 @@
   --pink:     #f472b6;
   --green:    #34d399;
   --orange:   #fb923c;
+  --teal:     #22d3ee;
   --text:     #e8e8f0;
   --text2:    #9090b0;
   --text3:    #55556a;
@@ -33,19 +34,16 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 
 #root { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
 
-/* ── VIEWS ── */
 #view-home, #view-player { position: absolute; inset: 0; transition: opacity .35s ease, transform .35s ease; }
 #view-home   { z-index: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 #view-player { z-index: 2; opacity: 0; pointer-events: none; transform: translateY(20px); }
 #view-player.active { opacity: 1; pointer-events: all; transform: translateY(0); }
 #view-home.hidden { opacity: 0; pointer-events: none; }
 
-/* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
 
-/* ══════════ NAVBAR ══════════ */
 #navbar {
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; gap: 16px;
@@ -113,7 +111,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .nav-btn-highlight:hover { background: linear-gradient(135deg, rgba(108,99,255,.3), rgba(244,114,182,.2)); border-color: var(--accent); color: #fff; }
 #nav-btn-row { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
-/* ══════════ HOME PAGE ══════════ */
 #hero {
   position: relative; overflow: hidden;
   min-height: 420px; display: flex; align-items: flex-end;
@@ -178,7 +175,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 @keyframes shimmer { to { background-position: -200% 0; } }
 .skel-card { height: 200px; border-radius: var(--card-r); }
 
-/* ══════════ MULTI-MATCH MODAL ══════════ */
 #multi-modal-bg {
   position: fixed; inset: 0; background: rgba(0,0,0,.82); z-index: 400;
   display: none; align-items: center; justify-content: center;
@@ -217,10 +213,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .multi-item-info { flex: 1; min-width: 0; }
 .multi-item-title { font-size: 13px; font-weight: 700; line-height: 1.3; margin-bottom: 5px; }
 .multi-item-meta { display: flex; flex-wrap: wrap; gap: 5px; }
-.multi-badge {
-  display: inline-block; padding: 2px 8px; border-radius: 5px;
-  font-size: 10px; font-weight: 700;
-}
+.multi-badge { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 700; }
 .mb-type { background: var(--bg4); color: var(--text2); }
 .mb-recommended { background: var(--accent); color: #fff; }
 .mb-mal { background: rgba(108,99,255,.2); color: var(--accent2); border: 1px solid rgba(108,99,255,.3); }
@@ -228,7 +221,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .mb-year { background: var(--bg4); color: var(--text2); }
 .multi-item-arr { color: var(--text3); font-size: 18px; flex-shrink: 0; }
 
-/* ══════════ EPISODE MODAL ══════════ */
 #ep-modal-bg {
   position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 300;
   display: none; align-items: center; justify-content: center;
@@ -264,7 +256,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .ep-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 #ep-list-loading { color: var(--text2); font-size: 13px; padding: 20px 0; text-align: center; }
 
-/* ══════════ PLAYER ══════════ */
 #view-player { background: var(--bg); display: flex; flex-direction: column; }
 #player-topbar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 52px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; overflow: hidden; }
 #back-btn { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border2); background: transparent; color: var(--text2); font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--trans); white-space: nowrap; flex-shrink: 0; }
@@ -294,7 +285,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 #player-main iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 #player-ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text3); }
 
-/* ══════════ SKIP BAR ══════════ */
 #skip-bar {
   position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
   display: none; gap: 8px; z-index: 50; pointer-events: none;
@@ -311,14 +301,8 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .skip-btn-op:hover { background: var(--accent); transform: translateY(-1px); }
 .skip-btn-ed { background: rgba(244,114,182,.9); color: #fff; }
 .skip-btn-ed:hover { background: var(--pink); transform: translateY(-1px); }
+.skip-timer { display: inline-block; min-width: 18px; text-align: center; background: rgba(0,0,0,.3); border-radius: 4px; padding: 0 4px; font-size: 10px; font-weight: 800; letter-spacing: .03em; }
 
-.skip-timer {
-  display: inline-block; min-width: 18px; text-align: center;
-  background: rgba(0,0,0,.3); border-radius: 4px; padding: 0 4px;
-  font-size: 10px; font-weight: 800; letter-spacing: .03em;
-}
-
-/* Server dropdown */
 #server-dropdown {
   position: fixed; z-index: 500;
   background: var(--bg2); border: 1px solid var(--border2);
@@ -331,11 +315,12 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 #server-dropdown.show { display: block; }
 .sd-sec-title { font-size: 10px; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
 #src-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 3px; margin-bottom: 10px; flex-wrap: wrap; }
-.src-t { flex: 1; padding: 5px 8px; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all .15s; background: transparent; color: var(--text3); min-width: 60px; }
+.src-t { flex: 1; padding: 5px 8px; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all .15s; background: transparent; color: var(--text3); min-width: 55px; }
 .src-t.active { background: var(--accent); color: #fff; }
 .src-t:hover:not(.active) { color: var(--text2); }
-/* M4UHD tab gets orange accent when active */
-#tab-m4u.active { background: var(--orange); }
+#tab-m4u.active  { background: var(--orange); }
+#tab-agg.active  { background: var(--teal); }
+
 #hi-subsrc-row { display: none; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
 #hi-subsrc-row.show { display: flex; }
 .subsrc-pill { padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); font-size: 10px; font-weight: 700; cursor: pointer; transition: all .15s; }
@@ -352,10 +337,13 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .srv-item.active { border-color: var(--accent); background: rgba(108,99,255,.22); color: var(--text); }
 .srv-item.hi:hover  { border-color: var(--pink); background: rgba(244,114,182,.1); }
 .srv-item.hi.active { border-color: var(--pink); background: rgba(244,114,182,.18); }
-/* M4UHD server items get orange style */
 .srv-item.m4u:hover  { border-color: var(--orange); background: rgba(251,146,60,.1); }
 .srv-item.m4u.active { border-color: var(--orange); background: rgba(251,146,60,.18); color: var(--text); }
 .srv-item.m4u.active .srv-badge-sm { background: var(--orange); color: #fff; }
+/* AnimeGG server style */
+.srv-item.agg:hover  { border-color: var(--teal); background: rgba(34,211,238,.1); }
+.srv-item.agg.active { border-color: var(--teal); background: rgba(34,211,238,.18); color: var(--text); }
+.srv-item.agg.active .srv-badge-sm { background: var(--teal); color: #000; }
 .srv-badge-sm { font-size: 9px; padding: 2px 6px; border-radius: 8px; background: var(--bg4); color: var(--text3); font-weight: 700; }
 .srv-item.active .srv-badge-sm { background: var(--accent); color: #fff; }
 .srv-item.hi.active .srv-badge-sm { background: var(--pink); color: #fff; }
@@ -363,7 +351,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 #srv-loading.show { display: flex; }
 .spin-sm { width: 12px; height: 12px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
 
-/* M4UHD status badge in server panel */
 #m4u-status-row {
   display: none; align-items: center; gap: 6px;
   padding: 6px 8px; border-radius: 8px;
@@ -373,7 +360,15 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 #m4u-status-row.show { display: flex; }
 #m4u-status-row svg { flex-shrink: 0; }
 
-/* Skip times indicator in server panel */
+/* AnimeGG status row */
+#agg-status-row {
+  display: none; align-items: center; gap: 6px;
+  padding: 6px 8px; border-radius: 8px;
+  background: rgba(34,211,238,.08); border: 1px solid rgba(34,211,238,.25);
+  margin-bottom: 8px; font-size: 11px; color: var(--teal); font-weight: 600;
+}
+#agg-status-row.show { display: flex; }
+
 #skip-info-row {
   display: none; flex-direction: column; gap: 4px;
   padding: 10px 0; border-top: 1px solid var(--border); margin-top: 8px;
@@ -387,7 +382,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .skip-time-label { font-size: 11px; color: var(--text2); font-weight: 600; flex: 1; }
 .skip-time-val { font-size: 11px; color: var(--text3); font-family: monospace; }
 
-/* Auto-next overlay */
 #an-overlay {
   display: none; position: absolute; bottom: 24px; right: 20px;
   background: rgba(7,7,13,.92); border: 1px solid var(--border2);
@@ -405,7 +399,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 #an-cancel { background: var(--bg4); color: var(--text2); border: 1px solid var(--border2); }
 #an-cancel:hover { background: var(--border2); }
 
-/* ══════════ RESPONSIVE ══════════ */
 @media (max-width: 900px) { #server-dropdown { max-width: 92vw; } }
 
 @media (max-width: 600px) {
@@ -458,7 +451,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   #multi-modal-bg { padding: 0; align-items: flex-end; }
   #multi-modal { max-height: 88vh; border-radius: 20px 20px 0 0; max-width: 100%; }
   #src-tabs { flex-wrap: wrap; }
-  .src-t { min-width: 50px; font-size: 10px; padding: 4px 6px; }
+  .src-t { min-width: 44px; font-size: 10px; padding: 4px 5px; }
 }
 
 @media (max-width: 400px) {
@@ -478,7 +471,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 <body>
 <div id="root">
 
-<!-- ══════════ HOME VIEW ══════════ -->
+<!-- HOME VIEW -->
 <div id="view-home">
   <nav id="navbar">
     <div class="logo" onclick="goHome()">Anime<span>X</span></div>
@@ -553,7 +546,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   <div style="height:40px"></div>
 </div>
 
-<!-- ══════════ MULTI-MATCH SELECTION MODAL ══════════ -->
+<!-- MULTI-MATCH MODAL -->
 <div id="multi-modal-bg">
   <div id="multi-modal">
     <div id="multi-modal-header">
@@ -567,7 +560,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   </div>
 </div>
 
-<!-- ══════════ EPISODE PICKER MODAL ══════════ -->
+<!-- EPISODE PICKER MODAL -->
 <div id="ep-modal-bg">
   <div id="ep-modal">
     <div id="ep-modal-header">
@@ -592,7 +585,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
   </div>
 </div>
 
-<!-- ══════════ PLAYER VIEW ══════════ -->
+<!-- PLAYER VIEW -->
 <div id="view-player">
   <div id="player-topbar">
     <button id="back-btn" onclick="goHome()">
@@ -628,7 +621,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
     <iframe id="pf-sb" sandbox="allow-scripts allow-same-origin allow-presentation allow-forms" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer" style="display:none"></iframe>
     <iframe id="pf-adblock" sandbox="allow-scripts allow-same-origin allow-presentation allow-forms" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer" style="display:none"></iframe>
 
-    <!-- Skip intro/outro buttons -->
     <div id="skip-bar">
       <button class="skip-btn skip-btn-op" id="skip-op-btn" onclick="skipIntro()" style="display:none">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="5 4 15 12 5 20"/><line x1="19" y1="4" x2="19" y2="20"/></svg>
@@ -640,7 +632,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
       </button>
     </div>
 
-    <!-- Auto-next overlay -->
     <div id="an-overlay">
       <div class="an-title">Up next</div>
       <div class="an-ep" id="an-ep-lbl">Episode —</div>
@@ -652,19 +643,24 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
     </div>
   </div>
 
-  <!-- Server panel dropdown -->
+  <!-- Server panel -->
   <div id="server-dropdown">
     <div class="sd-sec-title">Source</div>
     <div id="src-tabs">
       <button class="src-t active" id="tab-ac"  onclick="switchSrc('anisantch')">AnisantCH</button>
       <button class="src-t"        id="tab-hi"  onclick="switchSrc('hianime')">🌸 HiAnime</button>
+      <button class="src-t"        id="tab-agg" onclick="switchSrc('animegg')">🥚 AnimeGG</button>
       <button class="src-t"        id="tab-m4u" onclick="switchSrc('m4uhd')">🎬 M4UHD</button>
     </div>
 
-    <!-- M4UHD status indicator -->
     <div id="m4u-status-row">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span id="m4u-status-text">Checking M4UHD library…</span>
+    </div>
+
+    <div id="agg-status-row">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="agg-status-text">Checking AnimeGG library…</span>
     </div>
 
     <div id="hi-subsrc-row">
@@ -678,7 +674,6 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
     <div id="srv-loading"><div class="spin-sm"></div> Fetching servers…</div>
     <div id="srv-list-inner"></div>
 
-    <!-- AniSkip info panel -->
     <div id="skip-info-row">
       <div class="skip-info-title">⏭ Skip Times (AniSkip)</div>
       <div id="skip-info-inner"></div>
@@ -699,19 +694,24 @@ const TMDB_IMG_LARGE = 'https://image.tmdb.org/t/p/original';
 const COUNTDOWN    = 10;
 const JSON_BASE    = 'https://raw.githubusercontent.com/donkarboy/anisantch_top/refs/heads/main/';
 const JSON_FILES   = Array.from({length:15},(_,i)=>i===0?'streams.json':`streams_${i+1}.json`);
-const HIANIME_BASE = 'https://raw.githubusercontent.com/srtfile/hi_anime_streams_scraper/refs/heads/main/';
-const HIANIME_FILES= Array.from({length:20},(_,i)=>i===0?'hianime_streams_list.json':`hianime_streams_list_${i+1}.json`);
-const HI_SS        = ['streamhg','earnvids','doodstream','vivibebe','bibiemb'];
-const Q_TIERS      = [360,480,720,1080];
-const ANISKIP_BASE = 'https://api.aniskip.com/v2/skip-times';
-const ANIME_LIST_URL = 'https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-full.json';
 
-// ── M4UHD constants ──
-const M4U_BASE   = 'https://raw.githubusercontent.com/ytbro8326-sudo/m4uhurlcollector-main4_seris/refs/heads/main/';
-const M4U_SERIES_FILES = Array.from({length:10}, (_,i) => i===0 ? 'series.json' : `series${i+1}.json`);
-const M4U_MOVIES_FILES = Array.from({length:25}, (_,i) => i===0 ? 'movies.json' : `movies${i+1}.json`);
+// HiAnime — 37 files
+const HIANIME_BASE  = 'https://raw.githubusercontent.com/srtfile/hi_anime_streams_scraper/refs/heads/main/';
+const HIANIME_FILES = Array.from({length:37},(_,i)=>i===0?'hianime_streams_list.json':`hianime_streams_list_${i+1}.json`);
 
-// Allowed server keys for M4UHD (skip vidsrcme = server3)
+// AnimeGG — 20 files
+const ANIMEGG_BASE  = 'https://raw.githubusercontent.com/dokkarrr/final_animgeg_embed-scraper/refs/heads/main/output/';
+const ANIMEGG_FILES = Array.from({length:20},(_,i)=>i===0?'animegg_series.json':`animegg_series${i+1}.json`);
+
+const HI_SS         = ['streamhg','earnvids','doodstream','vivibebe','bibiemb'];
+const Q_TIERS       = [360,480,720,1080];
+const ANISKIP_BASE  = 'https://api.aniskip.com/v2/skip-times';
+const ANIME_LIST_URL= 'https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-full.json';
+
+// M4UHD
+const M4U_BASE         = 'https://raw.githubusercontent.com/ytbro8326-sudo/m4uhurlcollector-main4_seris/refs/heads/main/';
+const M4U_SERIES_FILES = Array.from({length:10},(_,i)=>i===0?'series.json':`series${i+1}.json`);
+const M4U_MOVIES_FILES = Array.from({length:25},(_,i)=>i===0?'movies.json':`movies${i+1}.json`);
 const M4U_ALLOWED_SERVERS = ['server1','server2','server4'];
 const M4U_SERVER_LABELS   = { server1:'StreamHQ', server2:'AbyssPlayer', server4:'YT-Prime' };
 
@@ -750,12 +750,17 @@ let lastSearchQuery = '';
 let sectionLoadToken= 0;
 
 // M4UHD state
-let m4uSeriesEntry  = null;  // matched series entry from M4UHD
-let m4uMovieEntry   = null;  // matched movie entry from M4UHD
-let _m4uSeriesCache = null;  // raw flat array of all series entries
+let m4uSeriesEntry  = null;
+let m4uMovieEntry   = null;
+let _m4uSeriesCache = null;
 let _m4uSeriesProm  = null;
-let _m4uMoviesCache = null;  // raw flat array of all movie entries
+let _m4uMoviesCache = null;
 let _m4uMoviesProm  = null;
+
+// AnimeGG state
+let animeggEntry    = null;  // matched AnimeGG series entry
+let _animeggCache   = null;  // flat array of all AnimeGG entries
+let _animeggProm    = null;
 
 // AniSkip state
 let skipTimes       = { op: null, ed: null };
@@ -777,32 +782,29 @@ async function tmdb(path) {
   } catch { return null; }
 }
 
-function normalizeTMDB(item, type = 'tv') {
+function normalizeTMDB(item, type='tv') {
   return {
-    mal_id: item.id,
-    id: item.id,
+    mal_id: item.id, id: item.id,
     title: item.name || item.title || 'Untitled',
     title_english: item.name || item.title,
-    images: {
-      jpg: {
-        image_url: item.poster_path ? `${TMDB_IMG}${item.poster_path}` : '',
-        small_image_url: item.poster_path ? `${TMDB_IMG}${item.poster_path}` : '',
-        large_image_url: item.backdrop_path ? `${TMDB_IMG_LARGE}${item.backdrop_path}` : (item.poster_path ? `${TMDB_IMG}${item.poster_path}` : '')
-      }
-    },
+    images: { jpg: {
+      image_url: item.poster_path ? `${TMDB_IMG}${item.poster_path}` : '',
+      small_image_url: item.poster_path ? `${TMDB_IMG}${item.poster_path}` : '',
+      large_image_url: item.backdrop_path ? `${TMDB_IMG_LARGE}${item.backdrop_path}` : (item.poster_path ? `${TMDB_IMG}${item.poster_path}` : '')
+    }},
     score: item.vote_average ? item.vote_average.toFixed(1) : null,
-    type: type === 'movie' ? 'Movie' : 'TV',
-    episodes: item.number_of_episodes || (type === 'movie' ? 1 : null),
+    type: type==='movie' ? 'Movie' : 'TV',
+    episodes: item.number_of_episodes || (type==='movie' ? 1 : null),
     status: item.status || 'Unknown',
     year: (item.first_air_date || item.release_date || '').split('-')[0],
     synopsis: item.overview || '',
-    genres: (item.genres || item.genre_ids || []).map(g => typeof g === 'number' ? {name: genreIdToName(g)} : g),
+    genres: (item.genres || item.genre_ids || []).map(g => typeof g==='number' ? {name:genreIdToName(g)} : g),
     rank: item.popularity
   };
 }
 
 function genreIdToName(id) {
-  const map = {28:'Action',12:'Adventure',16:'Animation',35:'Comedy',80:'Crime',99:'Documentary',18:'Drama',10751:'Family',14:'Fantasy',36:'History',27:'Horror',10402:'Music',9648:'Mystery',10749:'Romance',878:'Sci-Fi',10770:'TV Movie',53:'Thriller',10752:'War',37:'Western',10759:'Action & Adventure',10762:'Kids',10763:'News',10764:'Reality',10765:'Sci-Fi & Fantasy',10766:'Soap',10767:'Talk',10768:'War & Politics'};
+  const map={28:'Action',12:'Adventure',16:'Animation',35:'Comedy',80:'Crime',99:'Documentary',18:'Drama',10751:'Family',14:'Fantasy',36:'History',27:'Horror',10402:'Music',9648:'Mystery',10749:'Romance',878:'Sci-Fi',10770:'TV Movie',53:'Thriller',10752:'War',37:'Western',10759:'Action & Adventure',10762:'Kids',10763:'News',10764:'Reality',10765:'Sci-Fi & Fantasy',10766:'Soap',10767:'Talk',10768:'War & Politics'};
   return map[id] || 'Unknown';
 }
 
@@ -810,828 +812,494 @@ function showTitle(a) { return a.title_english || a.title || a.name || 'Untitled
 
 function isAnimation(show) {
   if (!show) return false;
-  if (show.genres?.some(g => { const n = typeof g === 'object' ? (g.name||'') : String(g); return n.toLowerCase().includes('animation')||n.toLowerCase().includes('anime'); })) return true;
+  if (show.genres?.some(g=>{const n=typeof g==='object'?(g.name||''):String(g);return n.toLowerCase().includes('animation')||n.toLowerCase().includes('anime');})) return true;
   if (show.genre_ids?.includes(16)) return true;
   return false;
 }
 
-async function tmdbToImdbId(tmdbId, mediaType = 'tv') {
-  try {
-    const ext = await tmdb(`/${mediaType}/${tmdbId}/external_ids`);
-    return ext?.imdb_id || null;
-  } catch { return null; }
+async function tmdbToImdbId(tmdbId, mediaType='tv') {
+  try { const ext=await tmdb(`/${mediaType}/${tmdbId}/external_ids`); return ext?.imdb_id||null; }
+  catch { return null; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ANIMEGG DATA LOADER
+// ═══════════════════════════════════════════════════════════
+async function loadAnimeGG() {
+  if (_animeggCache) return _animeggCache;
+  if (_animeggProm)  return _animeggProm;
+  _animeggProm = Promise.all(
+    ANIMEGG_FILES.map(f =>
+      fetch(ANIMEGG_BASE + f)
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => [])
+    )
+  ).then(results => {
+    _animeggCache = results.flat().filter(Boolean);
+    _animeggProm  = null;
+    console.log(`[AnimeGG] Loaded ${_animeggCache.length} series entries`);
+    return _animeggCache;
+  });
+  return _animeggProm;
+}
+
+/**
+ * Find AnimeGG entry by MAL ID.
+ */
+async function fetchAnimeGGEntry(malId) {
+  if (!malId) return null;
+  const mid = parseInt(malId, 10);
+  const all  = await loadAnimeGG();
+  return all.find(e => parseInt(e.mal_id, 10) === mid) || null;
+}
+
+/**
+ * Get sub/dub embed URL for a specific episode from an AnimeGG entry.
+ */
+function getAnimeGGUrl(entry, ep, lang) {
+  if (!entry?.episodes) return null;
+  const epN   = parseInt(ep, 10);
+  const epObj = entry.episodes.find(e => parseInt(e.ep, 10) === epN);
+  if (!epObj) return null;
+  return lang === 'sub' ? (epObj.sub || epObj.dub || null)
+                        : (epObj.dub || epObj.sub || null);
 }
 
 // ═══════════════════════════════════════════════════════════
 //  M4UHD DATA LOADER
 // ═══════════════════════════════════════════════════════════
-
-/**
- * Load all M4UHD series JSON files and cache them flat.
- */
 async function loadM4USeries() {
   if (_m4uSeriesCache) return _m4uSeriesCache;
   if (_m4uSeriesProm)  return _m4uSeriesProm;
   _m4uSeriesProm = Promise.all(
-    M4U_SERIES_FILES.map(f =>
-      fetch(M4U_BASE + f)
-        .then(r => r.ok ? r.json() : [])
-        .catch(() => [])
-    )
-  ).then(results => {
-    _m4uSeriesCache = results.flat().filter(Boolean);
-    _m4uSeriesProm  = null;
-    console.log(`[M4UHD] Loaded ${_m4uSeriesCache.length} series entries`);
-    return _m4uSeriesCache;
-  });
+    M4U_SERIES_FILES.map(f => fetch(M4U_BASE+f).then(r=>r.ok?r.json():[]).catch(()=>[]))
+  ).then(results => { _m4uSeriesCache=results.flat().filter(Boolean); _m4uSeriesProm=null; return _m4uSeriesCache; });
   return _m4uSeriesProm;
 }
 
-/**
- * Load all M4UHD movies JSON files and cache them flat.
- */
 async function loadM4UMovies() {
   if (_m4uMoviesCache) return _m4uMoviesCache;
   if (_m4uMoviesProm)  return _m4uMoviesProm;
   _m4uMoviesProm = Promise.all(
-    M4U_MOVIES_FILES.map(f =>
-      fetch(M4U_BASE + f)
-        .then(r => r.ok ? r.json() : [])
-        .catch(() => [])
-    )
-  ).then(results => {
-    _m4uMoviesCache = results.flat().filter(Boolean);
-    _m4uMoviesProm  = null;
-    console.log(`[M4UHD] Loaded ${_m4uMoviesCache.length} movie entries`);
-    return _m4uMoviesCache;
-  });
+    M4U_MOVIES_FILES.map(f => fetch(M4U_BASE+f).then(r=>r.ok?r.json():[]).catch(()=>[]))
+  ).then(results => { _m4uMoviesCache=results.flat().filter(Boolean); _m4uMoviesProm=null; return _m4uMoviesCache; });
   return _m4uMoviesProm;
 }
 
-/**
- * Find a M4UHD series entry by TMDB ID.
- * Only matches TV series / animation TV (type === 'series').
- */
 async function fetchM4USeriesEntry(tmdbId) {
   if (!tmdbId) return null;
   const tid = String(tmdbId);
-  const all = await loadM4USeries();
-  return all.find(e => String(e.tmdb_id) === tid) || null;
+  return (await loadM4USeries()).find(e=>String(e.tmdb_id)===tid) || null;
 }
 
-/**
- * Find a M4UHD movie entry by TMDB ID.
- */
 async function fetchM4UMovieEntry(tmdbId) {
   if (!tmdbId) return null;
   const tid = String(tmdbId);
-  const all = await loadM4UMovies();
-  return all.find(e => String(e.tmdb_id) === tid) || null;
+  return (await loadM4UMovies()).find(e=>String(e.tmdb_id)===tid) || null;
 }
 
-/**
- * Extract allowed server URLs for a given episode from an M4UHD entry.
- * Returns array of { key, label, url, source, adBlock }
- */
 function buildM4USrvs(entry, ep) {
-  const srvs = [];
-  const epN = parseInt(ep, 10);
+  const srvs=[]; const epN=parseInt(ep,10);
   for (const skey of M4U_ALLOWED_SERVERS) {
-    const dataKey = `episode-${epN}-${skey}`;
-    const url = entry[dataKey];
-    if (!url || !url.trim()) continue;
-    // Double-check: skip any vidsrc URLs that sneak through
-    if (/vidsrc/i.test(url)) continue;
-    srvs.push({
-      key:    `m4u_ep${epN}_${skey}`,
-      label:  M4U_SERVER_LABELS[skey] || skey,
-      badge:  'M4UHD',
-      url:    url.trim(),
-      source: 'm4uhd',
-      adBlock: true   // use sandboxed iframe for these
-    });
+    const url = entry[`episode-${epN}-${skey}`];
+    if (!url||!url.trim()||/vidsrc/i.test(url)) continue;
+    srvs.push({key:`m4u_ep${epN}_${skey}`,label:M4U_SERVER_LABELS[skey]||skey,badge:'M4UHD',url:url.trim(),source:'m4uhd',adBlock:true});
   }
   return srvs;
 }
 
 // ═══════════════════════════════════════════════════════════
-//  ANIME-LIST DATABASE (cached, loaded once)
+//  ANIME-LIST DATABASE
 // ═══════════════════════════════════════════════════════════
 async function loadAnimeList() {
   if (_animeListCache) return _animeListCache;
   if (_animeListProm)  return _animeListProm;
   _animeListProm = fetch(ANIME_LIST_URL)
-    .then(r => r.ok ? r.json() : [])
-    .then(data => { _animeListCache = Array.isArray(data) ? data : []; _animeListProm = null; return _animeListCache; })
-    .catch(() => { _animeListProm = null; return []; });
+    .then(r=>r.ok?r.json():[])
+    .then(data=>{_animeListCache=Array.isArray(data)?data:[];_animeListProm=null;return _animeListCache;})
+    .catch(()=>{_animeListProm=null;return[];});
   return _animeListProm;
 }
 
 async function findAllByTmdbId(tmdbId) {
-  const list = await loadAnimeList();
-  const id = parseInt(tmdbId, 10);
-  const TYPE_PRIORITY = { 'TV': 0, 'ONA': 1, 'OVA': 2, 'Movie': 3, 'Special': 4 };
-  const matches = list.filter(e => {
-    const tv = e.themoviedb_id?.tv;
-    return tv && parseInt(tv, 10) === id && e.mal_id;
-  });
-  matches.sort((a, b) => (TYPE_PRIORITY[a.type]??9) - (TYPE_PRIORITY[b.type]??9));
+  const list=await loadAnimeList();
+  const id=parseInt(tmdbId,10);
+  const TYPE_PRIORITY={'TV':0,'ONA':1,'OVA':2,'Movie':3,'Special':4};
+  const matches=list.filter(e=>{const tv=e.themoviedb_id?.tv;return tv&&parseInt(tv,10)===id&&e.mal_id;});
+  matches.sort((a,b)=>(TYPE_PRIORITY[a.type]??9)-(TYPE_PRIORITY[b.type]??9));
   return matches;
 }
 
-async function resolveMalId(tmdbId, show = null) {
-  let showData = show;
-  if (!showData) { showData = await tmdb(`/tv/${tmdbId}`); }
-  if (!showData || !isAnimation(showData)) return { malId: null, matches: [] };
-  const matches = await findAllByTmdbId(tmdbId);
-  if (!matches.length) return { malId: null, matches: [] };
-  if (matches.length === 1) return { malId: matches[0].mal_id, matches };
-  const tvMatch = matches.find(m => m.type === 'TV');
-  return { malId: tvMatch ? tvMatch.mal_id : matches[0].mal_id, matches };
+async function resolveMalId(tmdbId, show=null) {
+  let showData=show;
+  if(!showData){showData=await tmdb(`/tv/${tmdbId}`);}
+  if(!showData||!isAnimation(showData)) return {malId:null,matches:[]};
+  const matches=await findAllByTmdbId(tmdbId);
+  if(!matches.length) return {malId:null,matches:[]};
+  if(matches.length===1) return {malId:matches[0].mal_id,matches};
+  const tvMatch=matches.find(m=>m.type==='TV');
+  return {malId:tvMatch?tvMatch.mal_id:matches[0].mal_id,matches};
 }
 
 // ═══════════════════════════════════════════════════════════
 //  ANISKIP
 // ═══════════════════════════════════════════════════════════
-async function fetchSkipTimes(malId, ep) {
-  if (!malId || !ep) return;
-  skipTimes = { op: null, ed: null };
-  clearSkipUI();
+async function fetchSkipTimes(malId,ep) {
+  if(!malId||!ep) return;
+  skipTimes={op:null,ed:null};clearSkipUI();
   try {
-    const url = `${ANISKIP_BASE}/${malId}/${ep}?types[]=op&types[]=ed&episodeLength=0`;
-    const r = await fetch(url);
-    if (!r.ok) return;
-    const data = await r.json();
-    if (!data.found || !data.results?.length) return;
-    for (const item of data.results) {
-      if (item.skip_type === 'op') skipTimes.op = { start: item.interval.start_time, end: item.interval.end_time };
-      if (item.skip_type === 'ed') skipTimes.ed = { start: item.interval.start_time, end: item.interval.end_time };
+    const r=await fetch(`${ANISKIP_BASE}/${malId}/${ep}?types[]=op&types[]=ed&episodeLength=0`);
+    if(!r.ok) return;
+    const data=await r.json();
+    if(!data.found||!data.results?.length) return;
+    for(const item of data.results){
+      if(item.skip_type==='op') skipTimes.op={start:item.interval.start_time,end:item.interval.end_time};
+      if(item.skip_type==='ed') skipTimes.ed={start:item.interval.start_time,end:item.interval.end_time};
     }
-    console.log('[AniSkip] skip times:', skipTimes);
-    updateSkipInfoPanel();
-    startSkipFakeClock();
-  } catch(e) { console.log('[AniSkip] error:', e); }
+    updateSkipInfoPanel();startSkipFakeClock();
+  } catch(e){console.log('[AniSkip] error:',e);}
 }
 
 function clearSkipUI() {
-  document.getElementById('skip-op-btn').style.display = 'none';
-  document.getElementById('skip-ed-btn').style.display = 'none';
+  document.getElementById('skip-op-btn').style.display='none';
+  document.getElementById('skip-ed-btn').style.display='none';
   document.getElementById('skip-bar').classList.remove('show');
   document.getElementById('skip-info-row').classList.remove('show');
-  document.getElementById('skip-info-inner').innerHTML = '';
+  document.getElementById('skip-info-inner').innerHTML='';
   stopSkipFakeClock();
 }
 
 function updateSkipInfoPanel() {
-  const inner = document.getElementById('skip-info-inner');
-  inner.innerHTML = '';
-  const row = document.getElementById('skip-info-row');
-  if (!skipTimes.op && !skipTimes.ed) { row.classList.remove('show'); return; }
+  const inner=document.getElementById('skip-info-inner');inner.innerHTML='';
+  const row=document.getElementById('skip-info-row');
+  if(!skipTimes.op&&!skipTimes.ed){row.classList.remove('show');return;}
   row.classList.add('show');
-  const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
-  if (skipTimes.op) inner.innerHTML += `<div class="skip-time-row"><div class="skip-dot skip-dot-op"></div><span class="skip-time-label">Intro</span><span class="skip-time-val">${fmt(skipTimes.op.start)} – ${fmt(skipTimes.op.end)}</span></div>`;
-  if (skipTimes.ed) inner.innerHTML += `<div class="skip-time-row"><div class="skip-dot skip-dot-ed"></div><span class="skip-time-label">Outro</span><span class="skip-time-val">${fmt(skipTimes.ed.start)} – ${fmt(skipTimes.ed.end)}</span></div>`;
+  const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+  if(skipTimes.op) inner.innerHTML+=`<div class="skip-time-row"><div class="skip-dot skip-dot-op"></div><span class="skip-time-label">Intro</span><span class="skip-time-val">${fmt(skipTimes.op.start)} – ${fmt(skipTimes.op.end)}</span></div>`;
+  if(skipTimes.ed) inner.innerHTML+=`<div class="skip-time-row"><div class="skip-dot skip-dot-ed"></div><span class="skip-time-label">Outro</span><span class="skip-time-val">${fmt(skipTimes.ed.start)} – ${fmt(skipTimes.ed.end)}</span></div>`;
 }
 
 function startSkipFakeClock() {
-  stopSkipFakeClock();
-  skipFakeTime = 0;
-  skipFakeTimer = setInterval(() => {
-    skipFakeTime++;
-    const t = skipFakeTime;
-    const opBtn = document.getElementById('skip-op-btn');
-    const edBtn = document.getElementById('skip-ed-btn');
-    let anyVisible = false;
-    if (skipTimes.op && t >= skipTimes.op.start - 2 && t < skipTimes.op.end) {
-      const remaining = Math.max(0, Math.round(skipTimes.op.end - t));
-      opBtn.style.display = '';
-      document.getElementById('skip-op-timer').textContent = remaining > 0 ? remaining+'s' : '';
-      anyVisible = true;
-    } else { opBtn.style.display = 'none'; }
-    if (skipTimes.ed && t >= skipTimes.ed.start - 2 && t < skipTimes.ed.end) {
-      const remaining = Math.max(0, Math.round(skipTimes.ed.end - t));
-      edBtn.style.display = '';
-      document.getElementById('skip-ed-timer').textContent = remaining > 0 ? remaining+'s' : '';
-      anyVisible = true;
-    } else { edBtn.style.display = 'none'; }
-    document.getElementById('skip-bar').classList.toggle('show', anyVisible);
-  }, 1000);
+  stopSkipFakeClock();skipFakeTime=0;
+  skipFakeTimer=setInterval(()=>{
+    skipFakeTime++;const t=skipFakeTime;
+    const opBtn=document.getElementById('skip-op-btn');const edBtn=document.getElementById('skip-ed-btn');let anyVisible=false;
+    if(skipTimes.op&&t>=skipTimes.op.start-2&&t<skipTimes.op.end){const rem=Math.max(0,Math.round(skipTimes.op.end-t));opBtn.style.display='';document.getElementById('skip-op-timer').textContent=rem>0?rem+'s':'';anyVisible=true;}else{opBtn.style.display='none';}
+    if(skipTimes.ed&&t>=skipTimes.ed.start-2&&t<skipTimes.ed.end){const rem=Math.max(0,Math.round(skipTimes.ed.end-t));edBtn.style.display='';document.getElementById('skip-ed-timer').textContent=rem>0?rem+'s':'';anyVisible=true;}else{edBtn.style.display='none';}
+    document.getElementById('skip-bar').classList.toggle('show',anyVisible);
+  },1000);
 }
 
-function stopSkipFakeClock() {
-  if (skipFakeTimer) { clearInterval(skipFakeTimer); skipFakeTimer = null; }
-  skipFakeTime = 0;
-}
+function stopSkipFakeClock(){if(skipFakeTimer){clearInterval(skipFakeTimer);skipFakeTimer=null;}skipFakeTime=0;}
 
-function skipIntro() {
-  if (!skipTimes.op) return;
-  skipFakeTime = Math.ceil(skipTimes.op.end) + 1;
-  document.getElementById('skip-op-btn').style.display = 'none';
-  document.getElementById('skip-bar').classList.remove('show');
-  const frames = [document.getElementById('pf-plain'), document.getElementById('pf-sb'), document.getElementById('pf-adblock')];
-  const active = frames.find(f => f.style.display !== 'none');
-  if (active) { try { active.contentWindow.postMessage({ action:'seekTo', time: skipTimes.op.end }, '*'); } catch{} }
-}
-
-function skipOutro() {
-  if (!skipTimes.ed) return;
-  skipFakeTime = Math.ceil(skipTimes.ed.end) + 1;
-  document.getElementById('skip-ed-btn').style.display = 'none';
-  document.getElementById('skip-bar').classList.remove('show');
-  const frames = [document.getElementById('pf-plain'), document.getElementById('pf-sb'), document.getElementById('pf-adblock')];
-  const active = frames.find(f => f.style.display !== 'none');
-  if (active) { try { active.contentWindow.postMessage({ action:'seekTo', time: skipTimes.ed.end }, '*'); } catch{} }
-}
+function skipIntro(){if(!skipTimes.op)return;skipFakeTime=Math.ceil(skipTimes.op.end)+1;document.getElementById('skip-op-btn').style.display='none';document.getElementById('skip-bar').classList.remove('show');trySeekFrame(skipTimes.op.end);}
+function skipOutro(){if(!skipTimes.ed)return;skipFakeTime=Math.ceil(skipTimes.ed.end)+1;document.getElementById('skip-ed-btn').style.display='none';document.getElementById('skip-bar').classList.remove('show');trySeekFrame(skipTimes.ed.end);}
+function trySeekFrame(t){const frames=[document.getElementById('pf-plain'),document.getElementById('pf-sb'),document.getElementById('pf-adblock')];const active=frames.find(f=>f.style.display!=='none');if(active){try{active.contentWindow.postMessage({action:'seekTo',time:t},'*');}catch{}}}
 
 // ═══════════════════════════════════════════════════════════
 //  MULTI-MATCH MODAL
 // ═══════════════════════════════════════════════════════════
-function openMultiModal(matches, show, onPick) {
-  _pendingMultiMatches = matches;
-  _pendingMultiShow    = show;
-  document.getElementById('multi-modal-title').textContent = `Multiple Versions Found`;
-  document.getElementById('multi-modal-subtitle').textContent = `"${showTitle(show)}" has ${matches.length} entries. The ✦ highlighted one is the best match — or pick another.`;
-  const list = document.getElementById('multi-modal-list');
-  list.innerHTML = '';
-  const recommended = matches.find(m => m.type === 'TV') || matches[0];
-  matches.forEach(m => {
-    const isRec = m === recommended;
-    const item = document.createElement('div');
-    item.className = 'multi-item';
-    if (isRec) item.style.borderColor = 'var(--accent)';
-    const poster = show.images?.jpg?.image_url || '';
-    item.innerHTML = `
-      <img class="multi-item-poster" src="${poster}" alt="">
-      <div class="multi-item-info">
-        <div class="multi-item-title">${showTitle(show)}${isRec ? ' <span style="color:var(--accent);font-size:11px">✦ Recommended</span>' : ''}</div>
-        <div class="multi-item-meta">
-          <span class="multi-badge mb-type">${m.type || 'TV'}</span>
-          <span class="multi-badge mb-mal">MAL #${m.mal_id}</span>
-          ${m.season?.tmdb ? `<span class="multi-badge mb-eps">Season ${m.season.tmdb}</span>` : ''}
-          ${m.tvdb_id ? `<span class="multi-badge mb-year">TVDB #${m.tvdb_id}</span>` : ''}
-          ${isRec ? '<span class="multi-badge mb-recommended">Best Match</span>' : ''}
-        </div>
-      </div>
-      <div class="multi-item-arr">›</div>`;
-    item.onclick = () => { closeMultiModal(); onPick(m.mal_id, m); };
-    list.appendChild(item);
+function openMultiModal(matches,show,onPick){
+  document.getElementById('multi-modal-title').textContent='Multiple Versions Found';
+  document.getElementById('multi-modal-subtitle').textContent=`"${showTitle(show)}" has ${matches.length} entries. The ✦ highlighted one is the best match — or pick another.`;
+  const list=document.getElementById('multi-modal-list');list.innerHTML='';
+  const recommended=matches.find(m=>m.type==='TV')||matches[0];
+  matches.forEach(m=>{
+    const isRec=m===recommended;const item=document.createElement('div');item.className='multi-item';
+    if(isRec) item.style.borderColor='var(--accent)';
+    const poster=show.images?.jpg?.image_url||'';
+    item.innerHTML=`<img class="multi-item-poster" src="${poster}" alt=""><div class="multi-item-info"><div class="multi-item-title">${showTitle(show)}${isRec?' <span style="color:var(--accent);font-size:11px">✦ Recommended</span>':''}</div><div class="multi-item-meta"><span class="multi-badge mb-type">${m.type||'TV'}</span><span class="multi-badge mb-mal">MAL #${m.mal_id}</span>${m.season?.tmdb?`<span class="multi-badge mb-eps">Season ${m.season.tmdb}</span>`:''}${m.tvdb_id?`<span class="multi-badge mb-year">TVDB #${m.tvdb_id}</span>`:''}${isRec?'<span class="multi-badge mb-recommended">Best Match</span>':''}</div></div><div class="multi-item-arr">›</div>`;
+    item.onclick=()=>{closeMultiModal();onPick(m.mal_id,m);};list.appendChild(item);
   });
   document.getElementById('multi-modal-bg').classList.add('show');
 }
-
-function closeMultiModal() { document.getElementById('multi-modal-bg').classList.remove('show'); }
-document.getElementById('multi-modal-bg').addEventListener('click', e => {
-  if (e.target === document.getElementById('multi-modal-bg')) closeMultiModal();
-});
+function closeMultiModal(){document.getElementById('multi-modal-bg').classList.remove('show');}
+document.getElementById('multi-modal-bg').addEventListener('click',e=>{if(e.target===document.getElementById('multi-modal-bg'))closeMultiModal();});
 
 // ═══════════════════════════════════════════════════════════
 //  HOME INIT
 // ═══════════════════════════════════════════════════════════
-async function initHome() {
-  // Preload all databases in background
+async function initHome(){
   loadAnimeList().catch(()=>{});
   loadM4USeries().catch(()=>{});
   loadM4UMovies().catch(()=>{});
-  loadHero();
-  loadAiringRow();
-  loadTopRow();
-  loadPopularGrid();
+  loadAnimeGG().catch(()=>{});
+  loadHero();loadAiringRow();loadTopRow();loadPopularGrid();
 }
 
-async function loadHero() {
-  const d = await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&page=1');
-  if (!d?.results?.length) return;
-  const animated = d.results.filter(item => isAnimation(normalizeTMDB(item, 'tv')));
-  if (!animated.length) return;
-  heroAnime = normalizeTMDB(animated[Math.floor(Math.random() * Math.min(5, animated.length))], 'tv');
-  const details = await tmdb(`/tv/${heroAnime.id}`);
-  if (details) { heroAnime.episodes = details.number_of_episodes; heroAnime.status = details.status; heroAnime.genres = details.genres; }
-  if (!isAnimation(heroAnime)) return loadHero();
-  const a = heroAnime;
-  document.getElementById('hero-title').textContent = showTitle(a);
-  document.getElementById('hero-desc').textContent  = a.synopsis?.replace(/\[Written.*\]/,'').trim() || '';
-  const meta = document.getElementById('hero-meta');
-  meta.innerHTML = '';
-  if (a.score) meta.innerHTML += `<span class="hero-score">★ ${a.score}</span>`;
-  if (a.episodes) meta.innerHTML += `<span class="hero-ep">${a.episodes} eps</span>`;
-  (a.genres||[]).slice(0,3).forEach(g => { meta.innerHTML += `<span class="hero-tag">${g.name}</span>`; });
-  if (a.images?.jpg?.large_image_url) {
-    const bg = document.getElementById('hero-bg');
-    const img = new Image();
-    img.onload = () => { bg.style.backgroundImage = `url(${img.src})`; bg.classList.add('loaded'); };
-    img.src = a.images.jpg.large_image_url;
-  }
+async function loadHero(){
+  const d=await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&page=1');
+  if(!d?.results?.length) return;
+  const animated=d.results.filter(item=>isAnimation(normalizeTMDB(item,'tv')));
+  if(!animated.length) return;
+  heroAnime=normalizeTMDB(animated[Math.floor(Math.random()*Math.min(5,animated.length))],'tv');
+  const details=await tmdb(`/tv/${heroAnime.id}`);
+  if(details){heroAnime.episodes=details.number_of_episodes;heroAnime.status=details.status;heroAnime.genres=details.genres;}
+  if(!isAnimation(heroAnime)) return loadHero();
+  const a=heroAnime;
+  document.getElementById('hero-title').textContent=showTitle(a);
+  document.getElementById('hero-desc').textContent=a.synopsis?.replace(/\[Written.*\]/,'').trim()||'';
+  const meta=document.getElementById('hero-meta');meta.innerHTML='';
+  if(a.score) meta.innerHTML+=`<span class="hero-score">★ ${a.score}</span>`;
+  if(a.episodes) meta.innerHTML+=`<span class="hero-ep">${a.episodes} eps</span>`;
+  (a.genres||[]).slice(0,3).forEach(g=>{meta.innerHTML+=`<span class="hero-tag">${g.name}</span>`;});
+  if(a.images?.jpg?.large_image_url){const bg=document.getElementById('hero-bg');const img=new Image();img.onload=()=>{bg.style.backgroundImage=`url(${img.src})`;bg.classList.add('loaded');};img.src=a.images.jpg.large_image_url;}
+}
+function heroPlay(){if(heroAnime)openEpModal(heroAnime);}
+
+function renderCard(a){
+  const div=document.createElement('div');div.className='anime-card';
+  const img=a.images?.jpg?.image_url||'';const score=a.score?`★ ${a.score}`:'';
+  const eps=a.episodes?`${a.episodes} ep`:(a.status==='Returning Series'?'On Air':'');
+  const type=a.type||'';const animated=isAnimation(a);
+  div.innerHTML=`<div class="card-poster"><img src="${img}" alt="" loading="lazy">${score?`<div class="card-score">${score}</div>`:''}${type?`<div class="card-type">${type}</div>`:''}${eps?`<div class="card-ep-badge">${eps}</div>`:''}${animated?`<div class="card-type" style="background:var(--pink);right:auto;left:7px;top:auto;bottom:7px;">ANIME</div>`:''}<div class="card-overlay"><div class="play-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div></div><div class="card-info"><div class="card-title">${showTitle(a)}</div><div class="card-sub">${a.year||''}</div></div>`;
+  div.onclick=()=>openEpModal(a);return div;
 }
 
-function heroPlay() { if (heroAnime) openEpModal(heroAnime); }
-
-function renderCard(a) {
-  const div = document.createElement('div');
-  div.className = 'anime-card';
-  const img  = a.images?.jpg?.image_url || '';
-  const score= a.score ? `★ ${a.score}` : '';
-  const eps  = a.episodes ? `${a.episodes} ep` : (a.status === 'Returning Series' ? 'On Air' : '');
-  const type = a.type || '';
-  const animated = isAnimation(a);
-  div.innerHTML = `
-    <div class="card-poster">
-      <img src="${img}" alt="" loading="lazy">
-      ${score ? `<div class="card-score">${score}</div>`:''}
-      ${type  ? `<div class="card-type">${type}</div>`:''}
-      ${eps   ? `<div class="card-ep-badge">${eps}</div>`:''}
-      ${animated ? `<div class="card-type" style="background:var(--pink);right:auto;left:7px;top:auto;bottom:7px;">ANIME</div>`:''}
-      <div class="card-overlay">
-        <div class="play-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
-      </div>
-    </div>
-    <div class="card-info">
-      <div class="card-title">${showTitle(a)}</div>
-      <div class="card-sub">${a.year||''}</div>
-    </div>`;
-  div.onclick = () => openEpModal(a);
-  return div;
+function skeletonCards(n,container,row=false){
+  container.innerHTML='';
+  for(let i=0;i<n;i++){const d=document.createElement('div');d.className=row?'anime-card':'';if(row){d.style.flexShrink='0';d.style.width='140px';}d.innerHTML=`<div class="skeleton skel-card" style="padding-top:${row?'145%':'200px'};border-radius:12px"></div>`;container.appendChild(d);}
 }
 
-function skeletonCards(n, container, row=false) {
-  container.innerHTML = '';
-  for (let i=0;i<n;i++) {
-    const d = document.createElement('div');
-    d.className = row ? 'anime-card' : '';
-    if (row) { d.style.flexShrink='0'; d.style.width='140px'; }
-    d.innerHTML = `<div class="skeleton skel-card" style="padding-top:${row?'145%':'200px'};border-radius:12px"></div>`;
-    container.appendChild(d);
-  }
+async function loadAiringRow(){
+  const row=document.getElementById('airing-row');skeletonCards(8,row,true);
+  const d=await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&air_date.gte=2024-01-01&page=1');
+  row.innerHTML='';if(d?.results)d.results.filter(i=>isAnimation(normalizeTMDB(i,'tv'))).forEach(i=>row.appendChild(renderCard(normalizeTMDB(i,'tv'))));
+}
+async function loadTopRow(){
+  const row=document.getElementById('top-row');skeletonCards(8,row,true);
+  const d=await tmdb('/discover/tv?with_genres=16&sort_by=vote_average.desc&vote_count.gte=100&page=1');
+  row.innerHTML='';if(d?.results)d.results.filter(i=>isAnimation(normalizeTMDB(i,'tv'))).forEach(i=>row.appendChild(renderCard(normalizeTMDB(i,'tv'))));
+}
+async function loadPopularGrid(){
+  const grid=document.getElementById('popular-grid');skeletonCards(12,grid);
+  const d=await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&page=1');
+  grid.innerHTML='';if(d?.results)d.results.filter(i=>isAnimation(normalizeTMDB(i,'tv'))).forEach(i=>grid.appendChild(renderCard(normalizeTMDB(i,'tv'))));
 }
 
-async function loadAiringRow() {
-  const row = document.getElementById('airing-row');
-  skeletonCards(8, row, true);
-  const d = await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&air_date.gte=2024-01-01&page=1');
-  row.innerHTML = '';
-  if (d?.results) d.results.filter(i=>isAnimation(normalizeTMDB(i,'tv'))).forEach(i=>row.appendChild(renderCard(normalizeTMDB(i,'tv'))));
+async function filterGenre(genreId,el){
+  document.querySelectorAll('.genre-pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');
+  const grid=document.getElementById('popular-grid');const myToken=++sectionLoadToken;
+  setGridTitle(`<span class="dot" style="background:#34d399"></span> Popular Anime`);skeletonCards(12,grid);
+  const path=genreId?`/discover/tv?with_genres=16,${genreId}&sort_by=popularity.desc`:'/discover/tv?with_genres=16&sort_by=popularity.desc&page=1';
+  const d=await tmdb(path);if(myToken!==sectionLoadToken)return;
+  grid.innerHTML='';
+  if(d?.results){const shows=d.results.filter(i=>isAnimation(normalizeTMDB(i,'tv')));if(!shows.length){showGridMessage(grid,'No anime found for this genre.');return;}shows.forEach(i=>grid.appendChild(renderCard(normalizeTMDB(i,'tv'))));}
 }
 
-async function loadTopRow() {
-  const row = document.getElementById('top-row');
-  skeletonCards(8, row, true);
-  const d = await tmdb('/discover/tv?with_genres=16&sort_by=vote_average.desc&vote_count.gte=100&page=1');
-  row.innerHTML = '';
-  if (d?.results) d.results.filter(i=>isAnimation(normalizeTMDB(i,'tv'))).forEach(i=>row.appendChild(renderCard(normalizeTMDB(i,'tv'))));
-}
-
-async function loadPopularGrid() {
-  const grid = document.getElementById('popular-grid');
-  skeletonCards(12, grid);
-  const d = await tmdb('/discover/tv?with_genres=16&sort_by=popularity.desc&page=1');
-  grid.innerHTML = '';
-  if (d?.results) d.results.filter(i=>isAnimation(normalizeTMDB(i,'tv'))).forEach(i=>grid.appendChild(renderCard(normalizeTMDB(i,'tv'))));
-}
-
-async function filterGenre(genreId, el) {
-  document.querySelectorAll('.genre-pill').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  const grid = document.getElementById('popular-grid');
-  const myToken = ++sectionLoadToken;
-  setGridTitle(`<span class="dot" style="background:#34d399"></span> Popular Anime`);
-  skeletonCards(12, grid);
-  const path = genreId
-    ? `/discover/tv?with_genres=16,${genreId}&sort_by=popularity.desc`
-    : '/discover/tv?with_genres=16&sort_by=popularity.desc&page=1';
-  const d = await tmdb(path);
-  if (myToken !== sectionLoadToken) return;
-  grid.innerHTML = '';
-  if (d?.results) {
-    const shows = d.results.filter(i=>isAnimation(normalizeTMDB(i,'tv')));
-    if (!shows.length) { showGridMessage(grid,'No anime found for this genre.'); return; }
-    shows.forEach(i=>grid.appendChild(renderCard(normalizeTMDB(i,'tv'))));
-  }
-}
-
-const SECTION_CONFIG = {
-  'top-airing': { path:'/discover/tv?with_genres=16&sort_by=popularity.desc&air_date.gte=2024-01-01&page=1', title:'Currently Airing', dot:'var(--accent)' },
-  'top':        { path:'/discover/tv?with_genres=16&sort_by=vote_average.desc&vote_count.gte=100&page=1', title:'Top Rated Anime', dot:'var(--pink)' },
-  'popular':    { path:'/discover/tv?with_genres=16&sort_by=popularity.desc&page=1', title:'Popular Anime', dot:'#34d399' }
+const SECTION_CONFIG={
+  'top-airing':{path:'/discover/tv?with_genres=16&sort_by=popularity.desc&air_date.gte=2024-01-01&page=1',title:'Currently Airing',dot:'var(--accent)'},
+  'top':{path:'/discover/tv?with_genres=16&sort_by=vote_average.desc&vote_count.gte=100&page=1',title:'Top Rated Anime',dot:'var(--pink)'},
+  'popular':{path:'/discover/tv?with_genres=16&sort_by=popularity.desc&page=1',title:'Popular Anime',dot:'#34d399'}
 };
 
-function getGridTitleEl() { return document.querySelector('#popular-grid')?.closest('section')?.querySelector('.section-title'); }
-function setGridTitle(html) { const el=getGridTitleEl(); if(el) el.innerHTML=html; }
-function resetGenrePills() { document.querySelectorAll('.genre-pill').forEach(p=>p.classList.remove('active')); }
-function showGridMessage(grid, msg) { grid.innerHTML=`<div style="grid-column:1/-1;padding:30px 0;text-align:center;color:var(--text2);font-size:13px">${msg}</div>`; }
+function getGridTitleEl(){return document.querySelector('#popular-grid')?.closest('section')?.querySelector('.section-title');}
+function setGridTitle(html){const el=getGridTitleEl();if(el)el.innerHTML=html;}
+function resetGenrePills(){document.querySelectorAll('.genre-pill').forEach(p=>p.classList.remove('active'));}
+function showGridMessage(grid,msg){grid.innerHTML=`<div style="grid-column:1/-1;padding:30px 0;text-align:center;color:var(--text2);font-size:13px">${msg}</div>`;}
 
-async function loadSection(type) {
-  if (type === 'movies-tv') { loadMoviesTVSection(); return; }
-  const cfg = SECTION_CONFIG[type] || SECTION_CONFIG.popular;
-  const grid = document.getElementById('popular-grid');
-  const myToken = ++sectionLoadToken;
+async function loadSection(type){
+  if(type==='movies-tv'){loadMoviesTVSection();return;}
+  const cfg=SECTION_CONFIG[type]||SECTION_CONFIG.popular;
+  const grid=document.getElementById('popular-grid');const myToken=++sectionLoadToken;
   setGridTitle(`<span class="dot" style="background:${cfg.dot}"></span> ${cfg.title}`);
-  resetGenrePills();
-  document.querySelector('.genre-pill')?.classList.add('active');
-  grid.scrollIntoView({behavior:'smooth'});
-  skeletonCards(16, grid);
-  try {
-    const d = await tmdb(cfg.path);
-    if (myToken !== sectionLoadToken) return;
-    grid.innerHTML = '';
-    const shows = (d?.results||[]).filter(i=>isAnimation(normalizeTMDB(i,'tv')));
-    if (!shows.length) { showGridMessage(grid,'No results found.'); return; }
+  resetGenrePills();document.querySelector('.genre-pill')?.classList.add('active');
+  grid.scrollIntoView({behavior:'smooth'});skeletonCards(16,grid);
+  try{
+    const d=await tmdb(cfg.path);if(myToken!==sectionLoadToken)return;
+    grid.innerHTML='';const shows=(d?.results||[]).filter(i=>isAnimation(normalizeTMDB(i,'tv')));
+    if(!shows.length){showGridMessage(grid,'No results found.');return;}
     shows.forEach(i=>grid.appendChild(renderCard(normalizeTMDB(i,'tv'))));
-  } catch(e) {
-    if (myToken===sectionLoadToken) showGridMessage(grid,'Something went wrong. Please try again.');
-  }
+  }catch(e){if(myToken===sectionLoadToken)showGridMessage(grid,'Something went wrong. Please try again.');}
 }
 
-async function loadMoviesTVSection() {
-  const grid = document.getElementById('popular-grid');
-  const myToken = ++sectionLoadToken;
+async function loadMoviesTVSection(){
+  const grid=document.getElementById('popular-grid');const myToken=++sectionLoadToken;
   setGridTitle('<span class="dot" style="background:var(--pink)"></span> Movies &amp; TV Shows');
-  resetGenrePills();
-  grid.scrollIntoView({behavior:'smooth'});
-  skeletonCards(16, grid);
-  try {
-    const [m1,m2,t1,t2] = await Promise.all([
-      tmdb('/discover/movie?sort_by=popularity.desc&page=1'),
-      tmdb('/discover/movie?sort_by=popularity.desc&page=2'),
-      tmdb('/discover/tv?sort_by=popularity.desc&page=1'),
-      tmdb('/discover/tv?sort_by=popularity.desc&page=2')
-    ]);
-    if (myToken !== sectionLoadToken) return;
-    let combined = [];
+  resetGenrePills();grid.scrollIntoView({behavior:'smooth'});skeletonCards(16,grid);
+  try{
+    const [m1,m2,t1,t2]=await Promise.all([tmdb('/discover/movie?sort_by=popularity.desc&page=1'),tmdb('/discover/movie?sort_by=popularity.desc&page=2'),tmdb('/discover/tv?sort_by=popularity.desc&page=1'),tmdb('/discover/tv?sort_by=popularity.desc&page=2')]);
+    if(myToken!==sectionLoadToken)return;
+    let combined=[];
     [m1,m2].forEach(d=>{if(d?.results)combined=combined.concat(d.results.map(i=>({...i,_mt:'movie'})));});
     [t1,t2].forEach(d=>{if(d?.results)combined=combined.concat(d.results.map(i=>({...i,_mt:'tv'})));});
-    const seen=new Set();
-    combined=combined.filter(i=>{const k=`${i._mt}-${i.id}`;if(seen.has(k))return false;seen.add(k);return true;});
+    const seen=new Set();combined=combined.filter(i=>{const k=`${i._mt}-${i.id}`;if(seen.has(k))return false;seen.add(k);return true;});
     combined.sort((a,b)=>(b.popularity||0)-(a.popularity||0));
-    grid.innerHTML='';
-    if (!combined.length) { showGridMessage(grid,'Could not load right now.'); return; }
+    grid.innerHTML='';if(!combined.length){showGridMessage(grid,'Could not load right now.');return;}
     combined.forEach(i=>grid.appendChild(renderCard(normalizeTMDB(i,i._mt))));
-  } catch { if (myToken===sectionLoadToken) showGridMessage(grid,'Could not load right now. Please try again.'); }
+  }catch{if(myToken===sectionLoadToken)showGridMessage(grid,'Could not load right now. Please try again.');}
 }
 
 // ═══════════════════════════════════════════════════════════
 //  SEARCH
 // ═══════════════════════════════════════════════════════════
-const searchInp = document.getElementById('search-inp');
-const searchDD  = document.getElementById('search-dropdown');
+const searchInp=document.getElementById('search-inp');const searchDD=document.getElementById('search-dropdown');
+searchInp.addEventListener('input',()=>{clearTimeout(debounceT);const q=searchInp.value.trim();if(!q){searchDD.classList.remove('show');return;}debounceT=setTimeout(()=>doSearch(q,false),400);});
+searchInp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();clearTimeout(debounceT);const q=searchInp.value.trim();if(q)doSearch(q,true);}});
+searchInp.addEventListener('focus',()=>{if(searchInp.value.trim()&&searchDD.innerHTML.trim()){searchDD.classList.add('show');positionSearchDropdown();}});
+function positionSearchDropdown(){if(window.innerWidth<=600){const rect=document.getElementById('navbar').getBoundingClientRect();searchDD.style.position='fixed';searchDD.style.top=(rect.bottom+6)+'px';searchDD.style.left='10px';searchDD.style.right='10px';searchDD.style.width='calc(100% - 20px)';}else{searchDD.style.position='absolute';searchDD.style.top='calc(100% + 6px)';searchDD.style.left='0';searchDD.style.right='0';searchDD.style.width='auto';}}
+document.addEventListener('click',e=>{if(!e.target.closest('#search-wrap'))searchDD.classList.remove('show');});
+window.addEventListener('resize',()=>{if(searchDD.classList.contains('show'))positionSearchDropdown();});
+window.addEventListener('orientationchange',()=>{setTimeout(()=>{if(searchDD.classList.contains('show'))positionSearchDropdown();},250);});
 
-searchInp.addEventListener('input', () => {
-  clearTimeout(debounceT);
-  const q = searchInp.value.trim();
-  if (!q) { searchDD.classList.remove('show'); return; }
-  debounceT = setTimeout(() => doSearch(q, false), 400);
-});
-searchInp.addEventListener('keydown', e => {
-  if (e.key==='Enter') { e.preventDefault(); clearTimeout(debounceT); const q=searchInp.value.trim(); if(q) doSearch(q,true); }
-});
-searchInp.addEventListener('focus', () => {
-  if (searchInp.value.trim() && searchDD.innerHTML.trim()) { searchDD.classList.add('show'); positionSearchDropdown(); }
-});
-function positionSearchDropdown() {
-  if (window.innerWidth<=600) {
-    const rect=document.getElementById('navbar').getBoundingClientRect();
-    searchDD.style.position='fixed'; searchDD.style.top=(rect.bottom+6)+'px'; searchDD.style.left='10px'; searchDD.style.right='10px'; searchDD.style.width='calc(100% - 20px)';
-  } else {
-    searchDD.style.position='absolute'; searchDD.style.top='calc(100% + 6px)'; searchDD.style.left='0'; searchDD.style.right='0'; searchDD.style.width='auto';
-  }
-}
-document.addEventListener('click', e => { if(!e.target.closest('#search-wrap')) searchDD.classList.remove('show'); });
-window.addEventListener('resize', () => { if(searchDD.classList.contains('show')) positionSearchDropdown(); });
-window.addEventListener('orientationchange', () => { setTimeout(()=>{ if(searchDD.classList.contains('show')) positionSearchDropdown(); },250); });
-
-async function doSearch(q, showAll=false) {
-  lastSearchQuery = q;
+async function doSearch(q,showAll=false){
+  lastSearchQuery=q;
   searchDD.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--text2)">Searching…</div>';
-  searchDD.classList.add('show');
-  positionSearchDropdown();
-  try {
+  searchDD.classList.add('show');positionSearchDropdown();
+  try{
     let all=[];
-    if (showAll) {
-      const first=await tmdb(`/search/multi?query=${encodeURIComponent(q)}&page=1`);
-      if(first?.results) all=all.concat(first.results);
-      const total=Math.min(first?.total_pages||1,5);
-      if (total>1) {
-        const pages=await Promise.all(Array.from({length:total-1},(_,i)=>tmdb(`/search/multi?query=${encodeURIComponent(q)}&page=${i+2}`)));
-        pages.forEach(d=>{if(d?.results)all=all.concat(d.results);});
-      }
-    } else {
-      const d=await tmdb(`/search/multi?query=${encodeURIComponent(q)}&page=1`);
-      if(d?.results) all=d.results;
-    }
-    searchDD.innerHTML='';
-    if (!all.length) { searchDD.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--text2)">No results found.</div>'; return; }
-    let filtered=all.filter(i=>i.media_type==='tv'||i.media_type==='movie');
-    const seen=new Set();
-    filtered=filtered.filter(i=>{const k=`${i.media_type}-${i.id}`;if(seen.has(k))return false;seen.add(k);return true;});
-    if (!showAll) filtered=filtered.slice(0,12);
-    if (!filtered.length) { searchDD.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--text2)">No TV shows or movies found.</div>'; return; }
-    if (showAll) {
-      const lbl=document.createElement('div'); lbl.className='sd-section-label';
-      lbl.textContent=`${filtered.length} result${filtered.length!==1?'s':''} for "${q}"`;
-      searchDD.appendChild(lbl);
-    }
-    filtered.forEach(item=>{
-      const mt=item.media_type==='movie'?'movie':'tv';
-      const a=normalizeTMDB(item,mt);
-      const el=document.createElement('div'); el.className='sd-item';
-      el.innerHTML=`
-        <img class="sd-img" src="${a.images?.jpg?.small_image_url||''}" alt="" loading="lazy">
-        <div class="sd-info">
-          <div class="sd-title">${showTitle(a)}</div>
-          <div class="sd-meta">${mt==='movie'?'Movie':'TV'} · ${a.year||'—'}${a.episodes?` · ${a.episodes} eps`:''}</div>
-          ${a.score?`<div class="sd-score">★ ${a.score}</div>`:''}
-        </div>`;
-      el.onclick=()=>{ searchDD.classList.remove('show'); searchInp.value=''; openEpModal(a); };
-      searchDD.appendChild(el);
-    });
-  } catch { searchDD.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--text2)">Search failed. Please try again.</div>'; }
+    if(showAll){const first=await tmdb(`/search/multi?query=${encodeURIComponent(q)}&page=1`);if(first?.results)all=all.concat(first.results);const total=Math.min(first?.total_pages||1,5);if(total>1){const pages=await Promise.all(Array.from({length:total-1},(_,i)=>tmdb(`/search/multi?query=${encodeURIComponent(q)}&page=${i+2}`)));pages.forEach(d=>{if(d?.results)all=all.concat(d.results);});}}
+    else{const d=await tmdb(`/search/multi?query=${encodeURIComponent(q)}&page=1`);if(d?.results)all=d.results;}
+    searchDD.innerHTML='';if(!all.length){searchDD.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--text2)">No results found.</div>';return;}
+    let filtered=all.filter(i=>i.media_type==='tv'||i.media_type==='movie');const seen=new Set();filtered=filtered.filter(i=>{const k=`${i.media_type}-${i.id}`;if(seen.has(k))return false;seen.add(k);return true;});
+    if(!showAll)filtered=filtered.slice(0,12);if(!filtered.length){searchDD.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--text2)">No TV shows or movies found.</div>';return;}
+    if(showAll){const lbl=document.createElement('div');lbl.className='sd-section-label';lbl.textContent=`${filtered.length} result${filtered.length!==1?'s':''} for "${q}"`;searchDD.appendChild(lbl);}
+    filtered.forEach(item=>{const mt=item.media_type==='movie'?'movie':'tv';const a=normalizeTMDB(item,mt);const el=document.createElement('div');el.className='sd-item';el.innerHTML=`<img class="sd-img" src="${a.images?.jpg?.small_image_url||''}" alt="" loading="lazy"><div class="sd-info"><div class="sd-title">${showTitle(a)}</div><div class="sd-meta">${mt==='movie'?'Movie':'TV'} · ${a.year||'—'}${a.episodes?` · ${a.episodes} eps`:''}</div>${a.score?`<div class="sd-score">★ ${a.score}</div>`:''}</div>`;el.onclick=()=>{searchDD.classList.remove('show');searchInp.value='';openEpModal(a);};searchDD.appendChild(el);});
+  }catch{searchDD.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--text2)">Search failed. Please try again.</div>';}
 }
 
 // ═══════════════════════════════════════════════════════════
 //  EPISODE MODAL
 // ═══════════════════════════════════════════════════════════
-async function openEpModal(show) {
-  modalAnime = show;
-  modalLang  = 'dub';
-  document.getElementById('em-dub').classList.add('active');
-  document.getElementById('em-sub').classList.remove('active');
-  document.getElementById('ep-modal-title').textContent = showTitle(show);
-  document.getElementById('ep-modal-poster').src = show.images?.jpg?.image_url || '';
-
-  const meta = document.getElementById('ep-modal-meta');
-  meta.innerHTML = '';
-  if (show.score)    meta.innerHTML += `<span class="em-badge">★ ${show.score}</span>`;
-  if (show.type)     meta.innerHTML += `<span class="em-badge">${show.type}</span>`;
-  if (show.status)   meta.innerHTML += `<span class="em-badge">${show.status}</span>`;
-  if (show.episodes) meta.innerHTML += `<span class="em-badge">${show.episodes} eps</span>`;
-
-  document.getElementById('ep-list').innerHTML = '<div id="ep-list-loading"><div class="loading-spin"></div></div>';
+async function openEpModal(show){
+  modalAnime=show;modalLang='dub';
+  document.getElementById('em-dub').classList.add('active');document.getElementById('em-sub').classList.remove('active');
+  document.getElementById('ep-modal-title').textContent=showTitle(show);
+  document.getElementById('ep-modal-poster').src=show.images?.jpg?.image_url||'';
+  const meta=document.getElementById('ep-modal-meta');meta.innerHTML='';
+  if(show.score)    meta.innerHTML+=`<span class="em-badge">★ ${show.score}</span>`;
+  if(show.type)     meta.innerHTML+=`<span class="em-badge">${show.type}</span>`;
+  if(show.status)   meta.innerHTML+=`<span class="em-badge">${show.status}</span>`;
+  if(show.episodes) meta.innerHTML+=`<span class="em-badge">${show.episodes} eps</span>`;
+  document.getElementById('ep-list').innerHTML='<div id="ep-list-loading"><div class="loading-spin"></div></div>';
   document.getElementById('ep-modal-bg').classList.add('show');
-  document.getElementById('em-ep-search').value = '';
+  document.getElementById('em-ep-search').value='';
 
-  const mediaType = show.type === 'Movie' ? 'movie' : 'tv';
-  let total = show.episodes || 0;
-  let fullShowData = show;
-
-  if (!total && show.id) {
-    const d = await tmdb(`/${mediaType}/${show.id}`);
-    total = d?.number_of_episodes || (mediaType === 'movie' ? 1 : 0);
-    if (d) {
-      fullShowData = normalizeTMDB(d, mediaType);
-      fullShowData.episodes = total;
-      fullShowData.genres = d.genres;
-      modalAnime = fullShowData;
-    }
+  const mediaType=show.type==='Movie'?'movie':'tv';let total=show.episodes||0;let fullShowData=show;
+  if(!total&&show.id){
+    const d=await tmdb(`/${mediaType}/${show.id}`);
+    total=d?.number_of_episodes||(mediaType==='movie'?1:0);
+    if(d){fullShowData=normalizeTMDB(d,mediaType);fullShowData.episodes=total;fullShowData.genres=d.genres;modalAnime=fullShowData;}
   }
+  playerTotal=total||0;
 
-  playerTotal = total || 0;
+  if(isAnimation(fullShowData)){
+    meta.innerHTML+=`<span class="em-badge" style="background:rgba(108,99,255,.25);color:var(--accent2)" id="em-resolving-badge">Resolving MAL ID…</span>`;
+    const {malId,matches}=await resolveMalId(fullShowData.id,fullShowData);
+    const badge=document.getElementById('em-resolving-badge');
+    if(matches.length>1){
+      if(badge){badge.textContent=`${matches.length} versions found`;badge.style.background='rgba(244,114,182,.2)';badge.style.color='var(--pink)';badge.style.cursor='pointer';badge.title='Click to choose version';badge.onclick=()=>{openMultiModal(matches,fullShowData,(pickedMalId,pickedEntry)=>{modalAnime.mal_id=pickedMalId;modalAnime._pickedEntry=pickedEntry;modalAnime.imdb_id=null;const b2=document.getElementById('em-resolving-badge');if(b2){b2.textContent=`MAL #${pickedMalId} (${pickedEntry.type})`;b2.style.background='rgba(108,99,255,.25)';b2.style.color='var(--accent2)';b2.style.cursor='default';b2.onclick=null;}});};};
+      if(malId){modalAnime.mal_id=malId;modalAnime.imdb_id=null;}
+    } else if(malId){
+      modalAnime.mal_id=malId;modalAnime.imdb_id=null;
+      if(badge){badge.textContent=`MAL #${malId}`;badge.style.background='rgba(108,99,255,.25)';badge.style.color='var(--accent2)';}
+    } else {if(badge)badge.remove();}
 
-  if (isAnimation(fullShowData)) {
-    // ── ANIME PATH ────────────────────────────────────────
-    meta.innerHTML += `<span class="em-badge" style="background:rgba(108,99,255,.25);color:var(--accent2)" id="em-resolving-badge">Resolving MAL ID…</span>`;
-    const { malId, matches } = await resolveMalId(fullShowData.id, fullShowData);
-    const badge = document.getElementById('em-resolving-badge');
-
-    if (matches.length > 1) {
-      if (badge) {
-        badge.textContent = `${matches.length} versions found`;
-        badge.style.background = 'rgba(244,114,182,.2)';
-        badge.style.color = 'var(--pink)';
-        badge.style.cursor = 'pointer';
-        badge.title = 'Click to choose version';
-        badge.onclick = () => {
-          openMultiModal(matches, fullShowData, (pickedMalId, pickedEntry) => {
-            modalAnime.mal_id = pickedMalId;
-            modalAnime._pickedEntry = pickedEntry;
-            modalAnime.imdb_id = null;
-            const b2 = document.getElementById('em-resolving-badge');
-            if (b2) { b2.textContent = `MAL #${pickedMalId} (${pickedEntry.type})`; b2.style.background='rgba(108,99,255,.25)'; b2.style.color='var(--accent2)'; b2.style.cursor='default'; b2.onclick=null; }
-            const chgBtn = document.createElement('span');
-            chgBtn.className = 'em-badge';
-            chgBtn.textContent = '↩ Change version';
-            chgBtn.style.cursor = 'pointer';
-            chgBtn.style.background = 'rgba(244,114,182,.15)';
-            chgBtn.style.color = 'var(--pink)';
-            chgBtn.onclick = () => {
-              openMultiModal(matches, fullShowData, (mid2, entry2) => {
-                modalAnime.mal_id = mid2;
-                modalAnime._pickedEntry = entry2;
-                if (b2) { b2.textContent = `MAL #${mid2} (${entry2.type})`; }
-              });
-            };
-            document.getElementById('ep-modal-meta').appendChild(chgBtn);
-          });
-        };
-      }
-      if (malId) { modalAnime.mal_id = malId; modalAnime.imdb_id = null; }
-    } else if (malId) {
-      modalAnime.mal_id = malId;
-      modalAnime.imdb_id = null;
-      if (badge) { badge.textContent = `MAL #${malId}`; badge.style.background='rgba(108,99,255,.25)'; badge.style.color='var(--accent2)'; }
-    } else {
-      if (badge) badge.remove();
-    }
-
-    if (matches.length > 1 && !document.querySelector('#ep-modal-meta .chg-ver-btn')) {
-      const chgBtn = document.createElement('span');
-      chgBtn.className = 'em-badge chg-ver-btn';
-      chgBtn.textContent = '↩ Choose version';
-      chgBtn.style.cursor = 'pointer';
-      chgBtn.style.background = 'rgba(244,114,182,.15)';
-      chgBtn.style.color = 'var(--pink)';
-      chgBtn.onclick = () => {
-        openMultiModal(matches, fullShowData, (pickedMalId, pickedEntry) => {
-          modalAnime.mal_id = pickedMalId;
-          const b = document.getElementById('em-resolving-badge');
-          if (b) b.textContent = `MAL #${pickedMalId} (${pickedEntry.type})`;
-        });
-      };
-      document.getElementById('ep-modal-meta').appendChild(chgBtn);
+    if(matches.length>1&&!document.querySelector('#ep-modal-meta .chg-ver-btn')){
+      const chgBtn=document.createElement('span');chgBtn.className='em-badge chg-ver-btn';chgBtn.textContent='↩ Choose version';chgBtn.style.cursor='pointer';chgBtn.style.background='rgba(244,114,182,.15)';chgBtn.style.color='var(--pink)';chgBtn.onclick=()=>{openMultiModal(matches,fullShowData,(pickedMalId,pickedEntry)=>{modalAnime.mal_id=pickedMalId;const b=document.getElementById('em-resolving-badge');if(b)b.textContent=`MAL #${pickedMalId} (${pickedEntry.type})`;});};document.getElementById('ep-modal-meta').appendChild(chgBtn);
     }
   } else {
-    // ── NON-ANIME PATH ────────────────────────────────────
-    meta.innerHTML += `<span class="em-badge" style="background:rgba(244,114,182,.2);color:var(--pink)" id="em-resolving-badge">Getting IMDB ID…</span>`;
-    const imdbId = await tmdbToImdbId(fullShowData.id, mediaType);
-    const badge = document.getElementById('em-resolving-badge');
-    if (imdbId) {
-      modalAnime.imdb_id = imdbId;
-      modalAnime.mal_id  = null;
-      if (badge) { badge.textContent = `IMDB: ${imdbId}`; }
-    } else {
-      if (badge) badge.remove();
-    }
+    meta.innerHTML+=`<span class="em-badge" style="background:rgba(244,114,182,.2);color:var(--pink)" id="em-resolving-badge">Getting IMDB ID…</span>`;
+    const imdbId=await tmdbToImdbId(fullShowData.id,mediaType);const badge=document.getElementById('em-resolving-badge');
+    if(imdbId){modalAnime.imdb_id=imdbId;modalAnime.mal_id=null;if(badge){badge.textContent=`IMDB: ${imdbId}`;}}
+    else{if(badge)badge.remove();}
   }
 
-  if (total && total > 0) renderEpList(total);
-  else document.getElementById('ep-list').innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--text2);padding:16px 0;text-align:center">Could not determine episode count.</div>';
+  if(total&&total>0) renderEpList(total);
+  else document.getElementById('ep-list').innerHTML='<div style="grid-column:1/-1;font-size:12px;color:var(--text2);padding:16px 0;text-align:center">Could not determine episode count.</div>';
 }
 
-function renderEpList(total) {
-  const list = document.getElementById('ep-list');
-  list.innerHTML = '';
-  total = Math.max(1, parseInt(total,10)||1);
-  const frag = document.createDocumentFragment();
-  const btns = [];
-  for (let i=1;i<=total;i++) {
-    const btn = document.createElement('button');
-    btn.className = 'ep-btn'; btn.textContent = i; btn.dataset.ep = i;
-    btn.onclick = () => startWatch(modalAnime, i, modalLang);
-    frag.appendChild(btn); btns.push(btn);
-  }
+function renderEpList(total){
+  const list=document.getElementById('ep-list');list.innerHTML='';
+  total=Math.max(1,parseInt(total,10)||1);
+  const frag=document.createDocumentFragment();const btns=[];
+  for(let i=1;i<=total;i++){const btn=document.createElement('button');btn.className='ep-btn';btn.textContent=i;btn.dataset.ep=i;btn.onclick=()=>startWatch(modalAnime,i,modalLang);frag.appendChild(btn);btns.push(btn);}
   list.appendChild(frag);
-  const si = document.getElementById('em-ep-search');
-  si.max = total;
-  const fresh = si.cloneNode(true);
-  si.parentNode.replaceChild(fresh, si);
-  fresh.addEventListener('input', function() {
-    const v = parseInt(this.value,10);
-    btns.forEach(b=>b.classList.remove('active'));
-    if (!isNaN(v)&&v>=1&&v<=total) { const t=btns[v-1]; if(t){t.classList.add('active');t.scrollIntoView({block:'center',behavior:'smooth'});} }
-  });
+  const si=document.getElementById('em-ep-search');si.max=total;
+  const fresh=si.cloneNode(true);si.parentNode.replaceChild(fresh,si);
+  fresh.addEventListener('input',function(){const v=parseInt(this.value,10);btns.forEach(b=>b.classList.remove('active'));if(!isNaN(v)&&v>=1&&v<=total){const t=btns[v-1];if(t){t.classList.add('active');t.scrollIntoView({block:'center',behavior:'smooth'});}}});
 }
 
-function setModalLang(lang) {
-  modalLang=lang;
-  document.getElementById('em-dub').classList.toggle('active',lang==='dub');
-  document.getElementById('em-sub').classList.toggle('active',lang==='sub');
-}
-
-function closeEpModal() { document.getElementById('ep-modal-bg').classList.remove('show'); }
-document.getElementById('ep-modal-bg').addEventListener('click', e=>{ if(e.target===document.getElementById('ep-modal-bg')) closeEpModal(); });
+function setModalLang(lang){modalLang=lang;document.getElementById('em-dub').classList.toggle('active',lang==='dub');document.getElementById('em-sub').classList.toggle('active',lang==='sub');}
+function closeEpModal(){document.getElementById('ep-modal-bg').classList.remove('show');}
+document.getElementById('ep-modal-bg').addEventListener('click',e=>{if(e.target===document.getElementById('ep-modal-bg'))closeEpModal();});
 
 // ═══════════════════════════════════════════════════════════
 //  START WATCH
 // ═══════════════════════════════════════════════════════════
-function startWatch(show, ep, lang) {
+function startWatch(show,ep,lang){
   closeEpModal();
-  playerMalId     = show.mal_id || show.id;
-  playerImdbId    = show.imdb_id || null;
-  playerTmdbId    = show.id || null;
-  playerMediaType = show.type === 'Movie' ? 'movie' : 'tv';
-  playerEp        = ep;
-  playerLang      = lang;
-  playerTitle     = showTitle(show);
-  playerTotal     = show.episodes || playerTotal || 999;
-  playerIsAnimation = isAnimation(show);
-
-  document.getElementById('view-player').classList.add('active');
-  document.getElementById('view-home').classList.add('hidden');
-  document.getElementById('player-show-title').textContent = playerTitle;
-  document.getElementById('player-ep-label').textContent   = `Episode ${ep}`;
-  document.getElementById('pl-dub').classList.toggle('active',lang==='dub');
-  document.getElementById('pl-sub').classList.toggle('active',lang==='sub');
-
-  // Reset M4UHD entries for new show
-  m4uSeriesEntry = null;
-  m4uMovieEntry  = null;
-
-  loadEpisode(playerMalId, ep, lang, playerImdbId);
+  playerMalId=show.mal_id||show.id;playerImdbId=show.imdb_id||null;playerTmdbId=show.id||null;
+  playerMediaType=show.type==='Movie'?'movie':'tv';playerEp=ep;playerLang=lang;
+  playerTitle=showTitle(show);playerTotal=show.episodes||playerTotal||999;
+  playerIsAnimation=isAnimation(show);
+  document.getElementById('view-player').classList.add('active');document.getElementById('view-home').classList.add('hidden');
+  document.getElementById('player-show-title').textContent=playerTitle;document.getElementById('player-ep-label').textContent=`Episode ${ep}`;
+  document.getElementById('pl-dub').classList.toggle('active',lang==='dub');document.getElementById('pl-sub').classList.toggle('active',lang==='sub');
+  m4uSeriesEntry=null;m4uMovieEntry=null;animeggEntry=null;
+  loadEpisode(playerMalId,ep,lang,playerImdbId);
 }
 
-function goHome() {
-  cancelAN();
-  stopEndWatch();
-  clearSkipUI();
-  document.getElementById('view-player').classList.remove('active');
-  document.getElementById('view-home').classList.remove('hidden');
-  ['pf-plain','pf-sb','pf-adblock'].forEach(id=>{
-    const f=document.getElementById(id); f.src='about:blank'; f.style.display='none';
-  });
-  document.getElementById('player-ph').style.display='flex';
-  closeSrvPanel();
-  // Reset M4UHD tab opacity
-  document.getElementById('tab-m4u').style.opacity='1';
-  document.getElementById('m4u-status-row').classList.remove('show');
+function goHome(){
+  cancelAN();stopEndWatch();clearSkipUI();
+  document.getElementById('view-player').classList.remove('active');document.getElementById('view-home').classList.remove('hidden');
+  ['pf-plain','pf-sb','pf-adblock'].forEach(id=>{const f=document.getElementById(id);f.src='about:blank';f.style.display='none';});
+  document.getElementById('player-ph').style.display='flex';closeSrvPanel();
+  document.getElementById('tab-m4u').style.opacity='1';document.getElementById('m4u-status-row').classList.remove('show');
+  document.getElementById('tab-agg').style.opacity='1';document.getElementById('agg-status-row').classList.remove('show');
 }
 
-function openEpPickerFromPlayer() {
-  const matches = modalAnime && ((modalAnime.mal_id&&modalAnime.mal_id===playerMalId)||(modalAnime.id&&modalAnime.id===playerMalId));
-  if (matches && modalAnime.episodes) {
-    setModalLang(playerLang);
-    document.getElementById('em-dub').classList.toggle('active',playerLang==='dub');
-    document.getElementById('em-sub').classList.toggle('active',playerLang==='sub');
-    renderEpList(playerTotal||modalAnime.episodes);
-    document.getElementById('ep-modal-bg').classList.add('show');
-    return;
-  }
-  const fallback = {
-    mal_id: playerIsAnimation ? playerMalId : null,
-    id: playerMalId,
-    imdb_id: playerImdbId,
-    title: playerTitle,
-    title_english: playerTitle,
-    images: modalAnime?.images || { jpg:{ image_url:'', small_image_url:'' } },
-    episodes: playerTotal || modalAnime?.episodes || 0,
-    type: playerIsAnimation ? 'TV' : (modalAnime?.type||'TV'),
-    score: modalAnime?.score||null,
-    status: modalAnime?.status||null,
-    genres: modalAnime?.genres||(playerIsAnimation?[{name:'Animation'}]:[])
-  };
-  modalAnime = fallback; modalLang = playerLang;
-  document.getElementById('em-dub').classList.toggle('active',playerLang==='dub');
-  document.getElementById('em-sub').classList.toggle('active',playerLang==='sub');
-  document.getElementById('ep-modal-title').textContent = playerTitle;
-  document.getElementById('ep-modal-poster').src = fallback.images?.jpg?.image_url||'';
-  const meta = document.getElementById('ep-modal-meta');
-  meta.innerHTML='';
-  if(fallback.score) meta.innerHTML+=`<span class="em-badge">★ ${fallback.score}</span>`;
-  if(fallback.type)  meta.innerHTML+=`<span class="em-badge">${fallback.type}</span>`;
-  if(fallback.episodes) meta.innerHTML+=`<span class="em-badge">${fallback.episodes} eps</span>`;
-  document.getElementById('em-ep-search').value='';
-  document.getElementById('ep-modal-bg').classList.add('show');
-  if (fallback.episodes>0) renderEpList(fallback.episodes);
-  else document.getElementById('ep-list').innerHTML='<div style="grid-column:1/-1;font-size:12px;color:var(--text2);padding:16px 0;text-align:center">Could not determine episode count.</div>';
+function openEpPickerFromPlayer(){
+  const matches=modalAnime&&((modalAnime.mal_id&&modalAnime.mal_id===playerMalId)||(modalAnime.id&&modalAnime.id===playerMalId));
+  if(matches&&modalAnime.episodes){setModalLang(playerLang);document.getElementById('em-dub').classList.toggle('active',playerLang==='dub');document.getElementById('em-sub').classList.toggle('active',playerLang==='sub');renderEpList(playerTotal||modalAnime.episodes);document.getElementById('ep-modal-bg').classList.add('show');return;}
+  const fallback={mal_id:playerIsAnimation?playerMalId:null,id:playerMalId,imdb_id:playerImdbId,title:playerTitle,title_english:playerTitle,images:modalAnime?.images||{jpg:{image_url:'',small_image_url:''}},episodes:playerTotal||modalAnime?.episodes||0,type:playerIsAnimation?'TV':(modalAnime?.type||'TV'),score:modalAnime?.score||null,status:modalAnime?.status||null,genres:modalAnime?.genres||(playerIsAnimation?[{name:'Animation'}]:[])};
+  modalAnime=fallback;modalLang=playerLang;
+  document.getElementById('em-dub').classList.toggle('active',playerLang==='dub');document.getElementById('em-sub').classList.toggle('active',playerLang==='sub');
+  document.getElementById('ep-modal-title').textContent=playerTitle;document.getElementById('ep-modal-poster').src=fallback.images?.jpg?.image_url||'';
+  const meta=document.getElementById('ep-modal-meta');meta.innerHTML='';
+  if(fallback.score)meta.innerHTML+=`<span class="em-badge">★ ${fallback.score}</span>`;if(fallback.type)meta.innerHTML+=`<span class="em-badge">${fallback.type}</span>`;if(fallback.episodes)meta.innerHTML+=`<span class="em-badge">${fallback.episodes} eps</span>`;
+  document.getElementById('em-ep-search').value='';document.getElementById('ep-modal-bg').classList.add('show');
+  if(fallback.episodes>0)renderEpList(fallback.episodes);else document.getElementById('ep-list').innerHTML='<div style="grid-column:1/-1;font-size:12px;color:var(--text2);padding:16px 0;text-align:center">Could not determine episode count.</div>';
 }
 
 // ═══════════════════════════════════════════════════════════
 //  LOAD EPISODE
 // ═══════════════════════════════════════════════════════════
-async function loadEpisode(malId, ep, lang, imdbId=undefined) {
-  cancelAN();
-  stopEndWatch();
-  clearSkipUI();
-  playerMalId = malId;
-  if (imdbId !== undefined) playerImdbId = imdbId;
-  playerEp = ep; playerLang = lang;
-  document.getElementById('player-ep-label').textContent = `Episode ${ep}`;
+async function loadEpisode(malId,ep,lang,imdbId=undefined){
+  cancelAN();stopEndWatch();clearSkipUI();
+  playerMalId=malId;if(imdbId!==undefined)playerImdbId=imdbId;playerEp=ep;playerLang=lang;
+  document.getElementById('player-ep-label').textContent=`Episode ${ep}`;
+  setM4UStatus('',false);document.getElementById('tab-m4u').style.opacity='0.4';
+  setAGGStatus('',false);document.getElementById('tab-agg').style.opacity='0.4';
 
-  // Reset M4UHD status
-  setM4UStatus('', false);
-  document.getElementById('tab-m4u').style.opacity = '0.4';
-
-  if (!playerIsAnimation) {
-    serverData=[];hianimeEntry=null;
-    buildNonAnimeServers();
-    updateSrcTabOpacity();
-    renderNonAnimeList();
-    // Also try M4UHD for non-anime TV/movies
-    fetchM4UForCurrentMedia();
-    return;
+  if(!playerIsAnimation){
+    serverData=[];hianimeEntry=null;animeggEntry=null;
+    buildNonAnimeServers();updateSrcTabOpacity();renderNonAnimeList();
+    fetchM4UForCurrentMedia();return;
   }
 
-  // ── ANIME LOAD ────────────────────────────────────────────
   document.getElementById('src-tabs').style.display='';
-  const megaSrc = `https://megaplay.buzz/stream/mal/${malId}/${ep}/${lang}?autostart=true`;
+  const megaSrc=`https://megaplay.buzz/stream/mal/${malId}/${ep}/${lang}?autostart=true`;
   loadIframe(megaSrc);
-
-  serverData = [{key:'megaplay',label:'MegaPlay',badge:'MAL',url:megaSrc,source:'anisantch',adBlock:false}];
-  hianimeEntry=null; activeServer=serverData[0];
-  document.getElementById('qual-row').innerHTML='';
-  document.getElementById('srv-list-inner').innerHTML='';
+  serverData=[{key:'megaplay',label:'MegaPlay',badge:'MAL',url:megaSrc,source:'anisantch',adBlock:false}];
+  hianimeEntry=null;animeggEntry=null;activeServer=serverData[0];
+  document.getElementById('qual-row').innerHTML='';document.getElementById('srv-list-inner').innerHTML='';
   document.getElementById('srv-loading').classList.add('show');
 
-  // Fetch all sources in parallel including M4UHD
-  const [aEntry, hiEntry] = await Promise.all([
-    fetchACEntry(malId, ep, lang),
-    fetchHiEntry(malId, ep),
-    fetchSkipTimes(malId, ep),        // fire-and-forget
-    fetchM4UForCurrentMedia()          // fire-and-forget for M4UHD
+  const [aEntry,hiEntry]=await Promise.all([
+    fetchACEntry(malId,ep,lang),
+    fetchHiEntry(malId,ep),
+    fetchSkipTimes(malId,ep),
+    fetchM4UForCurrentMedia(),
+    fetchAnimeGGForCurrentMedia()
   ]);
 
   document.getElementById('srv-loading').classList.remove('show');
-  if (aEntry) serverData=[serverData[0],...buildACSrvs(aEntry)];
-  if (hiEntry) hianimeEntry=hiEntry;
+  if(aEntry)serverData=[serverData[0],...buildACSrvs(aEntry)];
+  if(hiEntry)hianimeEntry=hiEntry;
 
-  if (playerTmdbId) {
-    const id=playerTmdbId, epn=playerEp;
+  if(playerTmdbId){
+    const id=playerTmdbId,epn=playerEp;
     serverData.push(
       {key:'xtra_nxsha',    label:'NxSha',    badge:'TMDB',url:`https://web.nxsha.app/embed/tv/${id}/1/${epn}`,        source:'anisantch',adBlock:true},
       {key:'xtra_111mv',    label:'111Movies', badge:'TMDB',url:`https://111movies.net/tv/${id}/1/${epn}`,              source:'anisantch',adBlock:true},
@@ -1641,194 +1309,194 @@ async function loadEpisode(malId, ep, lang, imdbId=undefined) {
   }
 
   updateSrcTabOpacity();
-  if (activeSrc==='hianime') renderHiList();
-  else if (activeSrc==='m4uhd') renderM4UList();
+  if(activeSrc==='hianime')renderHiList();
+  else if(activeSrc==='m4uhd')renderM4UList();
+  else if(activeSrc==='animegg')renderAnimeGGList();
   else renderACList();
 
-  if (!serverData.length&&hianimeEntry&&activeSrc==='anisantch') switchSrc('hianime');
+  if(!serverData.length&&hianimeEntry&&activeSrc==='anisantch')switchSrc('hianime');
 
-  const activeFrame = document.getElementById('pf-plain').style.display!=='none'
-    ? document.getElementById('pf-plain') : document.getElementById('pf-sb');
-  watchEnd(activeFrame, malId, ep, lang);
+  const activeFrame=document.getElementById('pf-plain').style.display!=='none'?document.getElementById('pf-plain'):document.getElementById('pf-sb');
+  watchEnd(activeFrame,malId,ep,lang);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ANIMEGG FETCH FOR CURRENT MEDIA
+// ═══════════════════════════════════════════════════════════
+async function fetchAnimeGGForCurrentMedia(){
+  // AnimeGG only has anime series; need MAL ID
+  if(!playerIsAnimation||!playerMalId) return;
+  try{
+    const entry=await fetchAnimeGGEntry(playerMalId);
+    animeggEntry=entry;
+    if(entry){
+      const url=getAnimeGGUrl(entry,playerEp,playerLang);
+      if(url){
+        console.log(`[AnimeGG] Match: "${entry.title}" ep${playerEp} ${playerLang}`);
+        setAGGStatus(`✓ Found: ${entry.title}`,true);
+        document.getElementById('tab-agg').style.opacity='1';
+        if(entry.total_ep&&entry.total_ep>playerTotal)playerTotal=entry.total_ep;
+        if(activeSrc==='animegg')renderAnimeGGList();
+      } else {
+        setAGGStatus(`Found series, ep ${playerEp} not available`,false);
+      }
+    } else {
+      setAGGStatus('Not in AnimeGG library',false);
+    }
+  }catch(e){console.log('[AnimeGG] error:',e);setAGGStatus('AnimeGG lookup failed',false);}
+}
+
+function setAGGStatus(text,found){
+  const row=document.getElementById('agg-status-row');const span=document.getElementById('agg-status-text');
+  if(!text){row.classList.remove('show');return;}
+  span.textContent=text;row.classList.add('show');
+  row.style.background=found?'rgba(52,211,153,.08)':'rgba(34,211,238,.08)';
+  row.style.borderColor=found?'rgba(52,211,153,.25)':'rgba(34,211,238,.25)';
+  row.style.color=found?'var(--green)':'var(--teal)';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER ANIMEGG SERVER LIST
+// ═══════════════════════════════════════════════════════════
+function renderAnimeGGList(){
+  const list=document.getElementById('srv-list-inner');const qRow=document.getElementById('qual-row');
+  qRow.innerHTML='';qRow.style.display='none';list.innerHTML='';
+  document.getElementById('hi-subsrc-row').classList.remove('show');
+  document.getElementById('srv-loading').classList.remove('show');
+
+  if(!animeggEntry){
+    list.innerHTML=`<div style="font-size:12px;color:var(--text2);padding:8px 0;line-height:1.6">No AnimeGG data for this title.<br><span style="font-size:11px;color:var(--text3)">Try AnisantCH or HiAnime sources.</span></div>`;
+    return;
+  }
+
+  // Build sub and dub server options for current episode
+  const srvs=[];const epObj=animeggEntry.episodes?.find(e=>parseInt(e.ep,10)===parseInt(playerEp,10));
+  if(!epObj){
+    const maxEp=animeggEntry.total_ep||animeggEntry.episodes?.length||1;
+    list.innerHTML=`<div style="font-size:12px;color:var(--text2);padding:6px 0;line-height:1.6">Episode ${playerEp} not in AnimeGG.<br><span style="font-size:11px;color:var(--text3)">Available: ${maxEp} episode${maxEp!==1?'s':''}.</span></div>`;
+    return;
+  }
+
+  if(epObj.dub) srvs.push({key:`agg_ep${playerEp}_dub`,label:'AnimeGG DUB',badge:'AnimeGG',url:epObj.dub,source:'animegg',lang:'dub',adBlock:true});
+  if(epObj.sub) srvs.push({key:`agg_ep${playerEp}_sub`,label:'AnimeGG SUB',badge:'AnimeGG',url:epObj.sub,source:'animegg',lang:'sub',adBlock:true});
+
+  if(!srvs.length){list.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 0">No AnimeGG streams for this episode.</div>';return;}
+
+  // Prefer current player language
+  const prefer=playerLang;const di=Math.max(0,srvs.findIndex(s=>s.lang===prefer));
+  srvs.forEach((srv,i)=>{
+    const btn=document.createElement('button');btn.className='srv-item agg'+(i===di?' active':'');
+    btn.innerHTML=`<span>${srv.label}</span><span class="srv-badge-sm">AnimeGG</span>`;
+    btn.onclick=()=>{document.querySelectorAll('.srv-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeServer=srv;prefSrvKey=srv.key;playAnimeGGSrv(srv);};
+    list.appendChild(btn);if(i===di)activeServer=srv;
+  });
+  if(srvs[di])playAnimeGGSrv(srvs[di]);
+}
+
+function playAnimeGGSrv(srv){
+  if(!srv?.url) return;
+  loadIframe(srv.url,true);
+  watchEnd(document.getElementById('pf-adblock'),playerMalId,playerEp,playerLang);
 }
 
 // ═══════════════════════════════════════════════════════════
 //  M4UHD FETCH FOR CURRENT MEDIA
 // ═══════════════════════════════════════════════════════════
-async function fetchM4UForCurrentMedia() {
-  if (!playerTmdbId) return;
-  try {
-    if (playerMediaType === 'movie') {
-      const entry = await fetchM4UMovieEntry(playerTmdbId);
-      m4uMovieEntry = entry;
-      if (entry) {
-        console.log(`[M4UHD] Movie match found: "${entry.title}" (TMDB ${entry.tmdb_id})`);
-        setM4UStatus(`✓ Found: ${entry.title}`, true);
-        document.getElementById('tab-m4u').style.opacity = '1';
-        if (activeSrc === 'm4uhd') renderM4UList();
-      } else {
-        setM4UStatus('Not in M4UHD library', false);
-      }
+async function fetchM4UForCurrentMedia(){
+  if(!playerTmdbId) return;
+  try{
+    if(playerMediaType==='movie'){
+      const entry=await fetchM4UMovieEntry(playerTmdbId);m4uMovieEntry=entry;
+      if(entry){setM4UStatus(`✓ Found: ${entry.title}`,true);document.getElementById('tab-m4u').style.opacity='1';if(activeSrc==='m4uhd')renderM4UList();}
+      else{setM4UStatus('Not in M4UHD library',false);}
     } else {
-      // TV series — only match for series type (not anime-only restriction,
-      // but M4UHD data naturally contains TV series & animation TV)
-      const entry = await fetchM4USeriesEntry(playerTmdbId);
-      m4uSeriesEntry = entry;
-      if (entry) {
-        console.log(`[M4UHD] Series match found: "${entry.title}" (TMDB ${entry.tmdb_id}), total eps: ${entry.total_episodes}`);
-        setM4UStatus(`✓ Found: ${entry.title}`, true);
-        document.getElementById('tab-m4u').style.opacity = '1';
-        // Update total episodes from M4UHD if higher
-        if (entry.total_episodes && entry.total_episodes > playerTotal) {
-          playerTotal = entry.total_episodes;
-        }
-        if (activeSrc === 'm4uhd') renderM4UList();
-      } else {
-        setM4UStatus('Not in M4UHD library', false);
-      }
+      const entry=await fetchM4USeriesEntry(playerTmdbId);m4uSeriesEntry=entry;
+      if(entry){
+        setM4UStatus(`✓ Found: ${entry.title}`,true);document.getElementById('tab-m4u').style.opacity='1';
+        if(entry.total_episodes&&entry.total_episodes>playerTotal)playerTotal=entry.total_episodes;
+        if(activeSrc==='m4uhd')renderM4UList();
+      } else {setM4UStatus('Not in M4UHD library',false);}
     }
-  } catch(e) {
-    console.log('[M4UHD] fetch error:', e);
-    setM4UStatus('M4UHD lookup failed', false);
-  }
+  }catch(e){console.log('[M4UHD] error:',e);setM4UStatus('M4UHD lookup failed',false);}
 }
 
-function setM4UStatus(text, found) {
-  const row  = document.getElementById('m4u-status-row');
-  const span = document.getElementById('m4u-status-text');
-  if (!text) { row.classList.remove('show'); return; }
-  span.textContent = text;
-  row.classList.add('show');
-  row.style.background  = found ? 'rgba(52,211,153,.08)'  : 'rgba(251,146,60,.08)';
-  row.style.borderColor = found ? 'rgba(52,211,153,.25)'  : 'rgba(251,146,60,.25)';
-  row.style.color       = found ? 'var(--green)'           : 'var(--orange)';
+function setM4UStatus(text,found){
+  const row=document.getElementById('m4u-status-row');const span=document.getElementById('m4u-status-text');
+  if(!text){row.classList.remove('show');return;}
+  span.textContent=text;row.classList.add('show');
+  row.style.background=found?'rgba(52,211,153,.08)':'rgba(251,146,60,.08)';
+  row.style.borderColor=found?'rgba(52,211,153,.25)':'rgba(251,146,60,.25)';
+  row.style.color=found?'var(--green)':'var(--orange)';
 }
 
 // ═══════════════════════════════════════════════════════════
 //  RENDER M4UHD SERVER LIST
 // ═══════════════════════════════════════════════════════════
-function renderM4UList() {
-  const list = document.getElementById('srv-list-inner');
-  const qRow = document.getElementById('qual-row');
-  qRow.innerHTML = ''; qRow.style.display = 'none';
-  list.innerHTML = '';
-  document.getElementById('hi-subsrc-row').classList.remove('show');
-  document.getElementById('srv-loading').classList.remove('show');
-
-  const entry = playerMediaType === 'movie' ? m4uMovieEntry : m4uSeriesEntry;
-
-  if (!entry) {
-    list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:8px 0;line-height:1.6">
-      No M4UHD data available for this title.<br>
-      <span style="font-size:11px;color:var(--text3)">Try AnisantCH or HiAnime sources.</span>
-    </div>`;
-    return;
-  }
-
-  if (playerMediaType === 'movie') {
-    // Movie: show available servers directly
-    const srvs = [];
-    for (const skey of M4U_ALLOWED_SERVERS) {
-      const url = entry[skey];
-      if (!url || !url.trim() || /vidsrc/i.test(url)) continue;
-      srvs.push({ key: `m4u_mv_${skey}`, label: M4U_SERVER_LABELS[skey]||skey, badge:'M4UHD', url: url.trim(), source:'m4uhd', adBlock:true });
-    }
-    if (!srvs.length) {
-      list.innerHTML = '<div style="font-size:12px;color:var(--text2);padding:6px 0">No available servers for this movie.</div>';
-      return;
-    }
-    renderM4USrvBtns(list, srvs);
+function renderM4UList(){
+  const list=document.getElementById('srv-list-inner');const qRow=document.getElementById('qual-row');
+  qRow.innerHTML='';qRow.style.display='none';list.innerHTML='';
+  document.getElementById('hi-subsrc-row').classList.remove('show');document.getElementById('srv-loading').classList.remove('show');
+  const entry=playerMediaType==='movie'?m4uMovieEntry:m4uSeriesEntry;
+  if(!entry){list.innerHTML=`<div style="font-size:12px;color:var(--text2);padding:8px 0;line-height:1.6">No M4UHD data available for this title.<br><span style="font-size:11px;color:var(--text3)">Try AnisantCH or HiAnime sources.</span></div>`;return;}
+  if(playerMediaType==='movie'){
+    const srvs=[];for(const skey of M4U_ALLOWED_SERVERS){const url=entry[skey];if(!url||!url.trim()||/vidsrc/i.test(url))continue;srvs.push({key:`m4u_mv_${skey}`,label:M4U_SERVER_LABELS[skey]||skey,badge:'M4UHD',url:url.trim(),source:'m4uhd',adBlock:true});}
+    if(!srvs.length){list.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 0">No available servers for this movie.</div>';return;}
+    renderM4USrvBtns(list,srvs);
   } else {
-    // Series: build servers for current episode
-    const srvs = buildM4USrvs(entry, playerEp);
-    if (!srvs.length) {
-      const maxEp = entry.total_episodes || 1;
-      list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:6px 0;line-height:1.6">
-        No M4UHD servers for Episode ${playerEp}.<br>
-        <span style="font-size:11px;color:var(--text3)">Available: ${maxEp} episode${maxEp!==1?'s':''}.</span>
-      </div>`;
-      return;
-    }
-    renderM4USrvBtns(list, srvs);
+    const srvs=buildM4USrvs(entry,playerEp);
+    if(!srvs.length){const maxEp=entry.total_episodes||1;list.innerHTML=`<div style="font-size:12px;color:var(--text2);padding:6px 0;line-height:1.6">No M4UHD servers for Episode ${playerEp}.<br><span style="font-size:11px;color:var(--text3)">Available: ${maxEp} episode${maxEp!==1?'s':''}.</span></div>`;return;}
+    renderM4USrvBtns(list,srvs);
   }
 }
 
-function renderM4USrvBtns(list, srvs) {
-  const di = prefSrvKey ? Math.max(0, srvs.findIndex(s=>s.key===prefSrvKey)) : 0;
-  srvs.forEach((srv, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'srv-item m4u' + (i===di ? ' active' : '');
-    btn.innerHTML = `<span>${srv.label}</span><span class="srv-badge-sm">M4UHD</span>`;
-    btn.onclick = () => {
-      document.querySelectorAll('.srv-item').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      activeServer = srv;
-      prefSrvKey   = srv.key;
-      playM4USrv(srv);
-    };
-    list.appendChild(btn);
-    if (i === di) activeServer = srv;
+function renderM4USrvBtns(list,srvs){
+  const di=prefSrvKey?Math.max(0,srvs.findIndex(s=>s.key===prefSrvKey)):0;
+  srvs.forEach((srv,i)=>{
+    const btn=document.createElement('button');btn.className='srv-item m4u'+(i===di?' active':'');
+    btn.innerHTML=`<span>${srv.label}</span><span class="srv-badge-sm">M4UHD</span>`;
+    btn.onclick=()=>{document.querySelectorAll('.srv-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeServer=srv;prefSrvKey=srv.key;playM4USrv(srv);};
+    list.appendChild(btn);if(i===di)activeServer=srv;
   });
-  if (srvs[di]) playM4USrv(srvs[di]);
+  if(srvs[di])playM4USrv(srvs[di]);
 }
 
-function playM4USrv(srv) {
-  if (!srv?.url) return;
-  loadIframe(srv.url, true);
-  watchEnd(document.getElementById('pf-adblock'), playerMalId, playerEp, playerLang);
+function playM4USrv(srv){
+  if(!srv?.url) return;
+  loadIframe(srv.url,true);
+  watchEnd(document.getElementById('pf-adblock'),playerMalId,playerEp,playerLang);
 }
 
 // ═══════════════════════════════════════════════════════════
 //  NON-ANIME SERVERS
 // ═══════════════════════════════════════════════════════════
-function buildNonAnimeServers() {
+function buildNonAnimeServers(){
   const s=[];const id=playerTmdbId;const ep=playerEp;const isMovie=playerMediaType==='movie';
-  if (isMovie) {
-    if(playerImdbId) s.push({key:'apiinstrument',label:'API Instrument',badge:'IMDB',url:`https://api.insertunit.ws/embed/imdb/${playerImdbId}`,source:'nonanime',adBlock:true});
-    if(id) {
-      s.push({key:'nxsha_mv',    label:'NxSha',    badge:'TMDB',url:`https://web.nxsha.app/embed/movie/${id}`,    source:'nonanime',adBlock:true});
-      s.push({key:'111movies_mv',label:'111Movies',badge:'TMDB',url:`https://111movies.net/movie/${id}`,           source:'nonanime',adBlock:true});
-      s.push({key:'anyembed_mv', label:'AnyEmbed', badge:'TMDB',url:`https://anyembed.xyz/embed/tmdb-movie-${id}`,source:'nonanime',adBlock:true});
-      s.push({key:'nontongo_mv', label:'NonTongo', badge:'TMDB',url:`https://www.nontongo.win/embed/movie/${id}`, source:'nonanime',adBlock:true});
-    }
+  if(isMovie){
+    if(playerImdbId)s.push({key:'apiinstrument',label:'API Instrument',badge:'IMDB',url:`https://api.insertunit.ws/embed/imdb/${playerImdbId}`,source:'nonanime',adBlock:true});
+    if(id){s.push({key:'nxsha_mv',label:'NxSha',badge:'TMDB',url:`https://web.nxsha.app/embed/movie/${id}`,source:'nonanime',adBlock:true});s.push({key:'111movies_mv',label:'111Movies',badge:'TMDB',url:`https://111movies.net/movie/${id}`,source:'nonanime',adBlock:true});s.push({key:'anyembed_mv',label:'AnyEmbed',badge:'TMDB',url:`https://anyembed.xyz/embed/tmdb-movie-${id}`,source:'nonanime',adBlock:true});s.push({key:'nontongo_mv',label:'NonTongo',badge:'TMDB',url:`https://www.nontongo.win/embed/movie/${id}`,source:'nonanime',adBlock:true});}
   } else {
-    if(playerImdbId) s.push({key:'apiinstrument',label:'API Instrument',badge:'IMDB',url:`https://api.insertunit.ws/embed/imdb/${playerImdbId}`,source:'nonanime',adBlock:true});
-    if(id) {
-      s.push({key:'nxsha_tv',    label:'NxSha',    badge:'TMDB',url:`https://web.nxsha.app/embed/tv/${id}/1/${ep}`,        source:'nonanime',adBlock:true});
-      s.push({key:'111movies_tv',label:'111Movies',badge:'TMDB',url:`https://111movies.net/tv/${id}/1/${ep}`,              source:'nonanime',adBlock:true});
-      s.push({key:'anyembed_tv', label:'AnyEmbed', badge:'TMDB',url:`https://anyembed.xyz/embed/tmdb-tv-${id}-1-${ep}`,   source:'nonanime',adBlock:true});
-      s.push({key:'nontongo_tv', label:'NonTongo', badge:'TMDB',url:`https://www.nontongo.win/embed/tv/${id}/1/${ep}`,    source:'nonanime',adBlock:true});
-    }
+    if(playerImdbId)s.push({key:'apiinstrument',label:'API Instrument',badge:'IMDB',url:`https://api.insertunit.ws/embed/imdb/${playerImdbId}`,source:'nonanime',adBlock:true});
+    if(id){s.push({key:'nxsha_tv',label:'NxSha',badge:'TMDB',url:`https://web.nxsha.app/embed/tv/${id}/1/${ep}`,source:'nonanime',adBlock:true});s.push({key:'111movies_tv',label:'111Movies',badge:'TMDB',url:`https://111movies.net/tv/${id}/1/${ep}`,source:'nonanime',adBlock:true});s.push({key:'anyembed_tv',label:'AnyEmbed',badge:'TMDB',url:`https://anyembed.xyz/embed/tmdb-tv-${id}-1-${ep}`,source:'nonanime',adBlock:true});s.push({key:'nontongo_tv',label:'NonTongo',badge:'TMDB',url:`https://www.nontongo.win/embed/tv/${id}/1/${ep}`,source:'nonanime',adBlock:true});}
   }
   serverData=s;
 }
 
-function renderNonAnimeList() {
-  const list=document.getElementById('srv-list-inner');
-  const qRow=document.getElementById('qual-row');
-  qRow.innerHTML=''; qRow.style.display='none'; list.innerHTML='';
-  document.getElementById('srv-loading').classList.remove('show');
-  document.getElementById('src-tabs').style.display='';
-  document.getElementById('hi-subsrc-row').classList.remove('show');
-  if (!serverData.length) {
-    list.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 0">No servers available.</div>';
-    loadIframe('about:blank');
-    document.getElementById('player-ph').style.display='flex';
-    return;
-  }
+function renderNonAnimeList(){
+  const list=document.getElementById('srv-list-inner');const qRow=document.getElementById('qual-row');
+  qRow.innerHTML='';qRow.style.display='none';list.innerHTML='';
+  document.getElementById('srv-loading').classList.remove('show');document.getElementById('src-tabs').style.display='';document.getElementById('hi-subsrc-row').classList.remove('show');
+  if(!serverData.length){list.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 0">No servers available.</div>';loadIframe('about:blank');document.getElementById('player-ph').style.display='flex';return;}
   const di=prefSrvKey?Math.max(0,serverData.findIndex(s=>s.key===prefSrvKey)):0;
   serverData.forEach((srv,i)=>{
-    const btn=document.createElement('button');
-    btn.className='srv-item'+(i===di?' active':'');
+    const btn=document.createElement('button');btn.className='srv-item'+(i===di?' active':'');
     btn.innerHTML=`<span>${srv.label}</span><span class="srv-badge-sm">${srv.badge||'HD'}</span>`;
-    btn.onclick=()=>{ document.querySelectorAll('.srv-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); activeServer=srv; prefSrvKey=srv.key; playNonAnimeSrv(srv); };
+    btn.onclick=()=>{document.querySelectorAll('.srv-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeServer=srv;prefSrvKey=srv.key;playNonAnimeSrv(srv);};
     list.appendChild(btn);
   });
-  activeServer=serverData[di];
-  playNonAnimeSrv(serverData[di]);
+  activeServer=serverData[di];playNonAnimeSrv(serverData[di]);
 }
 
-function playNonAnimeSrv(srv) {
+function playNonAnimeSrv(srv){
   if(!srv||!srv.url) return;
   loadIframe(srv.url,!!srv.adBlock);
   const frame=(needsAdBlock(srv.url)||srv.adBlock)?document.getElementById('pf-adblock'):document.getElementById('pf-sb').style.display!=='none'?document.getElementById('pf-sb'):document.getElementById('pf-plain');
@@ -1838,185 +1506,152 @@ function playNonAnimeSrv(srv) {
 // ═══════════════════════════════════════════════════════════
 //  IFRAME
 // ═══════════════════════════════════════════════════════════
-function isMega(url) { return /megaplay\.buzz/i.test(url); }
-const ADBLOCK_HOSTS=[/insertunit\.ws/i,/nxsha\.app/i,/111movies\.net/i,/anyembed\.xyz/i,/nontongo\.win/i,/abyssplayer\.com/i,/ppzj-youtube/i,/youtube-prime\.rpmvip/i];
-function needsAdBlock(url) { return ADBLOCK_HOSTS.some(re=>re.test(url)); }
+function isMega(url){return /megaplay\.buzz/i.test(url);}
+const ADBLOCK_HOSTS=[/insertunit\.ws/i,/nxsha\.app/i,/111movies\.net/i,/anyembed\.xyz/i,/nontongo\.win/i,/abyssplayer\.com/i,/ppzj-youtube/i,/youtube-prime\.rpmvip/i,/animegg\.org/i];
+function needsAdBlock(url){return ADBLOCK_HOSTS.some(re=>re.test(url));}
 
-function loadIframe(url, forceAdBlock=false) {
-  const plain=document.getElementById('pf-plain');
-  const sb=document.getElementById('pf-sb');
-  const adblock=document.getElementById('pf-adblock');
-  const ph=document.getElementById('player-ph');
-  stopEndWatch(); ph.style.display='none';
-  function hideAll(){ plain.style.display='none';plain.src='about:blank';sb.style.display='none';sb.src='about:blank';adblock.style.display='none';adblock.src='about:blank'; }
-  if (forceAdBlock||needsAdBlock(url)) { hideAll(); adblock.src=url; adblock.style.display='block'; }
-  else if (isMega(url)) { hideAll(); plain.src=url; plain.style.display='block'; }
-  else { hideAll(); sb.src=url; sb.style.display='block'; }
+function loadIframe(url,forceAdBlock=false){
+  const plain=document.getElementById('pf-plain');const sb=document.getElementById('pf-sb');const adblock=document.getElementById('pf-adblock');const ph=document.getElementById('player-ph');
+  stopEndWatch();ph.style.display='none';
+  function hideAll(){plain.style.display='none';plain.src='about:blank';sb.style.display='none';sb.src='about:blank';adblock.style.display='none';adblock.src='about:blank';}
+  if(forceAdBlock||needsAdBlock(url)){hideAll();adblock.src=url;adblock.style.display='block';}
+  else if(isMega(url)){hideAll();plain.src=url;plain.style.display='block';}
+  else{hideAll();sb.src=url;sb.style.display='block';}
 }
 
 // ═══════════════════════════════════════════════════════════
 //  ANISANTCH FETCH
 // ═══════════════════════════════════════════════════════════
-async function fetchACEntry(malId, ep, lang) {
-  const key=`${malId}/${ep}==${lang}`;
-  const altKey=`${malId}/${ep}==${lang==='dub'?'sub':'dub'}`;
+async function fetchACEntry(malId,ep,lang){
+  const key=`${malId}/${ep}==${lang}`;const altKey=`${malId}/${ep}==${lang==='dub'?'sub':'dub'}`;
   const res=await Promise.all(JSON_FILES.map(f=>fetch(JSON_BASE+f).then(r=>r.ok?r.json():[]).catch(()=>[])));
   const all=res.flat();
   return all.find(e=>e.mal_id_with_ep_and_stream_type===key)||all.find(e=>e.mal_id_with_ep_and_stream_type===altKey)||null;
 }
 
-function getAllanimeUrl(entry,q) {
-  const want=parseInt(q,10);
-  const avail=Q_TIERS.filter(t=>entry[`allanime_${t}`]);
-  if(!avail.length) return null;
+function getAllanimeUrl(entry,q){
+  const want=parseInt(q,10);const avail=Q_TIERS.filter(t=>entry[`allanime_${t}`]);
+  if(!avail.length)return null;
   const best=avail.reduce((a,b)=>Math.abs(a-want)<=Math.abs(b-want)?a:b);
   return entry[`allanime_${best}`]||null;
 }
 
-function buildACSrvs(entry) {
+function buildACSrvs(entry){
   const s=[];
-  if(Q_TIERS.some(q=>entry[`allanime_${q}`])) s.push({key:'allanime',label:'AllanimeHD',type:'multi-quality',entry,source:'anisantch'});
-  if(entry.anivibe) s.push({key:'anivibe',label:'AniVibe',url:entry.anivibe,source:'anisantch'});
-  if(entry.okcdn)   s.push({key:'okcdn',label:'OkCDN',url:entry.okcdn,source:'anisantch'});
-  const cdn=getAnicdnUrl(entry);
-  if(cdn) s.push({key:'anicdn',label:'AniCDN',badge:'Multi-Lang',url:cdn,source:'anisantch'});
-  const sw=getSwiftUrl(entry);
-  if(sw)  s.push({key:'swift',label:'Swift',badge:'HI',url:sw,source:'anisantch'});
+  if(Q_TIERS.some(q=>entry[`allanime_${q}`]))s.push({key:'allanime',label:'AllanimeHD',type:'multi-quality',entry,source:'anisantch'});
+  if(entry.anivibe)s.push({key:'anivibe',label:'AniVibe',url:entry.anivibe,source:'anisantch'});
+  if(entry.okcdn)s.push({key:'okcdn',label:'OkCDN',url:entry.okcdn,source:'anisantch'});
+  const cdn=getAnicdnUrl(entry);if(cdn)s.push({key:'anicdn',label:'AniCDN',badge:'Multi-Lang',url:cdn,source:'anisantch'});
+  const sw=getSwiftUrl(entry);if(sw)s.push({key:'swift',label:'Swift',badge:'HI',url:sw,source:'anisantch'});
   return s;
 }
 
-function getAnicdnUrl(e) { const r=e.anicdn_iframe||e.anicdn;if(!r)return null;const m=r.match(/\/anicdn\/([^/]+)/);return m?`https://as-cdn21.top/video/${m[1]}`:null; }
-function getSwiftUrl(e)  { const r=e.swift_iframe||e.swift;if(!r)return null;const m=r.match(/\/swift\/([^/]+)/);return m?`https://argon.razorshell.space/embed/${m[1]}`:null; }
+function getAnicdnUrl(e){const r=e.anicdn_iframe||e.anicdn;if(!r)return null;const m=r.match(/\/anicdn\/([^/]+)/);return m?`https://as-cdn21.top/video/${m[1]}`:null;}
+function getSwiftUrl(e){const r=e.swift_iframe||e.swift;if(!r)return null;const m=r.match(/\/swift\/([^/]+)/);return m?`https://argon.razorshell.space/embed/${m[1]}`:null;}
 
 // ═══════════════════════════════════════════════════════════
 //  HIANIME FETCH
 // ═══════════════════════════════════════════════════════════
-async function loadHiRaw() {
-  if(_hiCacheRaw) return _hiCacheRaw;
-  if(_hiLoadProm) return _hiLoadProm;
-  _hiLoadProm=Promise.all(HIANIME_FILES.map(f=>fetch(HIANIME_BASE+f).then(r=>r.ok?r.json():[]).catch(()=>[]))).then(res=>{_hiCacheRaw=res.flat().filter(Boolean);_hiLoadProm=null;return _hiCacheRaw;});
+async function loadHiRaw(){
+  if(_hiCacheRaw)return _hiCacheRaw;if(_hiLoadProm)return _hiLoadProm;
+  _hiLoadProm=Promise.all(HIANIME_FILES.map(f=>fetch(HIANIME_BASE+f).then(r=>r.ok?r.json():[]).catch(()=>[]))).then(res=>{_hiCacheRaw=res.flat().filter(Boolean);_hiLoadProm=null;console.log(`[HiAnime] Loaded ${_hiCacheRaw.length} entries from 37 files`);return _hiCacheRaw;});
   return _hiLoadProm;
 }
-async function fetchHiEntry(malId,ep) {
-  const all=await loadHiRaw();
-  const mid=parseInt(malId,10),epn=parseInt(ep,10);
+async function fetchHiEntry(malId,ep){
+  const all=await loadHiRaw();const mid=parseInt(malId,10),epn=parseInt(ep,10);
   return all.find(e=>parseInt(e['mal_id/anilist_id/tmdb_id'],10)===mid&&parseInt(e.episode_no,10)===epn)||null;
 }
-function getHiUrl(entry,lang,ss) {
-  for(const p of lang==='sub'?[lang,'hsub']:[lang]) { const k=`${p}_${ss}_embed_url_ep_${entry.episode_no}`;if(entry[k])return entry[k]; }
-  return null;
+function getHiUrl(entry,lang,ss){
+  for(const p of lang==='sub'?[lang,'hsub']:[lang]){const k=`${p}_${ss}_embed_url_ep_${entry.episode_no}`;if(entry[k])return entry[k];}return null;
 }
-function buildHiSrvs(entry,lang) {
+function buildHiSrvs(entry,lang){
   return HI_SS.flatMap(ss=>{const url=getHiUrl(entry,lang,ss);return url?[{key:'hi_'+ss,label:ss.charAt(0).toUpperCase()+ss.slice(1),url,source:'hianime',subsrc:ss}]:[];});
 }
 
 // ═══════════════════════════════════════════════════════════
 //  SERVER PANEL
 // ═══════════════════════════════════════════════════════════
-function toggleSrvPanel() {
+function toggleSrvPanel(){
   srvPanelOpen=!srvPanelOpen;
-  const panel=document.getElementById('server-dropdown');
-  const btn=document.getElementById('srv-panel-btn');
-  panel.classList.toggle('show',srvPanelOpen);
-  btn.classList.toggle('open',srvPanelOpen);
-  if(srvPanelOpen) {
+  const panel=document.getElementById('server-dropdown');const btn=document.getElementById('srv-panel-btn');
+  panel.classList.toggle('show',srvPanelOpen);btn.classList.toggle('open',srvPanelOpen);
+  if(srvPanelOpen){
     const r=btn.getBoundingClientRect();
     panel.style.top=(r.bottom+6)+'px';
     panel.style.left=window.innerWidth<=600?'4vw':Math.min(r.left,window.innerWidth-350)+'px';
-    // Show M4UHD status if we have it
-    const hasM4U = playerMediaType==='movie' ? !!m4uMovieEntry : !!m4uSeriesEntry;
-    if (!hasM4U && playerTmdbId) {
-      setM4UStatus('Checking M4UHD library…', false);
-    }
+    const hasM4U=playerMediaType==='movie'?!!m4uMovieEntry:!!m4uSeriesEntry;
+    if(!hasM4U&&playerTmdbId)setM4UStatus('Checking M4UHD library…',false);
+    if(!animeggEntry&&playerMalId&&playerIsAnimation)setAGGStatus('Checking AnimeGG library…',false);
   }
 }
-function closeSrvPanel() { srvPanelOpen=false;document.getElementById('server-dropdown').classList.remove('show');document.getElementById('srv-panel-btn').classList.remove('open'); }
+function closeSrvPanel(){srvPanelOpen=false;document.getElementById('server-dropdown').classList.remove('show');document.getElementById('srv-panel-btn').classList.remove('open');}
 
-function switchSrc(src) {
+function switchSrc(src){
   activeSrc=src;
   document.getElementById('tab-ac').classList.toggle('active',src==='anisantch');
   document.getElementById('tab-hi').classList.toggle('active',src==='hianime');
+  document.getElementById('tab-agg').classList.toggle('active',src==='animegg');
   document.getElementById('tab-m4u').classList.toggle('active',src==='m4uhd');
-  const hiRow=document.getElementById('hi-subsrc-row');
-  const qRow=document.getElementById('qual-row');
+  const hiRow=document.getElementById('hi-subsrc-row');const qRow=document.getElementById('qual-row');
 
-  if (src==='hianime') {
-    hiRow.classList.add('show'); qRow.style.display='none';
-    renderHiList();
-  } else if (src==='m4uhd') {
-    hiRow.classList.remove('show'); qRow.style.display='none';
-    renderM4UList();
-  } else {
-    hiRow.classList.remove('show'); qRow.style.display='';
-    renderACList();
-  }
+  // Hide status rows first
+  document.getElementById('m4u-status-row').classList.remove('show');
+  document.getElementById('agg-status-row').classList.remove('show');
+
+  if(src==='hianime'){hiRow.classList.add('show');qRow.style.display='none';renderHiList();}
+  else if(src==='m4uhd'){hiRow.classList.remove('show');qRow.style.display='none';const hasM4U=playerMediaType==='movie'?!!m4uMovieEntry:!!m4uSeriesEntry;if(hasM4U)setM4UStatus(`✓ Found`,true);else setM4UStatus('Not in M4UHD library',false);document.getElementById('m4u-status-row').classList.add('show');renderM4UList();}
+  else if(src==='animegg'){hiRow.classList.remove('show');qRow.style.display='none';if(animeggEntry)setAGGStatus(`✓ Found: ${animeggEntry.title}`,true);else setAGGStatus('Not in AnimeGG library',false);document.getElementById('agg-status-row').classList.add('show');renderAnimeGGList();}
+  else{hiRow.classList.remove('show');qRow.style.display='';renderACList();}
 }
 
-function setHiSS(ss) {
-  activeHiSS=ss;
-  document.querySelectorAll('.subsrc-pill').forEach(p=>p.classList.toggle('active',p.dataset.ss===ss));
-  renderHiList();
+function setHiSS(ss){
+  activeHiSS=ss;document.querySelectorAll('.subsrc-pill').forEach(p=>p.classList.toggle('active',p.dataset.ss===ss));renderHiList();
 }
 
-function updateSrcTabOpacity() {
+function updateSrcTabOpacity(){
   document.getElementById('tab-ac').style.opacity=serverData.length?'1':'0.4';
   document.getElementById('tab-hi').style.opacity=hianimeEntry?'1':'0.4';
-  const hasM4U = playerMediaType==='movie' ? !!m4uMovieEntry : !!m4uSeriesEntry;
+  const hasM4U=playerMediaType==='movie'?!!m4uMovieEntry:!!m4uSeriesEntry;
   document.getElementById('tab-m4u').style.opacity=hasM4U?'1':'0.4';
+  // AnimeGG tab opacity updated in fetchAnimeGGForCurrentMedia
 }
 
-function renderACList() {
-  const qRow=document.getElementById('qual-row');
-  const list=document.getElementById('srv-list-inner');
+function renderACList(){
+  const qRow=document.getElementById('qual-row');const list=document.getElementById('srv-list-inner');
   qRow.innerHTML='';list.innerHTML='';qRow.style.display='';
   if(!serverData.length){list.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 0">No AnisantCH servers for this episode.</div>';return;}
   const allanime=serverData.find(s=>s.type==='multi-quality');
-  if(allanime){
-    Q_TIERS.forEach(q=>{
-      const avail=!!allanime.entry[`allanime_${q}`];
-      const pill=document.createElement('button');
-      pill.className='q-pill'+(q===parseInt(activeQual)?' active':'')+(avail?'':' unavail');
-      pill.textContent=q+'p';
-      if(avail) pill.onclick=()=>{activeQual=String(q);document.querySelectorAll('.q-pill').forEach(p=>p.classList.remove('active'));pill.classList.add('active');if(activeServer?.key==='allanime')playSrv(activeServer);};
-      qRow.appendChild(pill);
-    });
-  }
-  const defIdx=prefSrvKey?serverData.findIndex(s=>s.key===prefSrvKey&&s.source==='anisantch'):0;
-  const di=defIdx>=0?defIdx:0;
+  if(allanime){Q_TIERS.forEach(q=>{const avail=!!allanime.entry[`allanime_${q}`];const pill=document.createElement('button');pill.className='q-pill'+(q===parseInt(activeQual)?' active':'')+(avail?'':' unavail');pill.textContent=q+'p';if(avail)pill.onclick=()=>{activeQual=String(q);document.querySelectorAll('.q-pill').forEach(p=>p.classList.remove('active'));pill.classList.add('active');if(activeServer?.key==='allanime')playSrv(activeServer);};qRow.appendChild(pill);});}
+  const defIdx=prefSrvKey?serverData.findIndex(s=>s.key===prefSrvKey&&s.source==='anisantch'):0;const di=defIdx>=0?defIdx:0;
   serverData.forEach((srv,i)=>{
-    const btn=document.createElement('button');
-    btn.className='srv-item'+(i===di?' active':'');
+    const btn=document.createElement('button');btn.className='srv-item'+(i===di?' active':'');
     btn.innerHTML=`<span>${srv.label}</span><span class="srv-badge-sm">${srv.badge||'HD'}</span>`;
     btn.onclick=()=>{document.querySelectorAll('.srv-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeServer=srv;prefSrvKey=srv.key;playSrv(srv);};
-    list.appendChild(btn);
-    if(i===di) activeServer=srv;
+    list.appendChild(btn);if(i===di)activeServer=srv;
   });
-  if(serverData[di]) playSrv(serverData[di]);
+  if(serverData[di])playSrv(serverData[di]);
 }
 
-function renderHiList() {
-  const list=document.getElementById('srv-list-inner');
-  list.innerHTML='';
+function renderHiList(){
+  const list=document.getElementById('srv-list-inner');list.innerHTML='';
   if(!hianimeEntry){list.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 0">No HiAnime data for this episode.</div>';return;}
   const srvs=buildHiSrvs(hianimeEntry,playerLang);
   if(!srvs.length){list.innerHTML=`<div style="font-size:12px;color:var(--text2);padding:6px 0">No HiAnime ${playerLang.toUpperCase()} streams found.</div>`;return;}
   const di=Math.max(0,srvs.findIndex(s=>s.subsrc===activeHiSS));
   srvs.forEach((srv,i)=>{
-    const btn=document.createElement('button');
-    btn.className='srv-item hi'+(i===di?' active':'');
+    const btn=document.createElement('button');btn.className='srv-item hi'+(i===di?' active':'');
     btn.innerHTML=`<span>${srv.label}</span><span class="srv-badge-sm">HiAnime</span>`;
     btn.onclick=()=>{document.querySelectorAll('.srv-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeServer=srv;prefSrvKey=srv.key;activeHiSS=srv.subsrc;setHiSS(srv.subsrc);playSrv(srv);};
-    list.appendChild(btn);
-    if(i===di) activeServer=srv;
+    list.appendChild(btn);if(i===di)activeServer=srv;
   });
-  if(srvs[di]) playSrv(srvs[di]);
+  if(srvs[di])playSrv(srvs[di]);
 }
 
-function playSrv(srv) {
+function playSrv(srv){
   let url;
   if(srv.type==='multi-quality'){url=getAllanimeUrl(srv.entry,activeQual);if(!url)for(const q of[480,720,360,1080]){url=srv.entry[`allanime_${q}`];if(url)break;}}
   else{url=srv.url;}
-  if(!url) return;
+  if(!url)return;
   loadIframe(url,!!srv.adBlock);
   const frame=needsAdBlock(url)||srv.adBlock?document.getElementById('pf-adblock'):isMega(url)?document.getElementById('pf-plain'):document.getElementById('pf-sb');
   watchEnd(frame,playerMalId,playerEp,playerLang);
@@ -2025,53 +1660,33 @@ function playSrv(srv) {
 // ═══════════════════════════════════════════════════════════
 //  PLAYER NAV
 // ═══════════════════════════════════════════════════════════
-function playerSetLang(lang) {
-  playerLang=lang;
-  document.getElementById('pl-dub').classList.toggle('active',lang==='dub');
-  document.getElementById('pl-sub').classList.toggle('active',lang==='sub');
-  loadEpisode(playerMalId,playerEp,lang);
-}
-function playerPrev() { if(playerEp>1){loadEpisode(playerMalId,--playerEp,playerLang);document.getElementById('player-ep-label').textContent=`Episode ${playerEp}`;} }
-function playerNext() { loadEpisode(playerMalId,++playerEp,playerLang);document.getElementById('player-ep-label').textContent=`Episode ${playerEp}`; }
+function playerSetLang(lang){playerLang=lang;document.getElementById('pl-dub').classList.toggle('active',lang==='dub');document.getElementById('pl-sub').classList.toggle('active',lang==='sub');loadEpisode(playerMalId,playerEp,lang);}
+function playerPrev(){if(playerEp>1){loadEpisode(playerMalId,--playerEp,playerLang);document.getElementById('player-ep-label').textContent=`Episode ${playerEp}`;}}
+function playerNext(){loadEpisode(playerMalId,++playerEp,playerLang);document.getElementById('player-ep-label').textContent=`Episode ${playerEp}`;}
 
 // ═══════════════════════════════════════════════════════════
 //  END WATCH + AUTO-NEXT
 // ═══════════════════════════════════════════════════════════
-function stopEndWatch() {
-  clearInterval(endWatchInt);endWatchInt=null;
-  if(endWatchClean){endWatchClean();endWatchClean=null;}
-}
+function stopEndWatch(){clearInterval(endWatchInt);endWatchInt=null;if(endWatchClean){endWatchClean();endWatchClean=null;}}
 
-function watchEnd(iframe,malId,ep,lang) {
-  stopEndWatch();
-  let active=true;
-  function onMsg(e) {
-    if(!active) return;
-    const s=typeof e.data==='string'?e.data:JSON.stringify(e.data||'');
-    if(/ended|complete|finish|event.*end/i.test(s)){cleanup();triggerAN(malId,ep,lang);}
-  }
+function watchEnd(iframe,malId,ep,lang){
+  stopEndWatch();let active=true;
+  function onMsg(e){if(!active)return;const s=typeof e.data==='string'?e.data:JSON.stringify(e.data||'');if(/ended|complete|finish|event.*end/i.test(s)){cleanup();triggerAN(malId,ep,lang);}}
   window.addEventListener('message',onMsg);
-  let settled=false;
-  const st=setTimeout(()=>{settled=true;},1500);
-  endWatchInt=setInterval(()=>{
-    if(!active||!settled)return;
-    try{const s=iframe.src||'';if(s===''||s==='about:blank'){cleanup();triggerAN(malId,ep,lang);}}catch(_){}
-  },2000);
+  let settled=false;const st=setTimeout(()=>{settled=true;},1500);
+  endWatchInt=setInterval(()=>{if(!active||!settled)return;try{const s=iframe.src||'';if(s===''||s==='about:blank'){cleanup();triggerAN(malId,ep,lang);}}catch(_){}},2000);
   function cleanup(){active=false;clearTimeout(st);clearInterval(endWatchInt);endWatchInt=null;window.removeEventListener('message',onMsg);endWatchClean=null;}
   endWatchClean=cleanup;
 }
 
-function triggerAN(malId,ep,lang) {
+function triggerAN(malId,ep,lang){
   if(!document.getElementById('chk-an').checked)return;
   const next=parseInt(ep,10)+1;
   document.getElementById('an-ep-lbl').textContent=`Episode ${next}`;
   const ov=document.getElementById('an-overlay');const bar=document.getElementById('an-bar');
-  ov.style.display='block';
-  bar.style.transition='none';bar.style.transform='scaleX(1)';
-  bar.getBoundingClientRect();
+  ov.style.display='block';bar.style.transition='none';bar.style.transform='scaleX(1)';bar.getBoundingClientRect();
   bar.style.transition=`transform ${COUNTDOWN}s linear`;bar.style.transform='scaleX(0)';
-  let rem=COUNTDOWN;
-  anTimer=setInterval(()=>{if(--rem<=0)anPlayNow();},1000);
+  let rem=COUNTDOWN;anTimer=setInterval(()=>{if(--rem<=0)anPlayNow();},1000);
 }
 
 function anPlayNow(){cancelAN();playerNext();}
