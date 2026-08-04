@@ -632,6 +632,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 
   <div id="player-main">
     <div id="player-ph"><div class="loading-spin"></div></div>
+    <video id="pf-sflix" controls autoplay style="display:none;width:100%;height:100%;background:#000;position:absolute;inset:0;object-fit:contain;z-index:1"></video>
     <iframe id="pf-plain" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="origin" style="display:none"></iframe>
     <iframe id="pf-sb" sandbox="allow-scripts allow-same-origin allow-presentation allow-forms" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer" style="display:none"></iframe>
     <iframe id="pf-adblock" sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer" style="display:none"></iframe>
@@ -667,6 +668,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
       <button class="src-t"        id="tab-agg" onclick="switchSrc('animegg')">🥚 AnimeGG</button>
       <button class="src-t"        id="tab-m4u" onclick="switchSrc('m4uhd')">🎬 M4UHD</button>
       <button class="src-t"        id="tab-nn"  onclick="switchSrc('netnaija')">🌍 NetNaija</button>
+      <button class="src-t"        id="tab-sflix" onclick="switchSrc('sflix')" style="display:none">🎬 SFlixAPI</button>
     </div>
 
     <div id="m4u-status-row">
@@ -677,6 +679,10 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
     <div id="nn-status-row">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span id="nn-status-text">Fetching NetNaija streams…</span>
+    </div>
+    <div id="sflix-status-row">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="sflix-status-text">Fetching SFlixAPI streams…</span>
     </div>
 
     <div id="agg-status-row">
@@ -785,6 +791,9 @@ let _animeggProm    = null;
 
 // NetNaija (VidSrc direct) state
 let nnActiveKey     = null;  // currently active NN server key
+
+// SFlixAPI state
+let sflixStreams    = null;  // array of {resolution, url} or null
 
 // AniSkip state
 let skipTimes       = { op: null, ed: null };
@@ -1260,7 +1269,7 @@ function startWatch(show,ep,lang){
   document.getElementById('view-player').classList.add('active');document.getElementById('view-home').classList.add('hidden');
   document.getElementById('player-show-title').textContent=playerTitle;document.getElementById('player-ep-label').textContent=`Episode ${ep}`;
   document.getElementById('pl-dub').classList.toggle('active',lang==='dub');document.getElementById('pl-sub').classList.toggle('active',lang==='sub');
-  m4uSeriesEntry=null;m4uMovieEntry=null;animeggEntry=null;nnActiveKey=null;
+  m4uSeriesEntry=null;m4uMovieEntry=null;animeggEntry=null;nnActiveKey=null;sflixStreams=null;
   loadEpisode(playerMalId,ep,lang,playerImdbId);
 }
 
@@ -1272,6 +1281,8 @@ function goHome(){
   document.getElementById('tab-m4u').style.opacity='1';document.getElementById('m4u-status-row').classList.remove('show');
   document.getElementById('tab-agg').style.opacity='1';document.getElementById('agg-status-row').classList.remove('show');
   document.getElementById('tab-nn').style.opacity='1';document.getElementById('nn-status-row').classList.remove('show');
+  document.getElementById('tab-sflix').style.opacity='1';document.getElementById('tab-sflix').style.display='none';document.getElementById('sflix-status-row').classList.remove('show');
+  hideSFlixVideo();sflixStreams=null;
   nnActiveKey=null;
 }
 
@@ -1299,9 +1310,16 @@ async function loadEpisode(malId,ep,lang,imdbId=undefined){
   setAGGStatus('',false);document.getElementById('tab-agg').style.opacity='0.4';
 
   if(!playerIsAnimation){
-    serverData=[];hianimeEntry=null;animeggEntry=null;
+    serverData=[];hianimeEntry=null;animeggEntry=null;sflixStreams=null;
+    // Show SFlix tab only for movies
+    const sfTab=document.getElementById('tab-sflix');
+    sfTab.style.display=playerMediaType==='movie'?'':'none';
+    sfTab.style.opacity='0.4';
+    setSFlixStatus('',false);
     buildNonAnimeServers();updateSrcTabOpacity();renderNonAnimeList();
-    fetchM4UForCurrentMedia();return;
+    fetchM4UForCurrentMedia();
+    if(playerMediaType==='movie')fetchSFlixForCurrentMedia();
+    return;
   }
 
   document.getElementById('src-tabs').style.display='';
@@ -1538,7 +1556,7 @@ function needsAdBlock(url){return ADBLOCK_HOSTS.some(re=>re.test(url));}
 
 function loadIframe(url,forceAdBlock=false){
   const plain=document.getElementById('pf-plain');const sb=document.getElementById('pf-sb');const adblock=document.getElementById('pf-adblock');const ph=document.getElementById('player-ph');
-  stopEndWatch();ph.style.display='none';
+  stopEndWatch();ph.style.display='none';hideSFlixVideo();
   function hideAll(){plain.style.display='none';plain.src='about:blank';sb.style.display='none';sb.src='about:blank';adblock.style.display='none';adblock.src='about:blank';}
   if(forceAdBlock||needsAdBlock(url)){hideAll();adblock.src=url;adblock.style.display='block';}
   else if(isMega(url)){hideAll();plain.src=url;plain.style.display='block';}
@@ -1619,17 +1637,22 @@ function switchSrc(src){
   document.getElementById('tab-agg').classList.toggle('active',src==='animegg');
   document.getElementById('tab-m4u').classList.toggle('active',src==='m4uhd');
   document.getElementById('tab-nn').classList.toggle('active',src==='netnaija');
+  document.getElementById('tab-sflix').classList.toggle('active',src==='sflix');
   const hiRow=document.getElementById('hi-subsrc-row');const qRow=document.getElementById('qual-row');
 
   // Hide status rows first
   document.getElementById('m4u-status-row').classList.remove('show');
   document.getElementById('agg-status-row').classList.remove('show');
   document.getElementById('nn-status-row').classList.remove('show');
+  document.getElementById('sflix-status-row').classList.remove('show');
+  // When leaving sflix tab, hide video player
+  if(src!=='sflix')hideSFlixVideo();
 
   if(src==='hianime'){hiRow.classList.add('show');qRow.style.display='none';renderHiList();}
   else if(src==='m4uhd'){hiRow.classList.remove('show');qRow.style.display='none';const hasM4U=playerMediaType==='movie'?!!m4uMovieEntry:!!m4uSeriesEntry;if(hasM4U)setM4UStatus(`✓ Found`,true);else setM4UStatus('Not in M4UHD library',false);document.getElementById('m4u-status-row').classList.add('show');renderM4UList();}
   else if(src==='animegg'){hiRow.classList.remove('show');qRow.style.display='none';if(animeggEntry)setAGGStatus(`✓ Found: ${animeggEntry.title}`,true);else setAGGStatus('Not in AnimeGG library',false);document.getElementById('agg-status-row').classList.add('show');renderAnimeGGList();}
   else if(src==='netnaija'){hiRow.classList.remove('show');qRow.style.display='none';renderNNList();}
+  else if(src==='sflix'){hiRow.classList.remove('show');qRow.style.display='none';document.getElementById('sflix-status-row').classList.add('show');renderSFlixList();}
   else{hiRow.classList.remove('show');qRow.style.display='';renderACList();}
 }
 
@@ -1813,6 +1836,93 @@ function playNNSrv(srv) {
   if (!srv?.url) return;
   loadIframe(srv.url, !!srv.adBlock);
   watchEnd(document.getElementById('pf-adblock'), playerTmdbId, playerEp, playerLang);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SFLIX API — Direct MP4 streams for movies (TMDB ID)
+// ═══════════════════════════════════════════════════════════
+const SFLIX_API = 'https://fastapi-project-1nwc.onrender.com/extract?tmdb_id=';
+
+function setSFlixStatus(text, found) {
+  const row  = document.getElementById('sflix-status-row');
+  const span = document.getElementById('sflix-status-text');
+  if (!text) { row.classList.remove('show'); return; }
+  span.textContent = text;
+  row.classList.add('show');
+  row.style.background   = found ? 'rgba(52,211,153,.08)'   : 'rgba(155,155,180,.08)';
+  row.style.borderColor  = found ? 'rgba(52,211,153,.25)'   : 'rgba(155,155,180,.25)';
+  row.style.color        = found ? 'var(--green)'           : 'var(--text2)';
+}
+
+async function fetchSFlixForCurrentMedia() {
+  // Only for movies
+  if (playerMediaType !== 'movie' || !playerTmdbId) return;
+  sflixStreams = null;
+  setSFlixStatus('Fetching SFlixAPI streams…', false);
+  try {
+    const r = await fetch(SFLIX_API + playerTmdbId);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const streams = data.all_streams || [];
+    if (!streams.length) { setSFlixStatus('No streams found in SFlixAPI', false); return; }
+    sflixStreams = streams;
+    setSFlixStatus(`✓ ${streams.length} stream${streams.length !== 1 ? 's' : ''} found (${data.meta?.title || ''})`, true);
+    document.getElementById('tab-sflix').style.opacity = '1';
+    if (activeSrc === 'sflix') renderSFlixList();
+  } catch (e) {
+    console.log('[SFlixAPI] error:', e);
+    setSFlixStatus('SFlixAPI lookup failed', false);
+  }
+}
+
+function renderSFlixList() {
+  const list = document.getElementById('srv-list-inner');
+  const qRow = document.getElementById('qual-row');
+  qRow.innerHTML = ''; qRow.style.display = 'none'; list.innerHTML = '';
+  document.getElementById('hi-subsrc-row').classList.remove('show');
+  document.getElementById('srv-loading').classList.remove('show');
+
+  if (!sflixStreams || !sflixStreams.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--text2);padding:8px 0;line-height:1.6">No SFlixAPI streams available for this movie.<br><span style="font-size:11px;color:var(--text3)">Try M4UHD or NetNaija sources.</span></div>';
+    return;
+  }
+
+  // Sort by resolution descending
+  const sorted = [...sflixStreams].sort((a, b) => parseInt(b.resolution, 10) - parseInt(a.resolution, 10));
+
+  sorted.forEach((stream, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'srv-item nn' + (i === 0 ? ' active' : '');
+    btn.innerHTML = `<span>${stream.resolution}p</span><span class="srv-badge-sm">SFlixAPI</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('.srv-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      playSFlixStream(stream.url);
+    };
+    list.appendChild(btn);
+  });
+
+  // Auto-play best quality
+  playSFlixStream(sorted[0].url);
+}
+
+function playSFlixStream(url) {
+  if (!url) return;
+  // Hide all iframes, show the video element
+  ['pf-plain', 'pf-sb', 'pf-adblock'].forEach(id => {
+    const f = document.getElementById(id);
+    f.style.display = 'none'; f.src = 'about:blank';
+  });
+  document.getElementById('player-ph').style.display = 'none';
+  const vid = document.getElementById('pf-sflix');
+  vid.src = url;
+  vid.style.display = 'block';
+  vid.play().catch(() => {});
+}
+
+function hideSFlixVideo() {
+  const vid = document.getElementById('pf-sflix');
+  if (vid) { vid.pause(); vid.src = ''; vid.style.display = 'none'; }
 }
 
 // ═══════════════════════════════════════════════════════════
