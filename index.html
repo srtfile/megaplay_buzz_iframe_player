@@ -369,6 +369,35 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 }
 #agg-status-row.show { display: flex; }
 
+/* NetNaija status row */
+#nn-status-row {
+  display: none; align-items: center; gap: 6px;
+  padding: 6px 8px; border-radius: 8px;
+  background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.25);
+  margin-bottom: 8px; font-size: 11px; color: var(--green); font-weight: 600;
+}
+#nn-status-row.show { display: flex; }
+#nn-status-row svg { flex-shrink: 0; }
+#tab-nn.active { background: var(--green); color: #000; }
+
+/* NetNaija stream cards */
+.nn-stream-card {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 10px 12px; margin-bottom: 6px;
+  cursor: pointer; transition: all .18s;
+}
+.nn-stream-card:hover { border-color: var(--green); background: rgba(52,211,153,.08); }
+.nn-stream-card.active { border-color: var(--green); background: rgba(52,211,153,.15); }
+.nn-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.nn-card-type { font-size: 11px; font-weight: 800; color: var(--green); letter-spacing: .04em; }
+.nn-badges { display: flex; gap: 4px; flex-wrap: wrap; }
+.nn-badge { font-size: 9px; padding: 2px 6px; border-radius: 5px; background: rgba(52,211,153,.18); color: var(--green); font-weight: 700; border: 1px solid rgba(52,211,153,.3); }
+.nn-url { font-size: 10px; color: var(--text3); word-break: break-all; line-height: 1.4; font-family: monospace; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nn-play-btn { display: flex; align-items: center; gap: 5px; margin-top: 8px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--green); background: rgba(52,211,153,.12); color: var(--green); font-size: 11px; font-weight: 700; width: 100%; justify-content: center; cursor: pointer; transition: all .15s; }
+.nn-play-btn:hover { background: rgba(52,211,153,.25); }
+.nn-loading { display: flex; align-items: center; gap: 8px; color: var(--text2); font-size: 12px; padding: 8px 0; }
+.spin-sm-green { width: 12px; height: 12px; border: 2px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+
 #skip-info-row {
   display: none; flex-direction: column; gap: 4px;
   padding: 10px 0; border-top: 1px solid var(--border); margin-top: 8px;
@@ -651,11 +680,17 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
       <button class="src-t"        id="tab-hi"  onclick="switchSrc('hianime')">🌸 HiAnime</button>
       <button class="src-t"        id="tab-agg" onclick="switchSrc('animegg')">🥚 AnimeGG</button>
       <button class="src-t"        id="tab-m4u" onclick="switchSrc('m4uhd')">🎬 M4UHD</button>
+      <button class="src-t"        id="tab-nn"  onclick="switchSrc('netnaija')">🌍 NetNaija</button>
     </div>
 
     <div id="m4u-status-row">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span id="m4u-status-text">Checking M4UHD library…</span>
+    </div>
+
+    <div id="nn-status-row">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="nn-status-text">Fetching NetNaija streams…</span>
     </div>
 
     <div id="agg-status-row">
@@ -761,6 +796,11 @@ let _m4uMoviesProm  = null;
 let animeggEntry    = null;  // matched AnimeGG series entry
 let _animeggCache   = null;  // flat array of all AnimeGG entries
 let _animeggProm    = null;
+
+// NetNaija state
+let nnStreams        = [];   // array of {type, badges, url} from NetNaija
+let nnLoading       = false;
+let nnActiveUrl     = null;
 
 // AniSkip state
 let skipTimes       = { op: null, ed: null };
@@ -1236,7 +1276,7 @@ function startWatch(show,ep,lang){
   document.getElementById('view-player').classList.add('active');document.getElementById('view-home').classList.add('hidden');
   document.getElementById('player-show-title').textContent=playerTitle;document.getElementById('player-ep-label').textContent=`Episode ${ep}`;
   document.getElementById('pl-dub').classList.toggle('active',lang==='dub');document.getElementById('pl-sub').classList.toggle('active',lang==='sub');
-  m4uSeriesEntry=null;m4uMovieEntry=null;animeggEntry=null;
+  m4uSeriesEntry=null;m4uMovieEntry=null;animeggEntry=null;nnStreams=[];nnActiveUrl=null;
   loadEpisode(playerMalId,ep,lang,playerImdbId);
 }
 
@@ -1247,6 +1287,8 @@ function goHome(){
   document.getElementById('player-ph').style.display='flex';closeSrvPanel();
   document.getElementById('tab-m4u').style.opacity='1';document.getElementById('m4u-status-row').classList.remove('show');
   document.getElementById('tab-agg').style.opacity='1';document.getElementById('agg-status-row').classList.remove('show');
+  document.getElementById('tab-nn').style.opacity='1';document.getElementById('nn-status-row').classList.remove('show');
+  nnStreams=[];nnActiveUrl=null;nnLoading=false;
 }
 
 function openEpPickerFromPlayer(){
@@ -1275,7 +1317,7 @@ async function loadEpisode(malId,ep,lang,imdbId=undefined){
   if(!playerIsAnimation){
     serverData=[];hianimeEntry=null;animeggEntry=null;
     buildNonAnimeServers();updateSrcTabOpacity();renderNonAnimeList();
-    fetchM4UForCurrentMedia();return;
+    fetchM4UForCurrentMedia();fetchNNForCurrentMedia();return;
   }
 
   document.getElementById('src-tabs').style.display='';
@@ -1291,7 +1333,8 @@ async function loadEpisode(malId,ep,lang,imdbId=undefined){
     fetchHiEntry(malId,ep),
     fetchSkipTimes(malId,ep),
     fetchM4UForCurrentMedia(),
-    fetchAnimeGGForCurrentMedia()
+    fetchAnimeGGForCurrentMedia(),
+    fetchNNForCurrentMedia()
   ]);
 
   document.getElementById('srv-loading').classList.remove('show');
@@ -1592,15 +1635,18 @@ function switchSrc(src){
   document.getElementById('tab-hi').classList.toggle('active',src==='hianime');
   document.getElementById('tab-agg').classList.toggle('active',src==='animegg');
   document.getElementById('tab-m4u').classList.toggle('active',src==='m4uhd');
+  document.getElementById('tab-nn').classList.toggle('active',src==='netnaija');
   const hiRow=document.getElementById('hi-subsrc-row');const qRow=document.getElementById('qual-row');
 
   // Hide status rows first
   document.getElementById('m4u-status-row').classList.remove('show');
   document.getElementById('agg-status-row').classList.remove('show');
+  document.getElementById('nn-status-row').classList.remove('show');
 
   if(src==='hianime'){hiRow.classList.add('show');qRow.style.display='none';renderHiList();}
   else if(src==='m4uhd'){hiRow.classList.remove('show');qRow.style.display='none';const hasM4U=playerMediaType==='movie'?!!m4uMovieEntry:!!m4uSeriesEntry;if(hasM4U)setM4UStatus(`✓ Found`,true);else setM4UStatus('Not in M4UHD library',false);document.getElementById('m4u-status-row').classList.add('show');renderM4UList();}
   else if(src==='animegg'){hiRow.classList.remove('show');qRow.style.display='none';if(animeggEntry)setAGGStatus(`✓ Found: ${animeggEntry.title}`,true);else setAGGStatus('Not in AnimeGG library',false);document.getElementById('agg-status-row').classList.add('show');renderAnimeGGList();}
+  else if(src==='netnaija'){hiRow.classList.remove('show');qRow.style.display='none';document.getElementById('nn-status-row').classList.add('show');renderNNList();}
   else{hiRow.classList.remove('show');qRow.style.display='';renderACList();}
 }
 
@@ -1614,6 +1660,7 @@ function updateSrcTabOpacity(){
   const hasM4U=playerMediaType==='movie'?!!m4uMovieEntry:!!m4uSeriesEntry;
   document.getElementById('tab-m4u').style.opacity=hasM4U?'1':'0.4';
   // AnimeGG tab opacity updated in fetchAnimeGGForCurrentMedia
+  // NetNaija tab opacity updated in fetchNNForCurrentMedia
 }
 
 function renderACList(){
@@ -1694,6 +1741,127 @@ function cancelAN(){
   clearInterval(anTimer);anTimer=null;
   const ov=document.getElementById('an-overlay');if(ov)ov.style.display='none';
   stopEndWatch();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NETNAIJA STREAM FETCH
+// ═══════════════════════════════════════════════════════════
+const NN_BASE = 'https://netnaijaiflim-zxnp67sy9betmcfjekhyxv.streamlit.app/';
+const NN_CORS = 'https://api.allorigins.win/get?url=';
+
+async function fetchNetNaijaStreams(tmdbId, mediaType, ep) {
+  nnStreams = []; nnActiveUrl = null;
+  if (!tmdbId) return [];
+  const type = mediaType === 'movie' ? 'movie' : 'tv';
+  let url = `${NN_BASE}?type=${type}&id=${tmdbId}`;
+  if (type === 'tv') url += `&season=1&episode=${ep||1}`;
+  try {
+    const res = await fetch(`${NN_CORS}${encodeURIComponent(url)}`);
+    if (!res.ok) throw new Error('CORS proxy failed');
+    const data = await res.json();
+    const html = data.contents || '';
+    nnStreams = parseNNStreamCards(html);
+    return nnStreams;
+  } catch(e) {
+    console.log('[NetNaija] Error:', e);
+    return [];
+  }
+}
+
+function parseNNStreamCards(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const cards = doc.querySelectorAll('.stream-card');
+  const results = [];
+  cards.forEach(card => {
+    const typeEl = card.querySelector('.stream-key');
+    const urlEl = card.querySelector('.stream-url');
+    const badges = Array.from(card.querySelectorAll('.res-badge')).map(b => b.textContent.trim());
+    if (urlEl) {
+      results.push({
+        type: typeEl ? typeEl.textContent.trim() : '🎬 STREAM',
+        badges,
+        url: urlEl.textContent.trim()
+      });
+    }
+  });
+  return results;
+}
+
+function setNNStatus(text, found) {
+  const row = document.getElementById('nn-status-row');
+  const span = document.getElementById('nn-status-text');
+  if (!text) { row.classList.remove('show'); return; }
+  span.textContent = text;
+  row.classList.add('show');
+  row.style.background = found ? 'rgba(52,211,153,.08)' : 'rgba(155,155,180,.08)';
+  row.style.borderColor = found ? 'rgba(52,211,153,.25)' : 'rgba(155,155,180,.25)';
+  row.style.color = found ? 'var(--green)' : 'var(--text2)';
+}
+
+async function fetchNNForCurrentMedia() {
+  if (!playerTmdbId) { setNNStatus('No TMDB ID available', false); return; }
+  nnLoading = true; nnStreams = [];
+  setNNStatus('Fetching streams…', false);
+  document.getElementById('tab-nn').style.opacity = '0.5';
+  const streams = await fetchNetNaijaStreams(playerTmdbId, playerMediaType, playerEp);
+  nnLoading = false;
+  if (streams.length) {
+    setNNStatus(`✓ ${streams.length} stream${streams.length!==1?'s':''} found`, true);
+    document.getElementById('tab-nn').style.opacity = '1';
+  } else {
+    setNNStatus('No streams found on NetNaija', false);
+    document.getElementById('tab-nn').style.opacity = '0.4';
+  }
+  if (activeSrc === 'netnaija') renderNNList();
+}
+
+function renderNNList() {
+  const list = document.getElementById('srv-list-inner');
+  const qRow = document.getElementById('qual-row');
+  qRow.innerHTML = ''; qRow.style.display = 'none'; list.innerHTML = '';
+  document.getElementById('hi-subsrc-row').classList.remove('show');
+  document.getElementById('srv-loading').classList.remove('show');
+  document.getElementById('nn-status-row').classList.add('show');
+
+  if (nnLoading) {
+    list.innerHTML = `<div class="nn-loading"><div class="spin-sm-green"></div> Fetching NetNaija streams…</div>`;
+    return;
+  }
+  if (!nnStreams.length) {
+    list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:8px 0;line-height:1.7">No streams found on NetNaija for this title.<br><span style="font-size:11px;color:var(--text3)">Try other sources above.</span></div>`;
+    return;
+  }
+
+  nnStreams.forEach((stream, i) => {
+    const card = document.createElement('div');
+    card.className = 'nn-stream-card' + (nnActiveUrl === stream.url ? ' active' : '');
+    const badgesHtml = stream.badges.map(b => `<span class="nn-badge">${b}</span>`).join('');
+    card.innerHTML = `
+      <div class="nn-card-header">
+        <span class="nn-card-type">${stream.type}</span>
+        <div class="nn-badges">${badgesHtml}</div>
+      </div>
+      <div class="nn-url">${stream.url}</div>
+      <button class="nn-play-btn" onclick="playNNStream(${i})">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Play Stream
+      </button>`;
+    list.appendChild(card);
+  });
+
+  // Auto-play first stream
+  if (!nnActiveUrl && nnStreams.length) playNNStream(0);
+}
+
+function playNNStream(idx) {
+  const stream = nnStreams[idx];
+  if (!stream) return;
+  nnActiveUrl = stream.url;
+  // Update active state visually
+  document.querySelectorAll('.nn-stream-card').forEach((c, i) => c.classList.toggle('active', i === idx));
+  // Load the direct MP4/stream URL in the plain iframe (no sandboxing needed for direct media)
+  loadIframe(stream.url, false);
 }
 
 // ═══════════════════════════════════════════════════════════
