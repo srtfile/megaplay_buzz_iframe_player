@@ -344,6 +344,18 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
 .srv-item.agg:hover  { border-color: var(--teal); background: rgba(34,211,238,.1); }
 .srv-item.agg.active { border-color: var(--teal); background: rgba(34,211,238,.18); color: var(--text); }
 .srv-item.agg.active .srv-badge-sm { background: var(--teal); color: #000; }
+/* AniDB server style */
+#tab-anidb.active { background: var(--green); color: #000; }
+.srv-item.adb:hover  { border-color: var(--green); background: rgba(52,211,153,.1); }
+.srv-item.adb.active { border-color: var(--green); background: rgba(52,211,153,.18); color: var(--text); }
+.srv-item.adb.active .srv-badge-sm { background: var(--green); color: #000; }
+#anidb-status-row {
+  display: none; align-items: center; gap: 6px;
+  padding: 6px 8px; border-radius: 8px;
+  background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.25);
+  margin-bottom: 8px; font-size: 11px; color: var(--green); font-weight: 600;
+}
+#anidb-status-row.show { display: flex; }
 .srv-badge-sm { font-size: 9px; padding: 2px 6px; border-radius: 8px; background: var(--bg4); color: var(--text3); font-weight: 700; }
 .srv-item.active .srv-badge-sm { background: var(--accent); color: #fff; }
 .srv-item.hi.active .srv-badge-sm { background: var(--pink); color: #fff; }
@@ -651,6 +663,7 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
       <button class="src-t active" id="tab-ac"  onclick="switchSrc('anisantch')">AnisantCH</button>
       <button class="src-t"        id="tab-hi"  onclick="switchSrc('hianime')">🌸 HiAnime</button>
       <button class="src-t"        id="tab-agg" onclick="switchSrc('animegg')">🥚 AnimeGG</button>
+      <button class="src-t"        id="tab-anidb" onclick="switchSrc('anidb')">📺 AniDB</button>
       <button class="src-t"        id="tab-m4u" onclick="switchSrc('m4uhd')">🎬 M4UHD</button>
       <button class="src-t"        id="tab-sflix" onclick="switchSrc('sflix')" style="display:none">🎬 SFlixAPI</button>
     </div>
@@ -663,6 +676,11 @@ html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Int
     <div id="agg-status-row">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span id="agg-status-text">Checking AnimeGG library…</span>
+    </div>
+
+    <div id="anidb-status-row">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="anidb-status-text">Checking AniDB library…</span>
     </div>
 
     <div id="sflix-status-row" style="display:none;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);margin-bottom:8px;font-size:11px;color:var(--green);font-weight:600">
@@ -709,6 +727,9 @@ const HIANIME_FILES = Array.from({length:37},(_,i)=>i===0?'hianime_streams_list.
 // AnimeGG — 20 files
 const ANIMEGG_BASE  = 'https://raw.githubusercontent.com/dokkarrr/final_animgeg_embed-scraper/refs/heads/main/output/';
 const ANIMEGG_FILES = Array.from({length:20},(_,i)=>i===0?'animegg_series.json':`animegg_series${i+1}.json`);
+
+// AniDB embeds — single batch file
+const ANIDB_URL = 'https://raw.githubusercontent.com/ytbro8326-sudo/anidb_stream_urls/refs/heads/main/anidb_embeds_batch.json';
 
 const HI_SS         = ['streamhg','earnvids','doodstream','vivibebe','bibiemb'];
 const Q_TIERS       = [360,480,720,1080];
@@ -768,6 +789,11 @@ let _m4uMoviesProm  = null;
 let animeggEntry    = null;
 let _animeggCache   = null;
 let _animeggProm    = null;
+
+// AniDB state
+let anidbEntry      = null;
+let _anidbCache     = null;
+let _anidbProm      = null;
 
 // SFlixAPI state
 let sflixStreams    = null;
@@ -867,6 +893,137 @@ function getAnimeGGUrl(entry, ep, lang) {
   if (!epObj) return null;
   return lang === 'sub' ? (epObj.sub || epObj.dub || null)
                         : (epObj.dub || epObj.sub || null);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ANIDB DATA LOADER
+// ═══════════════════════════════════════════════════════════
+async function loadAniDB() {
+  if (_anidbCache) return _anidbCache;
+  if (_anidbProm)  return _anidbProm;
+  _anidbProm = fetch(ANIDB_URL)
+    .then(r => r.ok ? r.json() : [])
+    .catch(() => [])
+    .then(data => {
+      _anidbCache = Array.isArray(data) ? data : [];
+      _anidbProm  = null;
+      console.log(`[AniDB] Loaded ${_anidbCache.length} entries`);
+      return _anidbCache;
+    });
+  return _anidbProm;
+}
+
+async function fetchAniDBEntry(malId) {
+  if (!malId) return null;
+  const mid = String(parseInt(malId, 10));
+  const all  = await loadAniDB();
+  // Match by MAL URL containing the MAL ID
+  return all.find(e => {
+    if (!e.mal) return false;
+    const m = e.mal.match(/\/anime\/(\d+)/);
+    return m && m[1] === mid;
+  }) || null;
+}
+
+function getAniDBUrl(entry, ep, lang) {
+  if (!entry) return null;
+  const epN = parseInt(ep, 10);
+  const key  = lang === 'sub' ? `embed_sub_ep_${epN}` : `embed_dub_ep_${epN}`;
+  // fallback: try other lang if preferred not found
+  return entry[key] || entry[`embed_sub_ep_${epN}`] || entry[`embed_dub_ep_${epN}`] || null;
+}
+
+function setAniDBStatus(text, found) {
+  const row  = document.getElementById('anidb-status-row');
+  const span = document.getElementById('anidb-status-text');
+  if (!text) { row.classList.remove('show'); return; }
+  span.textContent = text;
+  row.classList.add('show');
+  row.style.background  = found ? 'rgba(52,211,153,.08)'  : 'rgba(155,155,180,.08)';
+  row.style.borderColor = found ? 'rgba(52,211,153,.25)'  : 'rgba(155,155,180,.25)';
+  row.style.color       = found ? 'var(--green)'          : 'var(--text2)';
+}
+
+async function fetchAniDBForCurrentMedia() {
+  if (!playerIsAnimation || !playerMalId) return;
+  anidbEntry = null;
+  setAniDBStatus('Checking AniDB library…', false);
+  try {
+    const entry = await fetchAniDBEntry(playerMalId);
+    anidbEntry = entry;
+    if (entry) {
+      setAniDBStatus(`✓ Found: Serial #${entry.serial_no}`, true);
+      document.getElementById('tab-anidb').style.opacity = '1';
+      if (activeSrc === 'anidb') renderAniDBList();
+    } else {
+      setAniDBStatus('Not in AniDB batch library', false);
+    }
+  } catch(e) {
+    console.log('[AniDB] error:', e);
+    setAniDBStatus('AniDB lookup failed', false);
+  }
+}
+
+function renderAniDBList() {
+  const list = document.getElementById('srv-list-inner');
+  const qRow = document.getElementById('qual-row');
+  qRow.innerHTML = ''; qRow.style.display = 'none'; list.innerHTML = '';
+  document.getElementById('hi-subsrc-row').classList.remove('show');
+  document.getElementById('srv-loading').classList.remove('show');
+
+  if (!anidbEntry) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--text2);padding:8px 0;line-height:1.6">No AniDB streams for this title.<br><span style="font-size:11px;color:var(--text3)">Try AnisantCH or HiAnime.</span></div>';
+    return;
+  }
+
+  const epN   = parseInt(playerEp, 10);
+  const prefer = playerLang;
+  const keys  = prefer === 'sub'
+    ? [`embed_sub_ep_${epN}`, `embed_dub_ep_${epN}`]
+    : [`embed_dub_ep_${epN}`, `embed_sub_ep_${epN}`];
+
+  const srvs = [];
+  keys.forEach(k => {
+    if (anidbEntry[k]) {
+      const isDub = k.includes('_dub_');
+      srvs.push({
+        key:    `anidb_${k}`,
+        label:  isDub ? 'AniDB DUB' : 'AniDB SUB',
+        badge:  'AniDB',
+        url:    anidbEntry[k],
+        source: 'anidb',
+        lang:   isDub ? 'dub' : 'sub',
+        adBlock: false
+      });
+    }
+  });
+
+  if (!srvs.length) {
+    list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:6px 0">No AniDB streams for Episode ${epN}.</div>`;
+    return;
+  }
+
+  srvs.forEach((srv, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'srv-item adb' + (i === 0 ? ' active' : '');
+    btn.innerHTML = `<span>${srv.label}</span><span class="srv-badge-sm">AniDB</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('.srv-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeServer = srv;
+      prefSrvKey = srv.key;
+      playAniDBSrv(srv);
+    };
+    list.appendChild(btn);
+    if (i === 0) activeServer = srv;
+  });
+  if (srvs[0]) playAniDBSrv(srvs[0]);
+}
+
+function playAniDBSrv(srv) {
+  if (!srv?.url) return;
+  loadIframe(srv.url, false);
+  watchEnd(document.getElementById('pf-sb'), playerMalId, playerEp, playerLang);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1240,7 +1397,7 @@ function startWatch(show,ep,lang){
   document.getElementById('view-player').classList.add('active');document.getElementById('view-home').classList.add('hidden');
   document.getElementById('player-show-title').textContent=playerTitle;document.getElementById('player-ep-label').textContent=`Episode ${ep}`;
   document.getElementById('pl-dub').classList.toggle('active',lang==='dub');document.getElementById('pl-sub').classList.toggle('active',lang==='sub');
-  m4uSeriesEntry=null;m4uMovieEntry=null;animeggEntry=null;sflixStreams=null;
+  m4uSeriesEntry=null;m4uMovieEntry=null;animeggEntry=null;anidbEntry=null;sflixStreams=null;
   loadEpisode(playerMalId,ep,lang,playerImdbId);
 }
 
@@ -1251,6 +1408,7 @@ function goHome(){
   document.getElementById('player-ph').style.display='flex';closeSrvPanel();
   document.getElementById('tab-m4u').style.opacity='1';document.getElementById('m4u-status-row').classList.remove('show');
   document.getElementById('tab-agg').style.opacity='1';document.getElementById('agg-status-row').classList.remove('show');
+  document.getElementById('tab-anidb').style.opacity='0.4';document.getElementById('anidb-status-row').classList.remove('show');anidbEntry=null;
   document.getElementById('tab-sflix').style.opacity='1';document.getElementById('tab-sflix').style.display='none';document.getElementById('sflix-status-row').style.display='none';
   hideSFlixVideo();sflixStreams=null;
 }
@@ -1277,6 +1435,7 @@ async function loadEpisode(malId,ep,lang,imdbId=undefined){
   document.getElementById('player-ep-label').textContent=`Episode ${ep}`;
   setM4UStatus('',false);document.getElementById('tab-m4u').style.opacity='0.4';
   setAGGStatus('',false);document.getElementById('tab-agg').style.opacity='0.4';
+  setAniDBStatus('',false);document.getElementById('tab-anidb').style.opacity='0.4';
 
   if(!playerIsAnimation){
     serverData=[];hianimeEntry=null;animeggEntry=null;sflixStreams=null;
@@ -1303,7 +1462,8 @@ async function loadEpisode(malId,ep,lang,imdbId=undefined){
     fetchHiEntry(malId,ep),
     fetchSkipTimes(malId,ep),
     fetchM4UForCurrentMedia(),
-    fetchAnimeGGForCurrentMedia()
+    fetchAnimeGGForCurrentMedia(),
+    fetchAniDBForCurrentMedia()
   ]);
 
   document.getElementById('srv-loading').classList.remove('show');
@@ -1610,18 +1770,21 @@ function switchSrc(src){
   document.getElementById('tab-ac').classList.toggle('active',src==='anisantch');
   document.getElementById('tab-hi').classList.toggle('active',src==='hianime');
   document.getElementById('tab-agg').classList.toggle('active',src==='animegg');
+  document.getElementById('tab-anidb').classList.toggle('active',src==='anidb');
   document.getElementById('tab-m4u').classList.toggle('active',src==='m4uhd');
   document.getElementById('tab-sflix').classList.toggle('active',src==='sflix');
   const hiRow=document.getElementById('hi-subsrc-row');const qRow=document.getElementById('qual-row');
 
   document.getElementById('m4u-status-row').classList.remove('show');
   document.getElementById('agg-status-row').classList.remove('show');
+  document.getElementById('anidb-status-row').classList.remove('show');
   document.getElementById('sflix-status-row').style.display='none';
   if(src!=='sflix')hideSFlixVideo();
 
   if(src==='hianime'){hiRow.classList.add('show');qRow.style.display='none';renderHiList();}
   else if(src==='m4uhd'){hiRow.classList.remove('show');qRow.style.display='none';const hasM4U=playerMediaType==='movie'?!!m4uMovieEntry:!!m4uSeriesEntry;if(hasM4U)setM4UStatus(`✓ Found`,true);else setM4UStatus('Not in M4UHD library',false);document.getElementById('m4u-status-row').classList.add('show');renderM4UList();}
   else if(src==='animegg'){hiRow.classList.remove('show');qRow.style.display='none';if(animeggEntry)setAGGStatus(`✓ Found: ${animeggEntry.title}`,true);else setAGGStatus('Not in AnimeGG library',false);document.getElementById('agg-status-row').classList.add('show');renderAnimeGGList();}
+  else if(src==='anidb'){hiRow.classList.remove('show');qRow.style.display='none';if(anidbEntry)setAniDBStatus(`✓ Found: Serial #${anidbEntry.serial_no}`,true);else setAniDBStatus('Not in AniDB batch library',false);document.getElementById('anidb-status-row').classList.add('show');renderAniDBList();}
   else if(src==='sflix'){hiRow.classList.remove('show');qRow.style.display='none';document.getElementById('sflix-status-row').style.display='flex';renderSFlixList();}
   else{hiRow.classList.remove('show');qRow.style.display='';renderACList();}
 }
@@ -1633,6 +1796,7 @@ function setHiSS(ss){
 function updateSrcTabOpacity(){
   document.getElementById('tab-ac').style.opacity=serverData.length?'1':'0.4';
   document.getElementById('tab-hi').style.opacity=hianimeEntry?'1':'0.4';
+  document.getElementById('tab-anidb').style.opacity=anidbEntry?'1':'0.4';
   const hasM4U=playerMediaType==='movie'?!!m4uMovieEntry:!!m4uSeriesEntry;
   document.getElementById('tab-m4u').style.opacity=hasM4U?'1':'0.4';
 }
