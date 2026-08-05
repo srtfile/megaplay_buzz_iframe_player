@@ -1515,6 +1515,8 @@ async function loadEpisode(malId,ep,lang,imdbId=undefined){
 // ═══════════════════════════════════════════════════════════
 async function fetchAnimeGGForCurrentMedia(){
   if(!playerIsAnimation||!playerMalId) return;
+  // FlixLoud is always available for anime — tab stays active regardless of AnimeGG match
+  document.getElementById('tab-agg').style.opacity='1';
   try{
     const entry=await fetchAnimeGGEntry(playerMalId);
     animeggEntry=entry;
@@ -1522,17 +1524,16 @@ async function fetchAnimeGGForCurrentMedia(){
       const url=getAnimeGGUrl(entry,playerEp,playerLang);
       if(url){
         console.log(`[AnimeGG] Match: "${entry.title}" ep${playerEp} ${playerLang}`);
-        setAGGStatus(`✓ Found: ${entry.title}`,true);
-        document.getElementById('tab-agg').style.opacity='1';
+        setAGGStatus(`✓ AnimeGG + FlixLoud`,true);
         if(entry.total_ep&&entry.total_ep>playerTotal)playerTotal=entry.total_ep;
-        if(activeSrc==='animegg')renderAnimeGGList();
       } else {
-        setAGGStatus(`Found series, ep ${playerEp} not available`,false);
+        setAGGStatus(`FlixLoud available · ep ${playerEp} not in AnimeGG`,true);
       }
     } else {
-      setAGGStatus('Not in AnimeGG library',false);
+      setAGGStatus('FlixLoud available · Not in AnimeGG library',true);
     }
-  }catch(e){console.log('[AnimeGG] error:',e);setAGGStatus('AnimeGG lookup failed',false);}
+    if(activeSrc==='animegg')renderAnimeGGList();
+  }catch(e){console.log('[AnimeGG] error:',e);setAGGStatus('FlixLoud available',true);}
 }
 
 function setAGGStatus(text,found){
@@ -1553,27 +1554,30 @@ function renderAnimeGGList(){
   document.getElementById('hi-subsrc-row').classList.remove('show');
   document.getElementById('srv-loading').classList.remove('show');
 
-  if(!animeggEntry){
-    list.innerHTML=`<div style="font-size:12px;color:var(--text2);padding:8px 0;line-height:1.6">No AnimeGG data for this title.<br><span style="font-size:11px;color:var(--text3)">Try AnisantCH or HiAnime sources.</span></div>`;
-    return;
+  const srvs=[];
+
+  // AnimeGG streams (if entry exists for this episode)
+  if(animeggEntry){
+    const epObj=animeggEntry.episodes?.find(e=>parseInt(e.ep,10)===parseInt(playerEp,10));
+    if(epObj){
+      if(epObj.dub) srvs.push({key:`agg_ep${playerEp}_dub`,label:'AnimeGG DUB',badge:'AnimeGG',url:epObj.dub,source:'animegg',lang:'dub',adBlock:false});
+      if(epObj.sub) srvs.push({key:`agg_ep${playerEp}_sub`,label:'AnimeGG SUB',badge:'AnimeGG',url:epObj.sub,source:'animegg',lang:'sub',adBlock:false});
+    }
   }
 
-  const srvs=[];const epObj=animeggEntry.episodes?.find(e=>parseInt(e.ep,10)===parseInt(playerEp,10));
-  if(!epObj){
-    const maxEp=animeggEntry.total_ep||animeggEntry.episodes?.length||1;
-    list.innerHTML=`<div style="font-size:12px;color:var(--text2);padding:6px 0;line-height:1.6">Episode ${playerEp} not in AnimeGG.<br><span style="font-size:11px;color:var(--text3)">Available: ${maxEp} episode${maxEp!==1?'s':''}.</span></div>`;
+  // FlixLoud — always available for any anime with a MAL ID
+  if(playerMalId) srvs.push({key:`flixloud_ep${playerEp}`,label:'FlixLoud',badge:'FlixLoud',url:`https://donkarboy.github.io/flixloud/${playerMalId}/${playerEp}`,source:'animegg',lang:playerLang,adBlock:false,isFlixLoud:true});
+
+  if(!srvs.length){
+    list.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 0">No AnimeGG streams for this episode.</div>';
     return;
   }
-
-  if(epObj.dub) srvs.push({key:`agg_ep${playerEp}_dub`,label:'AnimeGG DUB',badge:'AnimeGG',url:epObj.dub,source:'animegg',lang:'dub',adBlock:false});
-  if(epObj.sub) srvs.push({key:`agg_ep${playerEp}_sub`,label:'AnimeGG SUB',badge:'AnimeGG',url:epObj.sub,source:'animegg',lang:'sub',adBlock:false});
-
-  if(!srvs.length){list.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 0">No AnimeGG streams for this episode.</div>';return;}
 
   const prefer=playerLang;const di=Math.max(0,srvs.findIndex(s=>s.lang===prefer));
   srvs.forEach((srv,i)=>{
-    const btn=document.createElement('button');btn.className='srv-item agg'+(i===di?' active':'');
-    btn.innerHTML=`<span>${srv.label}</span><span class="srv-badge-sm">AnimeGG</span>`;
+    const btn=document.createElement('button');
+    btn.className='srv-item agg'+(i===di?' active':'');
+    btn.innerHTML=`<span>${srv.label}</span><span class="srv-badge-sm">${srv.badge}</span>`;
     btn.onclick=()=>{document.querySelectorAll('.srv-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeServer=srv;prefSrvKey=srv.key;playAnimeGGSrv(srv);};
     list.appendChild(btn);if(i===di)activeServer=srv;
   });
@@ -1818,6 +1822,8 @@ function setHiSS(ss){
 function updateSrcTabOpacity(){
   document.getElementById('tab-ac').style.opacity=serverData.length?'1':'0.4';
   document.getElementById('tab-hi').style.opacity=hianimeEntry?'1':'0.4';
+  // tab-agg always full opacity for animation (FlixLoud always available)
+  document.getElementById('tab-agg').style.opacity=playerIsAnimation&&playerMalId?'1':'0.4';
   document.getElementById('tab-anidb').style.opacity=anidbEntry?'1':'0.4';
   const hasM4U=playerMediaType==='movie'?!!m4uMovieEntry:!!m4uSeriesEntry;
   document.getElementById('tab-m4u').style.opacity=hasM4U?'1':'0.4';
