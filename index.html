@@ -1022,8 +1022,26 @@ function renderAniDBList() {
 
 function playAniDBSrv(srv) {
   if (!srv?.url) return;
-  loadIframe(srv.url, false);
-  watchEnd(document.getElementById('pf-sb'), playerMalId, playerEp, playerLang);
+  // AniDB blocks iframes — open in new tab
+  const list = document.getElementById('srv-list-inner');
+  // Show a prompt card in the player area
+  ['pf-plain','pf-sb','pf-adblock'].forEach(id=>{const f=document.getElementById(id);f.style.display='none';f.src='about:blank';});
+  hideSFlixVideo();
+  const ph = document.getElementById('player-ph');
+  ph.style.display = 'flex';
+  ph.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px;text-align:center;max-width:320px">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/></svg>
+      <div style="font-size:15px;font-weight:700;color:var(--text)">AniDB Embed</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6">AniDB blocks iframe embedding.<br>Click below to open the stream in a new tab.</div>
+      <a href="${srv.url}" target="_blank" rel="noopener noreferrer"
+         style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:700;text-decoration:none;transition:background .2s"
+         onmouseover="this.style.background='#5850e0'" onmouseout="this.style.background='var(--accent)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Stream
+      </a>
+      <div style="font-size:11px;color:var(--text3)">${srv.lang?.toUpperCase() || ''} · Episode ${playerEp}</div>
+    </div>`;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1780,6 +1798,10 @@ function switchSrc(src){
   document.getElementById('anidb-status-row').classList.remove('show');
   document.getElementById('sflix-status-row').style.display='none';
   if(src!=='sflix')hideSFlixVideo();
+
+  // Reset player placeholder if it was replaced by AniDB card
+  const ph=document.getElementById('player-ph');
+  if(ph.querySelector('a'))ph.innerHTML='<div class="loading-spin"></div>';
 
   if(src==='hianime'){hiRow.classList.add('show');qRow.style.display='none';renderHiList();}
   else if(src==='m4uhd'){hiRow.classList.remove('show');qRow.style.display='none';const hasM4U=playerMediaType==='movie'?!!m4uMovieEntry:!!m4uSeriesEntry;if(hasM4U)setM4UStatus(`✓ Found`,true);else setM4UStatus('Not in M4UHD library',false);document.getElementById('m4u-status-row').classList.add('show');renderM4UList();}
