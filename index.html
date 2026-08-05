@@ -1556,6 +1556,9 @@ function renderAnimeGGList(){
 
   const srvs=[];
 
+  // FlixLoud — first, always available for any anime with a MAL ID, uses adblock sandbox
+  if(playerMalId) srvs.push({key:`flixloud_ep${playerEp}`,label:'FlixLoud',badge:'FlixLoud',url:`https://donkarboy.github.io/flixloud/${playerMalId}/${playerEp}`,source:'animegg',lang:playerLang,adBlock:true,isFlixLoud:true});
+
   // AnimeGG streams (if entry exists for this episode)
   if(animeggEntry){
     const epObj=animeggEntry.episodes?.find(e=>parseInt(e.ep,10)===parseInt(playerEp,10));
@@ -1564,9 +1567,6 @@ function renderAnimeGGList(){
       if(epObj.sub) srvs.push({key:`agg_ep${playerEp}_sub`,label:'AnimeGG SUB',badge:'AnimeGG',url:epObj.sub,source:'animegg',lang:'sub',adBlock:false});
     }
   }
-
-  // FlixLoud — always available for any anime with a MAL ID
-  if(playerMalId) srvs.push({key:`flixloud_ep${playerEp}`,label:'FlixLoud',badge:'FlixLoud',url:`https://donkarboy.github.io/flixloud/${playerMalId}/${playerEp}`,source:'animegg',lang:playerLang,adBlock:false,isFlixLoud:true});
 
   if(!srvs.length){
     list.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 0">No AnimeGG streams for this episode.</div>';
@@ -1584,7 +1584,7 @@ function renderAnimeGGList(){
   if(srvs[di])playAnimeGGSrv(srvs[di]);
 }
 
-// Uses pf-plain (no sandbox) for AnimeGG
+// Uses pf-plain for AnimeGG, pf-adblock for FlixLoud
 function playAnimeGGSrv(srv){
   if(!srv?.url) return;
   const plain=document.getElementById('pf-plain');
@@ -1595,9 +1595,15 @@ function playAnimeGGSrv(srv){
   plain.style.display='none';plain.src='about:blank';
   sb.style.display='none';sb.src='about:blank';
   adblock.style.display='none';adblock.src='about:blank';
-  plain.src=srv.url;
-  plain.style.display='block';
-  watchEnd(plain,playerMalId,playerEp,playerLang);
+  if(srv.adBlock){
+    adblock.src=srv.url;
+    adblock.style.display='block';
+    watchEnd(adblock,playerMalId,playerEp,playerLang);
+  } else {
+    plain.src=srv.url;
+    plain.style.display='block';
+    watchEnd(plain,playerMalId,playerEp,playerLang);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
